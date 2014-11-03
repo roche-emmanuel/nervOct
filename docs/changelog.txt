@@ -3,3 +3,4 @@
 - Initial commit of sgtCore.
 - Built sgtCore library.
 - Added nervMBP project.
+- Added test for sgtcore library.

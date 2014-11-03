@@ -14,6 +14,7 @@
 #ifndef SGT_QUAT
 #define SGT_QUAT 1
 
+#include <sgtcore.h>
 #include <sgt/math/Vec3f.h>
 #include <sgt/math/Vec4f.h>
 #include <sgt/math/Vec3d.h>

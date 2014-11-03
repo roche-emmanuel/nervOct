@@ -4,8 +4,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <sgtmx.h>
-
 #include <sgt/math.h>
 
 using namespace sgt;
