@@ -1,2 +1,6 @@
 # ignore log files:
 *.log
+
+# ignore all the bin files:
+bin/*
+lib/*

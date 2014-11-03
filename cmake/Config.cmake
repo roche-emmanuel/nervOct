@@ -1,6 +1,6 @@
 SET(DEPS_DIR "W:/Cloud/Dev/Deps" CACHE STRING "Folder containing all the needed dependencies")
 SET(TOOLS_DIR "W:/Cloud/Dev/Common/Tools/win32" CACHE STRING "Folder containing all the needed dev tools")
-SET(CMAKE_INSTALL_PREFIX "W:/Cloud/Projects/mxsight/software" CACHE STRING "Installation folder" FORCE)
+SET(CMAKE_INSTALL_PREFIX "W:/Cloud/Projects/nervtech" CACHE STRING "Installation folder" FORCE)
 
 SET(UPX_DIR "${TOOLS_DIR}/upx-3.91" CACHE STRING "Path where upx.exe can be found")
 SET(DOT_DIR "${TOOLS_DIR}/GraphViz-2.28.0/bin" CACHE STRING "Path where dot.exe can be found")
@@ -17,21 +17,7 @@ SET(DEP_FLAVOR "${FLAVOR}")
 ENDIF()
 
 SET(DEP_BOOST ${DEPS_DIR}/${DEP_FLAVOR}/boost-1.56.0 CACHE STRING "boost path")
-# SET(DEP_LUA ${DEPS_DIR}/${FLAVOR}/LuaJIT-2.0.1 CACHE STRING "lua path")
-
 SET(DEP_DX ${DEPS_DIR}/${DEP_FLAVOR}/DXSDK-June2010 CACHE STRING "directx path")
-SET(DEP_FUSION ${DEPS_DIR}/${DEP_FLAVOR}/VBSFusion-3.4 CACHE STRING "fusion path")
-
-# SET_DEFAULT(DEP_LUNA sgtLuna-0.2.0)
-# SET_DEFAULT(DEP_DX DXSDK-June2010)
-# SET_DEFAULT(DEP_WX wxWidgets-2.9.3-static)
-# SET_DEFAULT(DEP_OSG OpenSceneGraph-3.1.5)
-# SET_DEFAULT(DEP_GEOLIB GeographicLib-1.21)
-# SET_DEFAULT(DEP_NOISE libnoise-1.0.0)
-# SET_DEFAULT(DEP_OPENCV OpenCV-2.4.0)
-# SET_DEFAULT(DEP_KALMAN kalman-1.3)
-# SET_DEFAULT(DEP_CRYPTOPP cryptopp-5.6.2)
-# SET_DEFAULT(DEP_NVIDIASDISDK "NVIDIA Quadro SDI Video SDK for DirectX v0.9.5")
 
 # Include the macro definitions:
 INCLUDE(cmake/Macros.cmake)
@@ -56,11 +42,6 @@ SET(BOOST_INC_DIR 	${DEP_BOOST}/include)
 SET(BOOST_LIB_DIR 	${DEP_BOOST}/lib/${ARCHMODEL})
 SET(BOOST_LIBS 		)
 
-SET(FUSION_INC_DIR  ${DEP_FUSION}/includes/VBSFusion ${DEP_FUSION}/includes/VBSFusionDraw)
-SET(FUSION_LIB_DIR 	${DEP_FUSION}/libs/${ARCHMODEL})
-SET(FUSION_LIBS 	VBSFusion_2010 VBSFusionDraw_2010)
-SET(FUSION_ENCRYPTER "${DEP_FUSION}/Tools/dllEncrypter/${ARCHMODEL}/Crypt_SIMCT.exe" CACHE STRING "Encrypter used to generate .fusion files" FORCE)
-
-SET(DX_INC_DIR 	${DEP_DX}/Include)
-SET(DX_LIB_DIR 	${DEP_DX}/Lib/${ARCHMODEL})
-SET(DX_LIBS 	d3dx11.lib d3dx9.lib DxErr.lib)
+# SET(DX_INC_DIR 	${DEP_DX}/Include)
+# SET(DX_LIB_DIR 	${DEP_DX}/Lib/${ARCHMODEL})
+# SET(DX_LIBS 	d3dx11.lib d3dx9.lib DxErr.lib)
