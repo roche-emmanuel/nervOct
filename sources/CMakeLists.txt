@@ -5,4 +5,5 @@ ADD_SUBDIRECTORY(sgtCore)
 ADD_SUBDIRECTORY(test_sgtcore)
 
 ADD_SUBDIRECTORY(nervMBP)
+ADD_SUBDIRECTORY(test_nervmbp)
 

@@ -1,4 +1,5 @@
 SET(DEPS_DIR "W:/Cloud/Dev/Deps" CACHE STRING "Folder containing all the needed dependencies")
+SET(LOCAL_DEPS_DIR "X:/Station" CACHE STRING "Folder containing the local dependencies")
 SET(TOOLS_DIR "W:/Cloud/Dev/Common/Tools/win32" CACHE STRING "Folder containing all the needed dev tools")
 SET(CMAKE_INSTALL_PREFIX "W:/Cloud/Projects/nervtech" CACHE STRING "Installation folder" FORCE)
 
@@ -18,6 +19,8 @@ ENDIF()
 
 SET(DEP_BOOST ${DEPS_DIR}/${DEP_FLAVOR}/boost-1.56.0 CACHE STRING "boost path")
 SET(DEP_DX ${DEPS_DIR}/${DEP_FLAVOR}/DXSDK-June2010 CACHE STRING "directx path")
+SET(DEP_CUDA ${LOCAL_DEPS_DIR}/CUDA_Toolkit-6.5 CACHE STRING "CUDA path")
+SET(DEP_GPUMLIB ${LOCAL_DEPS_DIR}/GPUMLib-0.2.3 CACHE STRING "GPUMLib path")
 
 # Include the macro definitions:
 INCLUDE(cmake/Macros.cmake)
@@ -41,6 +44,14 @@ ENDIF()
 SET(BOOST_INC_DIR 	${DEP_BOOST}/include)
 SET(BOOST_LIB_DIR 	${DEP_BOOST}/lib/${ARCHMODEL})
 SET(BOOST_LIBS 		)
+
+SET(CUDA_INC_DIR 	${DEP_CUDA}/include)
+SET(CUDA_LIB_DIR 	${DEP_CUDA}/lib/${ARCHMODEL})
+SET(CUDA_LIBS 		cudart.lib)
+
+SET(GPUMLIB_INC_DIR 	${DEP_GPUMLIB}/src)
+SET(GPUMLIB_LIB_DIR 	${DEP_GPUMLIB}/lib/${ARCHMODEL})
+SET(GPUMLIB_LIBS 			) # GPUMLibMBP.lib
 
 # SET(DX_INC_DIR 	${DEP_DX}/Include)
 # SET(DX_LIB_DIR 	${DEP_DX}/Lib/${ARCHMODEL})

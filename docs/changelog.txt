@@ -4,3 +4,4 @@
 - Built sgtCore library.
 - Added nervMBP project.
 - Added test for sgtcore library.
+- Adding test for nervMBP.
