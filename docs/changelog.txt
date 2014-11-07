@@ -5,3 +5,4 @@
 - Added nervMBP project.
 - Added test for sgtcore library.
 - Adding test for nervMBP.
+- Added CUDA files for nervMBP library.

@@ -24,7 +24,8 @@ NERVMBP_EXPORT void showCudaInfo();
 NERVMBP_EXPORT bool trainBP(const std::vector<int>& lsizes, 
 	int num_inputs, double* inputs,
 	int num_outputs, double* outputs,
-	int num_weights, double* weights);
+	int num_weights, double* weights,
+	double& rms_stop, int max_iter);
 
 };
 
