@@ -7,3 +7,4 @@
 - Adding test for nervMBP.
 - Added CUDA files for nervMBP library.
 - Adding source file for oct_train_bp.
+- Added content from nervtrade project.
