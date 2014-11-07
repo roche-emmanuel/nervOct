@@ -12,3 +12,7 @@ DEFUN_DLD (train_bp, args, nargout,
 
   return octave_value_list ();
 }
+
+/*
+%!test train_bp(1)
+*/

@@ -6,6 +6,7 @@ more off;
 
 % First we add the common location path:
 pname = pwd();
+addpath([pname '/../bin/x86']); %add the binary folder.
 addpath([pname '/common']);
 addpath([pname '/neural']);
 
@@ -60,7 +61,10 @@ addpath([pname '/neural']);
 % fprintf('Testing nnEvaluateNetwork...\n')
 % test nnEvaluateNetwork
 
-fprintf('Testing nnComputeLearningCurves...\n')
-test nnComputeLearningCurves
+% fprintf('Testing nnComputeLearningCurves...\n')
+% test nnComputeLearningCurves
+
+fprintf('Testing train_bp...\n')
+test tests_train_bp;
 
 more on;
