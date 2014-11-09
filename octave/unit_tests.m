@@ -6,6 +6,7 @@ more off;
 
 % First we add the common location path:
 pname = pwd();
+% addpath(['/cygdrive/x/Station/CUDA_Toolkit-6.5/bin']); %add the binary folder.
 addpath([pname '/../bin/x86']); %add the binary folder.
 addpath([pname '/common']);
 addpath([pname '/neural']);
@@ -63,6 +64,9 @@ addpath([pname '/neural']);
 
 % fprintf('Testing nnComputeLearningCurves...\n')
 % test nnComputeLearningCurves
+
+% fprintf('Testing DLL loading...\n')
+% test_load
 
 fprintf('Testing train_bp...\n')
 test tests_train_bp;

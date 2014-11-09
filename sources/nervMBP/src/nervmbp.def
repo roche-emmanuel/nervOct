@@ -1,0 +1,7 @@
+LIBRARY	"nervMBP"
+
+EXPORTS
+
+isCudaSupported		@1
+showCudaInfo			@2
+trainBP						@3

@@ -9,3 +9,4 @@
 - Adding source file for oct_train_bp.
 - Added content from nervtrade project.
 - Adding test support for train_bp.
+- Large refactoring now using Octave 3.8.2-mingw version to get the nervMBP loading properly with GetProcAddress

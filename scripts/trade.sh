@@ -32,7 +32,7 @@ cmdlist)
 	;;
 
 format_date)
-	. ~/cloud/Projects/nervtrade/scripts/trade_utils.sh
+	. "$root_path_nervtech/scripts/trade_utils.sh"
 
 	format_dataset_date "$2"
   ;;

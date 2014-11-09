@@ -11,6 +11,7 @@ bool isCudaSupported()
 {
 	CudaDevice device;
 	return device.SupportsCuda();
+	return true;
 }
 
 void showCudaInfo()
@@ -102,6 +103,7 @@ bool trainBP(const std::vector<int>& lsizes,
 	}
 
 	CHECK_RET(count == num_weights,false,"Invalid number of weights: "<<count<<"!="<<num_weights);
+
 	return true;
 }
 

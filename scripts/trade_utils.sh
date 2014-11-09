@@ -2,7 +2,7 @@
 
 . ~/scripts/libs/base_utils.sh
 
-datapath="$root_path_nervtrade/data"
+datapath="$root_path_nervtech/data"
 
 format_date_cb()
 {

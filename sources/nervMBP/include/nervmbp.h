@@ -18,10 +18,10 @@
 
 extern "C" {
 
-NERVMBP_EXPORT bool isCudaSupported();
-NERVMBP_EXPORT void showCudaInfo();
+bool isCudaSupported();
+void showCudaInfo();
 
-NERVMBP_EXPORT bool trainBP(const std::vector<int>& lsizes, 
+bool trainBP(const std::vector<int>& lsizes, 
 	int num_inputs, double* inputs,
 	int num_outputs, double* outputs,
 	int num_weights, double* weights,
