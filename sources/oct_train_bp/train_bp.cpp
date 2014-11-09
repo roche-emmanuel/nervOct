@@ -139,23 +139,18 @@ DEFUN_DLD (train_bp, args, nargout,
   CHECK(isCudaSupported != NULL,"Cannot find isCudaSupported function");
 
   // // Check that CUDA is supported:
-  if(isCudaSupported()) {
-    logDEBUG("CUDA is supported.");
-  }
-  else {
-    logDEBUG("CUDA is not supported.");
-  }
-
+  CHECK(isCudaSupported(),"CUDA is not supported.");
   typedef void (* ShowInfoFunc)();
 
-  // // We should be able to retrieve the train function:
+#if 0
+  // We should be able to retrieve the train function:
   ShowInfoFunc showInfo = (ShowInfoFunc) GetProcAddress(h, "showCudaInfo");
   CHECK(showInfo != NULL,"Cannot find showCudaInfo function");
 
-  // showInfo();
+  showInfo();
+#endif
 
   CHECK(FreeLibrary(h),"Cannot free nervMBP library.");
-
 
   // Add the weight matrix to the results:
   result.append(weights_mat);
