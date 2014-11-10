@@ -53,6 +53,7 @@ DEFUN_DLD (train_bp, args, nargout,
   Matrix inputs_mat = input_val.matrix_value();
   Matrix inputs_mat_tp = inputs_mat.transpose(); // we need to transpose to get the data row by row. (because matrices are columns major in octave apparently.)
   double* inputs = (double*)inputs_mat_tp.data(); // loosing const qualifier.
+  octave_idx_type num_inputs = inputs_mat_tp.numel();
 
   // Now that we have the input matrix we should be able to check its dimensions:
   // The number of rows is the number of samples;
@@ -82,18 +83,29 @@ DEFUN_DLD (train_bp, args, nargout,
   Matrix outputs_mat = output_val.matrix_value();
   Matrix outputs_mat_tp = outputs_mat.transpose();
   double* outputs = (double*)outputs_mat_tp.data(); // loosing const qualifier.
+  octave_idx_type num_outputs = outputs_mat_tp.numel();
 
   // Again we can check the dimensions of the output matrix:
   // The number of rows is the number of samples;
   // The number of columns is the number of labels:
   octave_idx_type num_samples2 = outputs_mat.dim1();
-  octave_idx_type num_outputs = outputs_mat.dim2();
+  octave_idx_type num_labels = outputs_mat.dim2();
 
   // We should have the same number of samples:
   CHECK(num_samples==num_samples2,"train_bp: Mismatch in number of samples: "<<num_samples<<"!="<<num_samples2);
 
+#if 0
+  // Test section to check ordering of data:
+  for(octave_idx_type r=0;r<num_samples;++r) {
+    for(octave_idx_type c=0; c<num_labels;++c) {
+      CHECK(outputs[num_labels*r+c]==outputs_mat(r,c),"Mismatch in output data at index ("<<r<<", "<<c<<")");
+    }
+  }
+#endif
+
+
   // We should match the last layer size:
-  CHECK(lsizes[lsizes.size()-1]==num_outputs,"train_bp: Mismatch between num outputs and layer "<<(lsizes.size()-1)<<" size: "<<lsizes[lsizes.size()-1]<<"!="<<num_outputs);
+  CHECK(lsizes[lsizes.size()-1]==num_labels,"train_bp: Mismatch between num outputs and layer "<<(lsizes.size()-1)<<" size: "<<lsizes[lsizes.size()-1]<<"!="<<num_labels);
 
   // 4. Retrieve the desired rms_stop:
  const octave_value& rms_val = args(3);
@@ -123,23 +135,25 @@ DEFUN_DLD (train_bp, args, nargout,
   
   // now create the vector that will hold the data:
   Matrix weights_mat = Matrix(expnum,1,0.0);
+  double* weights = (double*)weights_mat.data();
+  octave_idx_type num_weights = weights_mat.numel();
 
   // Now we need to perform the actual computation.
   // So we need to load the nervMBP library:
 
 
   HMODULE h = LoadLibrary("nervMBP.dll");  //W:\\Cloud\\Projects\\nervtech\\bin\\x86\\
-  CHECK(h != NULL,"Cannot load nervMBP.dll module.");
+  CHECK(h != NULL,"train_bp: Cannot load nervMBP.dll module.");
 
   typedef bool (* IsCudaSupportedFunc)();
 
   // // We should be able to retrieve the train function:
   IsCudaSupportedFunc isCudaSupported = (IsCudaSupportedFunc) GetProcAddress(h, "isCudaSupported");
 
-  CHECK(isCudaSupported != NULL,"Cannot find isCudaSupported function");
+  CHECK(isCudaSupported != NULL,"train_bp: Cannot find isCudaSupported function");
 
   // // Check that CUDA is supported:
-  CHECK(isCudaSupported(),"CUDA is not supported.");
+  CHECK(isCudaSupported(),"train_bp: CUDA is not supported.");
   typedef void (* ShowInfoFunc)();
 
 #if 0
@@ -150,10 +164,30 @@ DEFUN_DLD (train_bp, args, nargout,
   showInfo();
 #endif
 
-  CHECK(FreeLibrary(h),"Cannot free nervMBP library.");
+  // Now we can call the actual training method:
+  typedef bool (* TrainFunc)(const std::vector<int>& lsizes, 
+    int num_inputs, double* inputs,
+    int num_outputs, double* outputs,
+    int num_weights, double* weights,
+    double& rms_stop, int max_iter);
+
+  // We should be able to retrieve the train function:
+  TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
+  CHECK(trainBP != NULL, "train_bp: Cannot retrieve trainBP function");
+
+  CHECK(num_inputs==(num_features*num_samples),"Invalid number of inputs: "<<num_inputs<<"!="<<(num_features*num_samples));
+  CHECK(num_outputs==(num_labels*num_samples),"Invalid number of outputs: "<<num_outputs<<"!="<<(num_labels*num_samples));
+
+  // Now we perform the training:
+  trainBP(lsizes,num_inputs,inputs,num_outputs,outputs,num_weights,weights,rms_stop,max_iter);
+
+  CHECK(FreeLibrary(h),"train_bp: Cannot free nervMBP library.");
 
   // Add the weight matrix to the results:
   result.append(weights_mat);
+
+  // Also append the actual rms we achieved:
+  result.append(rms_stop);
 
   return result;
 }

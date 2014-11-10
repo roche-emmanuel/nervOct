@@ -75,6 +75,16 @@ bool trainBP(const std::vector<int>& lsizes,
 	// Ensure we get the RMS once to always override any previous value.
 	bp.GetRMS();
 
+	// logDEBUG("Training on inputs:")	
+ // 	for(int i=0;i<num_inputs;++i) {
+ // 		logDEBUG(inputs[i]);
+ // 	}
+
+	// logDEBUG("Training on outputs:")	
+ // 	for(int i=0;i<num_outputs;++i) {
+ // 		logDEBUG(outputs[i]);
+ // 	}
+
 	logDEBUG("Starting training...")
 	for(int i=0;i<max_iter;++i) {
 		bp.TrainOneEpoch();
