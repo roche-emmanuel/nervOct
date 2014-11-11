@@ -7,6 +7,7 @@ lib/*
 
 # ignore the big data files:
 data/EUR_21_10_2014/*
+data/results/*
 
 # ignore the octave workspace files:
 octave-workspace

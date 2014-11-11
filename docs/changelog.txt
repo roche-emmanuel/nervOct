@@ -13,3 +13,4 @@
 - Getting ready to continue...
 - Fixed issue with RMS validation computation.
 - Updated script files to handle x64 versions.
+- Updated ignore file.
