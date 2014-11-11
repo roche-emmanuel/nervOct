@@ -132,16 +132,43 @@ DEFUN_DLD (train_bp, args, nargout,
   for(int i=0;i<nl;++i) {
     expnum += (lsizes[i]+1)*lsizes[i+1];
   }
-  
-  // now create the vector that will hold the data:
-  Matrix weights_mat = Matrix(expnum,1,0.0);
-  double* weights = (double*)weights_mat.data();
-  octave_idx_type num_weights = weights_mat.numel();
+
+  double* weights = NULL;
+  bool use_weights = false;
+  octave_idx_type num_weights = expnum;
+
+  if(nargin>=6) {
+    // A weight matrix is provided, so we should use it to init our network:
+    const octave_value& iweights_val = args(6);
+
+    // check that this is a matrix type:
+    CHECK(iweights_val.is_matrix_type(),"train_bp: iweights (arg 6) should be a matrix type")
+
+    // Note that we should use those input weights:
+    use_weights = true;
+
+    // Prepare the input array:
+    Matrix iweights_mat = iweights_val.matrix_value();
+    weights = (double*)iweights_mat.data();
+    
+    // check we have the proper number of weights:
+    CHECK(iweights_mat.dim1()==num_weights,"Invalid number of input weights: "<< iweights_mat.dim1()<<"!="<<num_weights);
+    CHECK(iweights_mat.dim2()==1,"input weights should be a column vector: "<< iweights_mat.dim2()<<"!=1");
+
+    // Add the input matrix back to the results:
+    result.append(iweights_mat);
+  }
+  else {
+    // now create the vector that will hold the data:
+    Matrix weights_mat = Matrix(num_weights,1,0.0);
+    weights = (double*)weights_mat.data();
+
+    // Add the weight matrix to the results:
+    result.append(weights_mat);
+  }
 
   // Now we need to perform the actual computation.
   // So we need to load the nervMBP library:
-
-
   HMODULE h = LoadLibrary("nervMBP.dll");  //W:\\Cloud\\Projects\\nervtech\\bin\\x86\\
   CHECK(h != NULL,"train_bp: Cannot load nervMBP.dll module.");
 
@@ -169,7 +196,7 @@ DEFUN_DLD (train_bp, args, nargout,
     int num_inputs, double* inputs,
     int num_outputs, double* outputs,
     int num_weights, double* weights,
-    double& rms_stop, int max_iter);
+    double& rms_stop, int max_iter, bool use_weights);
 
   // We should be able to retrieve the train function:
   TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
@@ -179,12 +206,9 @@ DEFUN_DLD (train_bp, args, nargout,
   CHECK(num_outputs==(num_labels*num_samples),"Invalid number of outputs: "<<num_outputs<<"!="<<(num_labels*num_samples));
 
   // Now we perform the training:
-  trainBP(lsizes,num_inputs,inputs,num_outputs,outputs,num_weights,weights,rms_stop,max_iter);
+  trainBP(lsizes,num_inputs,inputs,num_outputs,outputs,num_weights,weights,rms_stop,max_iter,use_weights);
 
   CHECK(FreeLibrary(h),"train_bp: Cannot free nervMBP library.");
-
-  // Add the weight matrix to the results:
-  result.append(weights_mat);
 
   // Also append the actual rms we achieved:
   result.append(rms_stop);

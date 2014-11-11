@@ -1,4 +1,4 @@
-function [y] = nnPredict(network, X)
+function [y yy] = nnPredict(network, X)
 % Given an input neural network and a feature matrix,
 % This method will compute the predictions obtained by the network.
 

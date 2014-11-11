@@ -21,7 +21,6 @@ end
 
 % save the weights:
 nndata.weights = nn_params;
-nndata.training_costs = [];  %By default the training cost should be empty.
 end
 
 % ==> Must provide the layer size:

@@ -6,7 +6,7 @@ datapath="$root_path_nervtech"
 
 cd "$datapath/bin/x86"
 
-root_path=/cygdrive/w/Cloud/LiberKey/MyApps/octave-3.8.2-x86-mingw
+root_path=/cygdrive/x/Softwares/octave-3.8.2-x86-mingw
 OCT_HOME=`cygpath -w "$root_path"`
 PATH=$root_path/bin:$PATH
 target="test_load"

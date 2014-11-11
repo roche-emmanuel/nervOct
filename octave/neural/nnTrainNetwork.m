@@ -51,7 +51,6 @@ while true,
 	
 	% save the computed values:
 	network.weights = nn_params;
-	network.training_costs = [network.training_costs; cost];
 
 	if !training.deep_training || (icount < training.max_iterations),
 		break;
@@ -73,6 +72,6 @@ end
 %!	tr = nnPrepareTraining(1:1,cfg);
 %!	nn = nnInitNetwork([cfg.num_features 10 3]);
 %!	% tr.deep_training = true;
+%!  tic();
 %!	nn = nnTrainNetwork(tr,nn,cfg);
-%!	n = size(nn.training_costs,1);
-%!	assert(n==tr.max_iterations,'Invalid number of training costs: %d',n)
+%!  toc();

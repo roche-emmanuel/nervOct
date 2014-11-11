@@ -7,7 +7,15 @@ more off;
 % First we add the common location path:
 pname = pwd();
 % addpath(['/cygdrive/x/Station/CUDA_Toolkit-6.5/bin']); %add the binary folder.
+arch=computer();
+if strcmp(arch,'x86_64-w64-mingw32')==1
+fprintf('Testing on x64 architecture.\n')
+addpath([pname '/../bin/x64']); %add the binary folder.
+else
+fprintf('Testing on x86 architecture.\n')
 addpath([pname '/../bin/x86']); %add the binary folder.
+end
+
 addpath([pname '/common']);
 addpath([pname '/neural']);
 
@@ -41,6 +49,9 @@ addpath([pname '/neural']);
 % fprintf('Testing applyNormalization...\n')
 % test applyNormalization
 
+% fprintf('Testing applyPCAReduction...\n')
+% test applyPCAReduction
+
 % fprintf('Testing nnPrepareTraining...\n')
 % test nnPrepareTraining
 
@@ -56,6 +67,9 @@ addpath([pname '/neural']);
 % fprintf('Testing nnTrainNetwork...\n')
 % test nnTrainNetwork
 
+% fprintf('Testing nnTrainNetworkCUDA...\n')
+% test nnTrainNetworkCUDA
+
 % fprintf('Testing nnPredict...\n')
 % test nnPredict
 
@@ -65,8 +79,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nnComputeLearningCurves...\n')
 % test nnComputeLearningCurves
 
-% fprintf('Testing DLL loading...\n')
-% test_load
+fprintf('Testing DLL loading...\n')
+test_load
 
 fprintf('Testing train_bp...\n')
 test tests_train_bp;

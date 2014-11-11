@@ -18,12 +18,22 @@ X = X(1:m,:);
 y = y(1:m,cfg.target_symbol_pair);
 
 % Current regularization parameter:
-lambda = training.regularization_param;
+% NOTE: when evaluation the network we should not consider any regularization parameter.
+% lambda = training.regularization_param;
+lambda = 0;
 
 yy = nnBuildLabelMatrix(y)';
 
 % We should also compute the cost
 perfs.J_train = nnCostFunction(network.weights, network.layer_sizes, X, yy, lambda);
+
+% if !isfinite(perfs.J_train)
+% 	X
+% 	yy
+% 	lambda
+% 	network.layer_sizes
+% 	error('Could not compute j_train with previous values.');
+% end
 
 % Compute the train accuracy:
 % eg. The number of incorrectly classified samples:
@@ -67,7 +77,7 @@ end
 %!	cfg = config();
 %!	cfg.default_max_training_iterations = 10;
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([cfg.num_features 10 3]);
+%!	nn = nnInitNetwork([tr.num_features 10 3]);
 %!	% tr.deep_training = true;
 %!	nn = nnTrainNetwork(tr,nn,cfg);
 %!	ev = nnEvaluateNetwork(tr,nn,cfg);

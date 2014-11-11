@@ -60,4 +60,26 @@ cfg.num_features = 1 + 4 * cfg.num_symbol_pairs * cfg.num_input_bars;
 % Deep training status:
 cfg.default_deep_training = false;
 
+% Apply shuffle on the training data:
+cfg.shuffle_training_data = true;
+
+% Default RMS stop value to use when performing CUDA training:
+cfg.default_rms_stop = 0.002;
+
+% File used to save the learning curve:
+cfg.learning_curves_graph_file = '../data/results/learning_curves.png';
+
+% Define if we should use CUDA training or not:
+% cfg.use_CUDA = true;
+cfg.use_CUDA = true;
+
+% verbose outputs:
+cfg.verbose = true;
+
+% Use PCA:
+cfg.use_PCA = true;
+
+% Quantity of variance to retain when performing PCA: (in percent)
+cfg.PCA_variance = 99.9;
+
 end

@@ -58,8 +58,9 @@
 %!	inputs=[0 0; 1 0; 0 1; 1 1];
 %!	outputs=[1; 0; 0; 1];
 %!	rms_stop=0.002;
+%!	tic()
 %!	[weights actual_rms] = train_bp(lsizes,inputs,outputs,rms_stop,10000);
-%!
+%!	toc();
 %!	% Predict the images we get from those weights:
 %!	p1 = predict_xor(0,0,weights);
 %!	assert(p1>0.9,'Invalid value for p1')
@@ -128,8 +129,9 @@
 %!	end
 %!	%inputs
 %!	%outputs
+%!	tic()
 %!	[weights final_rms] = train_bp(lsizes,inputs,outputs,rms_stop,1000);
-%!	
+%!	toc()
 %!	% Now compute the actual rms we observe:
 %!	actual_rms = 0;
 %!	pred = zeros(m,nout);

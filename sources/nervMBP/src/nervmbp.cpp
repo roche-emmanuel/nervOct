@@ -25,7 +25,7 @@ bool trainBP(const std::vector<int>& lsizes,
 	int num_inputs, double* inputs,
 	int num_outputs, double* outputs,
 	int num_weights, double* weights,
-	double& rms_stop, int max_iter)
+	double& rms_stop, int max_iter, bool use_weights)
 {
 	CHECK_RET(isCudaSupported(),false,"CUDA is not supported, cannot perform training.");
 
@@ -62,16 +62,37 @@ bool trainBP(const std::vector<int>& lsizes,
 
 	// Set the network training parameters
 	bp.SetRobustLearning(true);
-	bp.SetRobustFactor(CUDA_VALUE(0.5));
-	bp.SetMaxPercentageRMSGrow(CUDA_VALUE(0.001));
+	bp.SetRobustFactor(CUDA_VALUE(0.5)); //0.5
+	bp.SetMaxPercentageRMSGrow(CUDA_VALUE(0.001)); //0.001
 
-	bp.SetMaxStepSize(CUDA_VALUE(10.0));
+	bp.SetMaxStepSize(CUDA_VALUE(100.0)); // 10.0
 
-	bp.SetUpStepSizeFactor(CUDA_VALUE(1.1));
-	bp.SetDownStepSizeFactor(CUDA_VALUE(0.9));
+	bp.SetUpStepSizeFactor(CUDA_VALUE(1.1)); //1.1
+	bp.SetDownStepSizeFactor(CUDA_VALUE(0.9)); //0.9
 
-	bp.SetMomentum(CUDA_VALUE(0.7));
+	bp.SetMomentum(CUDA_VALUE(0.7)); //0.7
 	
+	nl=nl-1;
+
+	if(use_weights) {
+		// inject the input weights into the layers:
+		double* ptr = weights;
+		int count = 0;
+		HostArray<cudafloat> ww;
+		int len;
+		for(int i=0;i<nl;++i) {
+			len = (lsizes[i]+1)*lsizes[i+1];
+			ww = HostArray<cudafloat>(len);
+			memcpy((void*)ww.Pointer(),(void*)ptr,sizeof(cudafloat)*len);
+
+			bp.SetLayerWeights(i,ww);
+			count += len;
+			ptr += len;
+		}
+
+		CHECK_RET(count == num_weights,false,"Invalid number of weights: "<<count<<"!="<<num_weights);
+	}
+
 	// Ensure we get the RMS once to always override any previous value.
 	bp.GetRMS();
 
@@ -99,7 +120,7 @@ bool trainBP(const std::vector<int>& lsizes,
 
 	// Try the naive implementation to get the weights from the network:
 	// note that we have to discard the first input layer in this process:
-	nl=nl-1;
+
 	double* ptr = weights;
 	int count = 0;
 	HostArray<cudafloat> ww;

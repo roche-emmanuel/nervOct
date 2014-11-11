@@ -12,3 +12,4 @@
 - Large refactoring now using Octave 3.8.2-mingw version to get the nervMBP loading properly with GetProcAddress
 - Getting ready to continue...
 - Fixed issue with RMS validation computation.
+- Updated script files to handle x64 versions.

@@ -106,6 +106,13 @@ end
 % Thus we can rename this output as hx:
 hx = a;
 
+if any(hx>=1.0)
+	error('Invalid weights or features, we should never have hx>=1.0')
+end
+if any(hx<=0.0)
+	error('Invalid weights or features, we should never have hx<=0.0')
+end
+
 % Now we need to to compute the cost function:
 
 % Now we build the cost "matrix":

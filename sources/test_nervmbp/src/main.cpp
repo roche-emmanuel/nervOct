@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE( should_be_able_to_call_trainBP )
     int num_inputs, double* inputs,
     int num_outputs, double* outputs,
     int num_weights, double* weights,
-    double& rms_stop, int max_iter);
+    double& rms_stop, int max_iter, bool use_weights);
 
   // We should be able to retrieve the train function:
   TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE( should_be_able_to_call_trainBP )
   double* weights = new double[9];
 
   double rms = 0.002;
-  bool res = trainBP(lsizes,8,inputs,4,outputs,9,weights,rms,10000);
+  bool res = trainBP(lsizes,8,inputs,4,outputs,9,weights,rms,10000,false);
   BOOST_CHECK(res==true);
 
   std::cout<<"The weights are:"<<std::endl;
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE( should_be_able_to_predict_x1 )
     int num_inputs, double* inputs,
     int num_outputs, double* outputs,
     int num_weights, double* weights,
-    double& rms_stop, int max_iter);
+    double& rms_stop, int max_iter, bool use_weights);
 
   // We should be able to retrieve the train function:
   TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE( should_be_able_to_predict_x1 )
   double* weights = new double[9];
 
   double rms = 0.002;
-  bool res = trainBP(lsizes,8,inputs,4,outputs,9,weights,rms,10000);
+  bool res = trainBP(lsizes,8,inputs,4,outputs,9,weights,rms,10000,false);
   BOOST_CHECK(res==true);
 
   std::cout<<"The weights are:"<<std::endl;
@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE( should_be_able_to_predict_x1_or_x2 )
     int num_inputs, double* inputs,
     int num_outputs, double* outputs,
     int num_weights, double* weights,
-    double& rms_stop, int max_iter);
+    double& rms_stop, int max_iter, bool use_weights);
 
   // We should be able to retrieve the train function:
   TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE( should_be_able_to_predict_x1_or_x2 )
   double* weights = new double[9];
 
   double rms = 0.002;
-  bool res = trainBP(lsizes,8,inputs,4,outputs,9,weights,rms,10000);
+  bool res = trainBP(lsizes,8,inputs,4,outputs,9,weights,rms,10000,false);
   BOOST_CHECK(res==true);
 
   std::cout<<"The weights are:"<<std::endl;
@@ -358,7 +358,7 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions_simple )
     int num_inputs, double* inputs,
     int num_outputs, double* outputs,
     int num_weights, double* weights,
-    double& rms_stop, int max_iter);
+    double& rms_stop, int max_iter, bool use_weights);
 
   // We should be able to retrieve the train function:
   TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
@@ -382,7 +382,7 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions_simple )
   double *inputs = new double[2*m];
   double *outputs = new double[3*m];
 
-#define DEBUG_SINCOS_NN
+// #define DEBUG_SINCOS_NN
 
   // populate the input dataset:
   double* ptr = inputs;
@@ -419,7 +419,7 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions_simple )
   double rms = 0.002;
 #endif
 
-  bool res = trainBP(lsizes,2*m,inputs,3*m,outputs,nw,weights,rms,1000);
+  bool res = trainBP(lsizes,2*m,inputs,3*m,outputs,nw,weights,rms,1000,false);
   BOOST_CHECK(res==true);
 
   // std::cout<<"The weights are:"<<std::endl;
@@ -428,9 +428,9 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions_simple )
   // }
 
   // ensure that the actua RMS value is lower that the value requested:
-#ifndef DEBUG_SINCOS_NN
-  BOOST_CHECK(rms <= 0.002);
-#endif
+// #ifndef DEBUG_SINCOS_NN
+//   BOOST_CHECK(rms <= 0.002);
+// #endif
 
   double r1,r2,r3,x1,x2;
   double actual_rms = 0;
@@ -529,7 +529,7 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions )
     int num_inputs, double* inputs,
     int num_outputs, double* outputs,
     int num_weights, double* weights,
-    double& rms_stop, int max_iter);
+    double& rms_stop, int max_iter, bool use_weights);
 
   // We should be able to retrieve the train function:
   TrainFunc trainBP = (TrainFunc) GetProcAddress(h, "trainBP");
@@ -555,7 +555,7 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions )
   double *inputs = new double[2*m];
   double *outputs = new double[3*m];
 
-#define DEBUG_SINCOS_NN
+// #define DEBUG_SINCOS_NN
 
   // populate the input dataset:
   double* ptr = inputs;
@@ -592,7 +592,7 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions )
   double rms = 0.002;
 #endif
 
-  bool res = trainBP(lsizes,2*m,inputs,3*m,outputs,nw,weights,rms,1000);
+  bool res = trainBP(lsizes,2*m,inputs,3*m,outputs,nw,weights,rms,1000,false);
   BOOST_CHECK(res==true);
 
   // std::cout<<"The weights are:"<<std::endl;
@@ -601,9 +601,9 @@ BOOST_AUTO_TEST_CASE( should_train_on_sin_cos_functions )
   // }
 
   // ensure that the actua RMS value is lower that the value requested:
-#ifndef DEBUG_SINCOS_NN
-  BOOST_CHECK(rms <= 0.002);
-#endif
+// #ifndef DEBUG_SINCOS_NN
+//   BOOST_CHECK(rms <= 0.002);
+// #endif
 
   double r1,r2,r3,x1,x2;
   double actual_rms = 0;

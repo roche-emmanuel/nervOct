@@ -25,16 +25,38 @@ eval set -- "${FLAGS_ARGV}"
 cmd=$1
 
 case $cmd in
-cmdlist)
+cmdlist | help)
 	# output the list of commands available and exit:
 	echo "List of available commands:"
 	echo "  -> format_date pattern"
+	echo "  -> build_octave_plug [test_load | train_bp]"
+	echo "  -> build"  # build the x86 and x64 versions
 	;;
 
 format_date)
-	. "$root_path_nervtech/scripts/trade_utils.sh"
+	. "$root_path_nervtech/scripts/nerv_utils.sh"
 
 	format_dataset_date "$2"
   ;;
+
+build_octave_plug)
+	. "$root_path_nervtech/scripts/nerv_utils.sh"
+
+	build_octave_plugin "$2" "x86"
+	build_octave_plugin "$2" "x64"
+	;;
+
+build)
+	. "$root_path_nervtech/scripts/nerv_utils.sh"
+
+	dev.sh build nervtech win32_vs12
+	dev.sh build nervtech win64_vs12
+	build_octave_plugin "test_load" "x86"
+	build_octave_plugin "test_load" "x64"
+	build_octave_plugin "train_bp" "x86"
+	build_octave_plugin "train_bp" "x64"
+
+	;;
+
 
 esac

@@ -1,0 +1,709 @@
+
+** CPU - 2000 iters - PCA - [nf 30 3] - 6 dims (99.5%)
+We need 6 dimensions to keep 99.500000% of variance.
+Shuffling training data...
+Building training structure...
+Performing training session 1...
+Iteration  2000 | Cost: 9.808793e-001
+num_m =  783
+ans =  0.79821
+ans =  0.74928
+Performing training session 1...
+Iteration  2000 | Cost: 1.176615e+000
+num_m =  1565
+ans =  0.76294
+ans =  0.75426
+Performing training session 1...
+Iteration  2000 | Cost: 1.235322e+000
+num_m =  2348
+ans =  0.74957
+ans =  0.75522
+Performing training session 1...
+Iteration  2000 | Cost: 1.251842e+000
+num_m =  3130
+ans =  0.74569
+ans =  0.75465
+Performing training session 1...
+Iteration  2000 | Cost: 1.263174e+000
+num_m =  3913
+ans =  0.74597
+ans =  0.73625
+Performing training session 1...
+Iteration  2000 | Cost: 1.260523e+000
+num_m =  4695
+ans =  0.74867
+ans =  0.74411
+Performing training session 1...
+Iteration  2000 | Cost: 1.267831e+000
+num_m =  5478
+ans =  0.74900
+ans =  0.73529
+Performing training session 1...
+Iteration  2000 | Cost: 1.279362e+000
+num_m =  6260
+ans =  0.74712
+ans =  0.74219
+Performing training session 1...
+Iteration  2000 | Cost: 1.282582e+000
+num_m =  7043
+ans =  0.74712
+ans =  0.75369
+Performing training session 1...
+Iteration  2000 | Cost: 1.282545e+000
+num_m =  7826
+ans =  0.74751
+ans =  0.75752
+Performing training session 1...
+Performing training session 1...
+Iteration  2000 | Cost: 1.289457e+000
+num_m =  8608
+ans =  0.74640
+ans =  0.72264
+Performing training session 1...
+Iteration  2000 | Cost: 1.282079e+000
+num_m =  9391
+ans =  0.74880
+ans =  0.68066
+Performing training session 1...
+Iteration  2000 | Cost: 1.291179e+000
+num_m =  10173
+ans =  0.74599
+ans =  0.66763
+Performing training session 1...
+Iteration  2000 | Cost: 1.286325e+000
+num_m =  10956
+ans =  0.74708
+ans =  0.52923
+Performing training session 1...
+Iteration  2000 | Cost: 1.292512e+000
+num_m =  11738
+ans =  0.74561
+ans =  0.51313
+Performing training session 1...
+Iteration  2000 | Cost: 1.296682e+000
+num_m =  12521
+ans =  0.74483
+ans =  0.46809
+Performing training session 1...
+Iteration  2000 | Cost: 1.292869e+000
+num_m =  13303
+ans =  0.74645
+ans =  0.52425
+Performing training session 1...
+Iteration  2000 | Cost: 1.295902e+000
+num_m =  14086
+ans =  0.74585
+ans =  0.52866
+Performing training session 1...
+Iteration  2000 | Cost: 1.298470e+000
+num_m =  14868
+ans =  0.74529
+ans =  0.54131
+Performing training session 1...
+Iteration  2000 | Cost: 1.300233e+000
+num_m =  15651
+ans =  0.74474
+ans =  0.56680
+jtrain =
+
+   0.92178
+   1.14136
+   1.21065
+   1.23271
+   1.24788
+   1.24754
+   1.25652
+   1.26969
+   1.27428
+   1.27495
+   1.28237
+   1.27554
+   1.28527
+   1.28076
+   1.28737
+   1.29191
+   1.28841
+   1.29171
+   1.29458
+   1.29665
+
+jcv =
+
+   1.6760
+   1.5161
+   1.5926
+   1.6055
+   1.5759
+   1.5626
+   1.4884
+   1.4338
+   1.4371
+   1.3983
+   1.4604
+   1.4740
+   1.5416
+   1.8397
+   1.8723
+   1.9733
+   1.7693
+   1.7307
+   1.6894
+   1.6499
+m_vals =
+
+     783
+    1565
+    2348
+    3130
+    3913
+    4695
+    5478
+    6260
+    7043
+    7826
+    8608
+    9391
+   10173
+   10956
+   11738
+   12521
+   13303
+   14086
+   14868
+   15651
+
+Elapsed time is 2609.48 seconds.
+
+
+** GPU - 2000 iters - PCA - [nf 30 3] - 6 dims (99.5%)
+We need 6 dimensions to keep 99.500000% of variance.
+Shuffling training data...
+Building training structure...
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  783
+ans =  0.81098
+ans =  0.70079
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  1565
+ans =  0.76486
+ans =  0.41691
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  2348
+ans =  0.76193
+ans =  0.69791
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  3130
+ans =  0.74313
+ans =  0.63178
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  3913
+ans =  0.74444
+ans =  0.72800
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  4695
+ans =  0.74356
+ans =  0.61990
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  5478
+ans =  0.74535
+ans =  0.76864
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  6260
+ans =  0.74297
+ans =  0.72302
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  7043
+ans =  0.74130
+ans =  0.76577
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  7826
+ans =  0.74035
+ans =  0.77094
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  8608
+ans =  0.74280
+ans =  0.77286
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  9391
+ans =  0.74390
+ans =  0.70769
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  10173
+ans =  0.74501
+ans =  0.45984
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  10956
+ans =  0.74608
+ans =  0.64539
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  11738
+ans =  0.74578
+ans =  0.75426
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  12521
+ans =  0.74699
+ans =  0.77247
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  13303
+ans =  0.74637
+ans =  0.43032
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  14086
+ans =  0.74521
+ans =  0.77286
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  14868
+ans =  0.74435
+ans =  0.77286
+[Debug]               Starting training...
+[Debug]               Training done in 2000 epochs. RMS=0
+num_m =  15651
+ans =  0.74513
+ans =  0.73740
+jtrain =
+
+   1.0480
+   1.1979
+   1.2390
+   1.2423
+   1.2694
+   1.2588
+   1.2699
+   1.2743
+   1.2852
+   1.2911
+   1.2942
+   1.2948
+   1.2887
+   1.2850
+   1.2924
+   1.2893
+   1.2925
+   1.2937
+   1.2986
+   1.2965
+
+jcv =
+
+   4.2176
+   3.7925
+   1.9186
+   1.7000
+   1.4541
+   1.9065
+   1.3962
+   1.5505
+   1.3872
+   1.4395
+   1.3821
+   1.3915
+   2.0127
+   1.5463
+   1.3933
+   1.4117
+   1.6866
+   1.4850
+   1.2945
+   1.4120
+
+m_vals =
+
+     783
+    1565
+    2348
+    3130
+    3913
+    4695
+    5478
+    6260
+    7043
+    7826
+    8608
+    9391
+   10173
+   10956
+   11738
+   12521
+   13303
+   14086
+   14868
+   15651
+
+Elapsed time is 188.122 seconds.
+
+
+** GPU - 4000 iters - PCA - [nf 30 3] - 6 dims (99.5%)
+We need 6 dimensions to keep 99.500000% of variance.
+Shuffling training data...
+Long position ratio: 12.516772%
+Short position ratio: 13.008753%
+No position ratio: 74.474474%
+Building training structure...
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.141282
+num_m =  783
+ans =  0.85824
+ans =  0.39582
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.165266
+num_m =  1565
+ans =  0.78722
+ans =  0.36074
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.174186
+num_m =  2348
+ans =  0.75767
+ans =  0.48438
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.175245
+num_m =  3130
+ans =  0.75911
+ans =  0.68718
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.177297
+num_m =  3913
+ans =  0.75390
+ans =  0.49703
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.178421
+num_m =  4695
+ans =  0.75059
+ans =  0.59210
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.179352
+num_m =  5478
+ans =  0.75064
+ans =  0.74526
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.180149
+num_m =  6260
+ans =  0.74808
+ans =  0.77286
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.180601
+num_m =  7043
+ans =  0.74556
+ans =  0.75005
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.18154
+num_m =  7826
+ans =  0.74597
+ans =  0.75752
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.181711
+num_m =  8608
+ans =  0.74361
+ans =  0.71689
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.181602
+num_m =  9391
+ans =  0.74625
+ans =  0.77286
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.181962
+num_m =  10173
+ans =  0.74403
+ans =  0.73126
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182593
+num_m =  10956
+ans =  0.74535
+ans =  0.77286
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182331
+num_m =  11738
+ans =  0.74646
+ans =  0.68986
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182293
+num_m =  12521
+ans =  0.74587
+ans =  0.76481
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182577
+num_m =  13303
+ans =  0.74517
+ans =  0.71938
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182531
+num_m =  14086
+ans =  0.74528
+ans =  0.46310
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182819
+num_m =  14868
+ans =  0.74556
+ans =  0.76500
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.182888
+num_m =  15651
+ans =  0.74519
+ans =  0.77286
+jtrain =
+
+   1.1562
+   1.1472
+   1.1931
+   1.2016
+   1.2295
+   1.2431
+   1.2513
+   1.2610
+   1.2652
+   1.2760
+   1.2788
+   1.2787
+   1.2820
+   1.2919
+   1.2892
+   1.2870
+   1.2899
+   1.2890
+   1.2960
+   1.2945
+
+jcv =
+
+   13.0452
+    5.5670
+    2.7998
+    1.6022
+    2.1340
+    1.7669
+    1.7591
+    1.4294
+    1.4324
+    1.3928
+    1.4929
+    1.4371
+    1.3726
+    1.3233
+    1.4950
+    1.3538
+    1.3751
+    2.1062
+    1.3502
+    1.5452
+
+m_vals =
+
+     783
+    1565
+    2348
+    3130
+    3913
+    4695
+    5478
+    6260
+    7043
+    7826
+    8608
+    9391
+   10173
+   10956
+   11738
+   12521
+   13303
+   14086
+   14868
+   15651
+
+Elapsed time is 370.924 seconds.
+
+** GPU - 4000 iters - PCA - [nf 30 3] - 21 dims (99.9%)
+We need 21 dimensions to keep 99.900000% of variance.
+Shuffling training data...
+Long position ratio: 12.516772%
+Short position ratio: 13.008753%
+No position ratio: 74.474474%
+Building training structure...
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.0751889
+num_m =  783
+ans =  0.95913
+ans =  0.21890
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.131203
+num_m =  1565
+ans =  0.87923
+ans =  0.68085
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.144257
+num_m =  2348
+ans =  0.84796
+ans =  0.58175
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.151405
+num_m =  3130
+ans =  0.83099
+ans =  0.63274
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.161213
+num_m =  3913
+ans =  0.80322
+ans =  0.40905
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.165915
+num_m =  4695
+ans =  0.79191
+ans =  0.34713
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.167704
+num_m =  5478
+ans =  0.78678
+ans =  0.56105
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.170012
+num_m =  6260
+ans =  0.78067
+ans =  0.62967
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.174252
+num_m =  7043
+ans =  0.76643
+ans =  0.72398
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.175449
+num_m =  7826
+ans =  0.75850
+ans =  0.70404
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.17388
+num_m =  8608
+ans =  0.76696
+ans =  0.34733
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.17507
+num_m =  9391
+ans =  0.76563
+ans =  0.71363
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.176705
+num_m =  10173
+ans =  0.76192
+ans =  0.64079
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.177445
+num_m =  10956
+ans =  0.75657
+ans =  0.75426
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.178032
+num_m =  11738
+ans =  0.75413
+ans =  0.73165
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.17797
+num_m =  12521
+ans =  0.75385
+ans =  0.75139
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.178153
+num_m =  13303
+ans =  0.75344
+ans =  0.73414
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.178352
+num_m =  14086
+ans =  0.75337
+ans =  0.74698
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.178034
+num_m =  14868
+ans =  0.75430
+ans =  0.74391
+[Debug]               Starting training...
+[Debug]               Training done in 4000 epochs. RMS=0.177811
+num_m =  15651
+ans =  0.75522
+ans =  0.75120
+jtrain =
+
+      NaN
+   1.0191
+      NaN
+   1.2744
+   1.1556
+   1.1684
+   1.1736
+   1.1828
+   1.2147
+   1.2242
+   1.2183
+   1.2409
+   1.2494
+   1.2495
+   1.2507
+   1.2477
+   1.2435
+   1.2452
+   1.2456
+   1.2476
+
+jcv =
+
+      NaN
+   3.9939
+   3.4083
+   4.4480
+   3.8498
+   4.8556
+   3.1790
+   2.1976
+   1.7056
+   1.6322
+   3.4993
+   1.9713
+   1.8521
+   1.8692
+   1.5414
+   1.8339
+   1.4740
+   1.4765
+   1.4291
+   1.4976
+
+m_vals =
+
+     783
+    1565
+    2348
+    3130
+    3913
+    4695
+    5478
+    6260
+    7043
+    7826
+    8608
+    9391
+   10173
+   10956
+   11738
+   12521
+   13303
+   14086
+   14868
+   15651
+
+Elapsed time is 1176.45 seconds.
+

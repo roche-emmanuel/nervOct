@@ -25,7 +25,7 @@ bool trainBP(const std::vector<int>& lsizes,
 	int num_inputs, double* inputs,
 	int num_outputs, double* outputs,
 	int num_weights, double* weights,
-	double& rms_stop, int max_iter);
+	double& rms_stop, int max_iter, bool use_weights);
 
 };
 

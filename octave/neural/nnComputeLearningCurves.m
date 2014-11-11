@@ -8,18 +8,23 @@ m_vals = zeros(num,1);
 
 m = size(training.X_train,1);
 
-
 nn = nnInitNetwork(lsizes);
 
 for i=1:num,
 	training.train_ratio = ratios(i);
-	nn = nnTrainNetwork(training,nn,cfg);
+	if cfg.use_CUDA
+		nn = nnTrainNetworkCUDA(training,nn,cfg);
+	else
+		nn = nnTrainNetwork(training,nn,cfg);
+	end
 	ev = nnEvaluateNetwork(training,nn,cfg);
 	num_m = floor(0.5 + ratios(i)*m)
-	ev.J_train
-	ev.J_cv
-	ev.accuracy_train
-	ev.accuracy_cv
+	if cfg.verbose
+		ev.J_train;
+		ev.J_cv;
+		ev.accuracy_train
+		ev.accuracy_cv
+	end
 	m_vals(i) = num_m;
 	J_train(i) = ev.J_train;
 	J_cv(i) = ev.J_cv;
@@ -30,7 +35,11 @@ end
 % ==> Should compute the cost values:
 %!test
 %!	cfg = config();
-%!	cfg.default_max_training_iterations = 10000;
-%!	tr = nnPrepareTraining(1:1,cfg);
-%!	[jtrain, jcv, m_vals] = nnComputeLearningCurves((1:10)/10,[cfg.num_features 10 3],tr,cfg)
-%!	plotLearningCurves(m_vals,jtrain,jcv);
+%!	tr = nnPrepareTraining(1:3,cfg);
+%!	tr.max_iterations = 4000;
+%!	nstep=20;
+%!	tic();
+%!	[jtrain, jcv, m_vals] = nnComputeLearningCurves((1:nstep)/nstep,[tr.num_features 30 3],tr,cfg)
+%!	toc();
+%!	h = plotLearningCurves(m_vals,jtrain,jcv);
+%!  saveas(h,cfg.learning_curves_graph_file);

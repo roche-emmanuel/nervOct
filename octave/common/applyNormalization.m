@@ -1,8 +1,8 @@
-function [X_norm] = applyNormalization(X,mu,sigma)
+function [X] = applyNormalization(X,mu,sigma)
 % Apply normalization to a given matrix.
 
 if isempty(X),
-	X_norm = [];
+	X = [];
 	return;
 end
 
@@ -11,9 +11,19 @@ assert(size(X,2)==size(sigma,2),'Invalid size of sigma');
 
 n = size(X,1);
 
-% warning("off", "Octave:broadcast");
-X_norm = (X - repmat(mu,n,1)) ./ repmat(sigma,n,1);
+% fprintf('Computing mu_mat...\n')
+% mu_mat = repmat(mu,n,1);
+% fprintf('Computing sigma_mat...\n')
+% sigma_mat = repmat(sigma,n,1);
+
+% fprintf('Computing X_norm...\n')
+% % warning("off", "Octave:broadcast");
+% X_norm = (X - mu_mat) ./ sigmat_mat;
 % warning("on", "Octave:broadcast");
+
+for i=1:n,
+	X(i,:) = (X(i,:) - mu) ./ sigma;
+end
 
 end
 

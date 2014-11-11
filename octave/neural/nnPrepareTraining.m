@@ -24,6 +24,8 @@ y = [];
 % Number of rows to expect per week:
 nrows = cfg.num_week_minutes - cfg.num_pred_bars - cfg.num_input_bars + 1;
 
+fprintf('Loading weeks data...\n')
+
 % load the week data:
 for i=1:nweeks,
 	loaded = load(sprintf(fpattern,weeks(i)));
@@ -39,6 +41,8 @@ for i=1:nweeks,
 	y = [y; ynew];
 end
 
+fprintf('Splitting datasets...\n')
+
 % Now that we have the raw feature and label matrices, we have to separate them in train/cv/test sets using the set ratios 
 % from the config:
 ratios = cfg.dataset_ratios;
@@ -50,10 +54,67 @@ ratios = cfg.dataset_ratios;
 mu = mean(X_train);
 sigma = std(X_train);
 
+fprintf('Applying normalization...\n')
+
 % Then we apply the normalization on all datasets:
 X_train = applyNormalization(X_train,mu,sigma);
 X_cv = applyNormalization(X_cv,mu,sigma);
 X_test = applyNormalization(X_test,mu,sigma);
+
+% fprintf('Done Applying normalization.\n')
+
+% Once we have the initial training data matrix we can apply PCA if requested:
+if cfg.use_PCA
+	% First we need to build the covariance matrix:
+	fprintf('Computing PCA...\n')
+	Sigma = (X_train' * X_train)/size(X_train,1);
+	if(cfg.verbose)
+		fprintf('Performing PCA SVD decomposition...\n')
+	end
+	[U,S,V] = svd(Sigma);
+
+	% fprintf('PCA S matrix size:\n')
+	% size(S)
+
+	% Compute the sum of all eigenvalues:
+	eigvals = diag(S);
+	total_eig = sum(eigvals);
+	k=0;
+	cur_val = 0;
+	while cur_val< cfg.PCA_variance,
+		k+=1;
+		cur_val += 100.0 * eigvals(k)/total_eig;
+	end
+	fprintf('We need %d dimensions to keep %f%% of variance.\n',k,cfg.PCA_variance)
+
+	% keep the reduction matrix in the training structure:
+	reduce = U(:,1:k);
+	trdata.reduce_mat = reduce;
+
+	% Now we compute the projected data:
+	X_train = applyPCAReduction(X_train,reduce);
+	X_cv = applyPCAReduction(X_cv,reduce);
+	X_test = applyPCAReduction(X_test,reduce);
+end
+
+% We may also want to shuffle the data here (for the training only):
+if cfg.shuffle_training_data
+	fprintf('Shuffling training data...\n')
+	idx = randperm(size(X_train,1));
+	X_train = X_train(idx,:);
+	y_train = y_train(idx,:);
+end
+
+lpos = mean(y_train(:,cfg.target_symbol_pair)==1)*100.0;
+spos = mean(y_train(:,cfg.target_symbol_pair)==2)*100.0;
+npos = mean(y_train(:,cfg.target_symbol_pair)==0)*100.0;
+
+assert(lpos+spos+npos == 100.0,'Invalid label values.')
+
+fprintf('Long position ratio: %f%%\n',lpos)
+fprintf('Short position ratio: %f%%\n',spos)
+fprintf('No position ratio: %f%%\n',npos)
+fprintf('Building training structure...\n')
 
 % Prepare the structure to return
 trdata.X_train = X_train;
@@ -62,6 +123,8 @@ trdata.X_test = X_test;
 trdata.y_train = y_train;
 trdata.y_cv = y_cv;
 trdata.y_test = y_test;
+
+trdata.num_features = size(X_train,2);
 
 % Also save the mu and sigma value for future normalizations:
 trdata.mu = mu;
@@ -78,6 +141,9 @@ trdata.train_ratio = 1.0;
 
 % deep training status:
 trdata.deep_training = cfg.default_deep_training;
+
+% RMS stop initial value:
+trdata.rms_stop = cfg.default_rms_stop;
 
 end
 
@@ -100,8 +166,8 @@ end
 %!  assert(size(data.y_train,2)==cfg.num_symbol_pairs,'Invalid number of label colunms')
 %! 	% Also check that the normalization is applied properly:
 %!	Xn = data.X_train;
-%!	assert(sum(abs(mean(Xn)))<1e-9,'Mean value is out of range')
-%!	assert(sum(abs(std(Xn)-1.0))<1e-9,'Sigma is out of range')
+%!	assert(sum(abs(mean(Xn)))<1e-8,'Mean value is out of range: mean=%.16f',sum(abs(mean(Xn))))
+%!	assert(cfg.use_PCA || sum(abs(std(Xn)-1.0))<1e-8,'Sigma is out of range: std=%.16f',sum(abs(std(Xn)-1.0)))
 %!	assert(data.regularization_param==cfg.default_regularization_parameter,'Invalid regularization parameter value')
 %!	assert(data.max_iterations==cfg.default_max_training_iterations,'Invalid max iterations value')
 %!	assert(data.train_ratio==1.0,'Invalid train_ratio value')
