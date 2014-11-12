@@ -15,3 +15,4 @@
 - Updated script files to handle x64 versions.
 - Updated ignore file.
 - Added implementation for show_cuda_info plugin.
+- Added initial profile info for current nnCostFunction implementation.

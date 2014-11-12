@@ -40,8 +40,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nnDebugInitializeWeights...\n')
 % test nnDebugInitializeWeights
 
-% fprintf('Testing nnCostFunction...\n')
-% test nnCostFunction
+fprintf('Testing nnCostFunction...\n')
+test nnCostFunction
 
 % fprintf('Testing splitDataset...\n')
 % test splitDataset
@@ -82,8 +82,8 @@ addpath([pname '/neural']);
 % fprintf('Testing DLL loading...\n')
 % test_load
 
-fprintf('Showing CUDA info...\n')
-show_cuda_info
+% fprintf('Showing CUDA info...\n')
+% show_cuda_info
 
 % fprintf('Testing train_bp...\n')
 % test tests_train_bp;
