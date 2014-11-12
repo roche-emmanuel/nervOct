@@ -79,10 +79,13 @@ addpath([pname '/neural']);
 % fprintf('Testing nnComputeLearningCurves...\n')
 % test nnComputeLearningCurves
 
-fprintf('Testing DLL loading...\n')
-test_load
+% fprintf('Testing DLL loading...\n')
+% test_load
 
-fprintf('Testing train_bp...\n')
-test tests_train_bp;
+fprintf('Showing CUDA info...\n')
+show_cuda_info
+
+% fprintf('Testing train_bp...\n')
+% test tests_train_bp;
 
 more on;

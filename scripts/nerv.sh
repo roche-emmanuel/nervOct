@@ -30,7 +30,7 @@ cmdlist | help)
 	echo "List of available commands:"
 	echo "  -> format_date pattern"
 	echo "  -> build_octave_plug [test_load | train_bp]"
-	echo "  -> build"  # build the x86 and x64 versions
+	echo "  -> build_all"  # build the x86 and x64 versions
 	;;
 
 format_date)
@@ -46,7 +46,7 @@ build_octave_plug)
 	build_octave_plugin "$2" "x64"
 	;;
 
-build)
+build_all)
 	. "$root_path_nervtech/scripts/nerv_utils.sh"
 
 	dev.sh build nervtech win32_vs12
@@ -55,6 +55,8 @@ build)
 	build_octave_plugin "test_load" "x64"
 	build_octave_plugin "train_bp" "x86"
 	build_octave_plugin "train_bp" "x64"
+	build_octave_plugin "show_cuda_info" "x86"
+	build_octave_plugin "show_cuda_info" "x64"
 
 	;;
 
