@@ -22,3 +22,4 @@
 - Added initial nervCUDA module.
 - Added CUDA matrix multiplication implementation.
 - Added support for matrix transpose operation.
+- Updating cost_function_cuda implementation.

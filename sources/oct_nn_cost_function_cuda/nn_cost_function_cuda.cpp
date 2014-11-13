@@ -44,7 +44,7 @@ public:
   }
 
   inline Matrix multMat(const Matrix& A, const Matrix& B, bool tpA = false, bool tpB = false) {
-    Matrix C = Matrix(A.dim1(),B.dim2());
+    Matrix C = Matrix(A.dim1(),tpB ? B.dim1() : B.dim2());
     _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data(),tpA,tpB);
     return C;
   }
@@ -131,7 +131,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     CHECK(theta.dim2()==a.dim1(),"Mismatch on forward propagation on level "<<i<<", "<< theta.dim2()<<"!="<<a.dim1())
 
     // Matrix z = theta * a;
-    Matrix z = g_cuda.multMat(theta,a);
+    Matrix z = g_cuda.multMat(theta,a.transpose(),false,true);
 
     // We have to store the z input for the backpropagation later:
     Inputs.push_back(z);
