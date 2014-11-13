@@ -43,8 +43,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nnCostFunction...\n')
 % test nnCostFunction
 
-fprintf('Testing nn_cost_function...\n')
-test tests_nn_cost_function;
+% fprintf('Testing nn_cost_function...\n')
+% test tests_nn_cost_function;
 
 % fprintf('Testing splitDataset...\n')
 % test splitDataset

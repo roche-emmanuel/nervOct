@@ -7,3 +7,6 @@ ADD_SUBDIRECTORY(test_sgtcore)
 ADD_SUBDIRECTORY(nervMBP)
 ADD_SUBDIRECTORY(test_nervmbp)
 
+ADD_SUBDIRECTORY(nervCUDA)
+# ADD_SUBDIRECTORY(test_nervmbp)
+

@@ -1,3 +1,27 @@
+*** CUDA infos:
+
+Showing CUDA info...
+device...................: 0
+Name.....................: GeForce GTX 660 [1110Mhz - supports CUDA 3.0
+Multi-Processors.........: 5
+Global mem...............: 2147483648
+Const mem................: 65536
+Shared mem per block.....: 49152
+Regs per block...........: 65536
+Max threads per block....: 1024
+Max threads dim..........: (1024, 1024, 64)
+Max grid size............: (2147483647, 65535, 65535)
+Warp size................: 32
+Mem pitch................: 2147483647
+Texture Alignment........: 512
+Device overlap...........: 1
+kernel Timeout Enabled...: 0
+Device integrated........: 0
+Can map host memory......: 1
+Compute mode.............: 0
+Size of floating type....: 8
+
+
 *** Investigate the perfs of nnCostFunction
 
 -> initial implementation:
