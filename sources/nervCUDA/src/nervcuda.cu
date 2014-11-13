@@ -18,31 +18,31 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 	size = nrowA * ncolA * sizeof(double);
 	double* d_A = NULL;
 	err = cudaMalloc(&d_A, size);
-	logDEBUG("CUDA malloc A: "<<cudaGetErrorString(err));
+	// logDEBUG("CUDA malloc A: "<<cudaGetErrorString(err));
 	cudaMemcpy(d_A, A, size, cudaMemcpyHostToDevice);
 
 	size = nrowB * ncolB * sizeof(double);
 	double* d_B = NULL;
 	err = cudaMalloc(&d_B, size);
-	logDEBUG("CUDA malloc B: "<<cudaGetErrorString(err));
+	// logDEBUG("CUDA malloc B: "<<cudaGetErrorString(err));
 	cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice);
 
 	size = nrowA * ncolB * sizeof(double);
 	double* d_C = NULL;
 	err = cudaMalloc(&d_C, size);
-	logDEBUG("CUDA malloc C: "<<cudaGetErrorString(err));
+	// logDEBUG("CUDA malloc C: "<<cudaGetErrorString(err));
 	// cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice); // no need to set this.
 
 	// Call the kernel directly:
 	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 	dim3 dimGrid((BLOCK_SIZE + ncolB-1)/BLOCK_SIZE, (BLOCK_SIZE + nrowA-1)/BLOCK_SIZE);
-	logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
+	// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 
 	MatMulKernel<<<dimGrid, dimBlock>>>(nrowA, ncolA, d_A, nrowB, ncolB, d_B, d_C);
 
 	// Read C from device memory
 	err = cudaMemcpy(C, d_C, size, cudaMemcpyDeviceToHost);
-	logDEBUG("Copy C off of device: "<<cudaGetErrorString(err));
+	// logDEBUG("Copy C off of device: "<<cudaGetErrorString(err));
 
 	// Free device memory
 	cudaFree(d_A);

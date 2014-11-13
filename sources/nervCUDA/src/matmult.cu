@@ -13,8 +13,8 @@ __global__ void MatMulKernel(unsigned int nrowA, unsigned int ncolA, const doubl
   int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
   int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
-  __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
-  __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
+  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
+  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
 
   for (int k = 0; k < (BLOCK_SIZE + ncolA - 1)/BLOCK_SIZE; k++) {
 

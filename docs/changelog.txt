@@ -20,3 +20,4 @@
 - Completed initial cpp implementation of nn_cost_function.
 - Micro optimizations on nn_coost_function.
 - Added initial nervCUDA module.
+- Added CUDA matrix multiplication implementation.
