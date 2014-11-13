@@ -21,3 +21,4 @@
 - Micro optimizations on nn_coost_function.
 - Added initial nervCUDA module.
 - Added CUDA matrix multiplication implementation.
+- Added support for matrix transpose operation.

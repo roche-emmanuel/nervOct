@@ -17,7 +17,7 @@
 extern "C" {
 
 void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
-    unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
+    unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
 };
 

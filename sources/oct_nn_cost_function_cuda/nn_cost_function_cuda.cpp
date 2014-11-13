@@ -14,7 +14,7 @@
 class CUDAManager {
 protected:
   typedef void (* MultMatFunc)(unsigned int nrowA, unsigned int ncolA, const double* A,
-    unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
+    unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
 public:
   CUDAManager() {
@@ -39,13 +39,13 @@ public:
     }
   }
 
-  inline void multMat(const Matrix& A, const Matrix& B, Matrix& C) {
-    _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data());
+  inline void multMat(const Matrix& A, const Matrix& B, Matrix& C, bool tpA = false, bool tpB = false) {
+    _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data(),tpA,tpB);
   }
 
-  inline Matrix multMat(const Matrix& A, const Matrix& B) {
+  inline Matrix multMat(const Matrix& A, const Matrix& B, bool tpA = false, bool tpB = false) {
     Matrix C = Matrix(A.dim1(),B.dim2());
-    _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data());
+    _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data(),tpA,tpB);
     return C;
   }
 

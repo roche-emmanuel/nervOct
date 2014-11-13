@@ -6,4 +6,7 @@
 __global__ void MatMulKernel(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
 
+__global__ void MatMulKernelTpB(unsigned int nrowA, unsigned int ncolA, const double* A,
+    unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
+
 #endif
