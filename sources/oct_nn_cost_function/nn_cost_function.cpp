@@ -41,12 +41,27 @@ DEFUN_DLD (nn_cost_function, args, nargout,
   // That we should rebuild here:
   octave_idx_type nt = nl-1;
 
+  // Number of samples:
+  octave_idx_type nsamples = X.dim1();
+
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
   typedef std::vector<Matrix> MatrixVector;
   MatrixVector Thetas;
   MatrixVector Activation;
   MatrixVector Deltas(nl);
   MatrixVector Inputs;
+
+  // First we need to compute h(x) for each example.
+  Matrix a = Matrix(nsamples,X.dim2()+1,1.0);
+  double* aptr = ((double*)a.data())+nsamples;
+  octave_idx_type num = X.numel();
+  memcpy((void*)aptr,(void*)X.data(),sizeof(double)*num);
+  a = a.transpose(); 
+
+  Activation.push_back(a);
+
+  // add a dummy value in the input vector:
+  Inputs.push_back(Matrix());
 
   const double* ptr = (double*)nn_params.data();
   octave_idx_type pos = 0;
@@ -58,36 +73,20 @@ DEFUN_DLD (nn_cost_function, args, nargout,
 
     Thetas.push_back(Matrix(n,m));
 
-    Matrix& mat = Thetas[i];    
-    memcpy((void*)mat.data(),ptr,sizeof(double)*n*m);
+    Matrix& theta = Thetas[i];    
+    memcpy((void*)theta.data(),ptr,sizeof(double)*n*m);
     ptr += count;
     pos += count;
-  }
 
-  // note that the pos variable is now on the next index available:
-  CHECK(pos== nn_params.dim1(),"Mismatch in unrolled vector size " << pos <<"!="<< nn_params.dim1());
+    // Once the theta matrix is ready we can compute the activation:
 
-  // Number of samples:
-  octave_idx_type m = X.dim1();
-
-  // First we need to compute h(x) for each example.
-  Matrix a = Matrix(m,1,1.0); 
-  a = a.append(X); // we can only append columns !
-  a = a.transpose(); 
-
-  Activation.push_back(a);
-
-  // add a dummy value in the input vector:
-  Inputs.push_back(Matrix());
-
-  for(octave_idx_type i=0;i<nt;++i) {
     // Retrieve the current activation value:
     a = Activation[i];
 
     // Then we can compute the total input for the next layer:
-    CHECK(Thetas[i].dim2()==a.dim1(),"Mismatch on forward propagation on level "<<i<<", "<< Thetas[i].dim2()<<"!="<<a.dim1())
+    CHECK(theta.dim2()==a.dim1(),"Mismatch on forward propagation on level "<<i<<", "<< theta.dim2()<<"!="<<a.dim1())
 
-    Matrix z = Thetas[i] * a;
+    Matrix z = theta * a;
 
     // We have to store the z input for the backpropagation later:
     Inputs.push_back(z);
@@ -96,18 +95,21 @@ DEFUN_DLD (nn_cost_function, args, nargout,
     a = Matrix(z.dim1(),z.dim2());
     double* src = (double*)z.data();
     double* dest = (double*)a.data();
-    octave_idx_type num = z.numel();
+    num = z.numel();
     for(octave_idx_type j=0;j<num;++j) {
       *dest++ = 1.0/(1.0 + exp(- *src++));
     }
 
-    Matrix ac = Matrix(m,1,1.0);
+    Matrix ac = Matrix(nsamples,1,1.0);
     ac = ac.append(a.transpose());
     ac = ac.transpose();
 
     // Also save the activation value:
-    Activation.push_back(ac);
+    Activation.push_back(ac);    
   }
+
+  // note that the pos variable is now on the next index available:
+  CHECK(pos== nn_params.dim1(),"Mismatch in unrolled vector size " << pos <<"!="<< nn_params.dim1());
 
 
   // Now the final result is stored in a, the activation vector (eg. output) of the last layer.
@@ -121,17 +123,17 @@ DEFUN_DLD (nn_cost_function, args, nargout,
   double J = 0;
   double* hptr = (double*)hx.data();
   double* yptr = (double*)yy.data();
-  octave_idx_type num = hx.numel();
+  num = hx.numel();
   CHECK(num==yy.numel(),"Mismatch in hx and yy elem count: "<<num<<"!="<<yy.numel());
   for(octave_idx_type i=0;i<num;++i) {
     J -= (*yptr) * log(*hptr);
     J -= (1.0 - *yptr++) * log(1.0 - *hptr++);
   }
 
-  J /= m;
+  J /= nsamples;
 
   // Now we add the regularization terms:
-  double b = lambda/(2*m);
+  double b = lambda/(2*nsamples);
 
   double reg = 0;
   ptr = nn_params.data();
@@ -200,7 +202,7 @@ DEFUN_DLD (nn_cost_function, args, nargout,
     // Prepare the final detal matrix:
     delta = Matrix(z.dim1(),z.dim2());
     dest = (double*)delta.data();
-    octave_idx_type num = z.numel();
+    num = z.numel();
     double sig;
     for(octave_idx_type j=0;j<num;++j) {
       sig = 1.0 /(1.0 +exp(-(*zptr++)));
@@ -234,8 +236,8 @@ DEFUN_DLD (nn_cost_function, args, nargout,
       (*rptr++) = 0.0;
     }
 
-    // Matrix mat = (Deltas[i+1] * Activation[i].transpose())/m; 
-    Matrix mat = (Deltas[i+1] * Activation[i].transpose() + lambda * reg)/m; 
+    // Matrix mat = (Deltas[i+1] * Activation[i].transpose())/nsamples; 
+    Matrix mat = (Deltas[i+1] * Activation[i].transpose() + lambda * reg)/nsamples; 
 
     memcpy((void*)gptr,(void*)mat.data(),sizeof(double)*count);
     gptr += count;

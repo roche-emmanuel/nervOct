@@ -18,3 +18,4 @@
 - Added initial profile info for current nnCostFunction implementation.
 - Implementing nn_cost_function cpp method.
 - Completed initial cpp implementation of nn_cost_function.
+- Micro optimizations on nn_coost_function.
