@@ -111,17 +111,17 @@ DEFUN_DLD (train_bp, args, nargout,
  const octave_value& rms_val = args(3);
 
   // check that this is a double type:
-  CHECK(rms_val.is_scalar_type(),"train_bp: outputs (arg 3) should be a scalar type")
+  CHECK(rms_val.is_double_type(),"train_bp: rms_stop (arg 3) should be a double type")
 
-  double rms_stop = rms_val.scalar_value();
+  double rms_stop = rms_val.double_value();
 
   // 5. Retrieve the desired max iter:
  const octave_value& maxiter_val = args(4);
 
   // check that this is a double type:
-  CHECK(maxiter_val.is_scalar_type(),"train_bp: outputs (arg 4) should be a scalar type")
+  CHECK(maxiter_val.is_double_type(),"train_bp: maxiter (arg 4) should be a double type")
 
-  int max_iter = (int)maxiter_val.scalar_value();
+  int max_iter = (int)maxiter_val.double_value();
 
 
   // 6. prepare the weight vector:
