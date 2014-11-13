@@ -100,7 +100,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   double* aptr = ((double*)a.data())+nsamples;
   octave_idx_type num = X.numel();
   memcpy((void*)aptr,(void*)X.data(),sizeof(double)*num);
-  a = a.transpose(); 
+  //a = a.transpose();  //DISCARDED
 
   Activation.push_back(a);
 
@@ -128,10 +128,10 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     a = Activation[i];
 
     // Then we can compute the total input for the next layer:
-    CHECK(theta.dim2()==a.dim1(),"Mismatch on forward propagation on level "<<i<<", "<< theta.dim2()<<"!="<<a.dim1())
+    CHECK(theta.dim2()==a.dim2(),"Mismatch on forward propagation on level "<<i<<", "<< theta.dim2()<<"!="<<a.dim2())
 
     // Matrix z = theta * a;
-    Matrix z = g_cuda.multMat(theta,a.transpose(),false,true);
+    Matrix z = g_cuda.multMat(theta,a,false,true);
 
     // We have to store the z input for the backpropagation later:
     Inputs.push_back(z);
@@ -147,7 +147,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
     Matrix ac = Matrix(nsamples,1,1.0);
     ac = ac.append(a.transpose());
-    ac = ac.transpose();
+    //ac = ac.transpose(); //DISCARDED
 
     // Also save the activation value:
     Activation.push_back(ac);    
@@ -282,9 +282,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
       (*rptr++) = 0.0;
     }
 
-    // Matrix mat = (Deltas[i+1] * Activation[i].transpose())/nsamples; 
-    // Matrix mat = (Deltas[i+1] * Activation[i].transpose() + lambda * reg)/nsamples; 
-    Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i].transpose()) + lambda * reg)/nsamples; 
+    Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]) + lambda * reg)/nsamples; 
 
     memcpy((void*)gptr,(void*)mat.data(),sizeof(double)*count);
     gptr += count;
