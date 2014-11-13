@@ -55,3 +55,20 @@ Elapsed time is 8.49249 seconds.
    5            cell             0.000           40
    8         reshape             0.000           20
 
+-> C++ implementation:
+- Tested with architecture: [1441; 200; 3];
+-	m = 2000;
+- Results (x64):
+
+Elapsed time is 6.66538 seconds.
+   #            Function Attr     Time (s)        Calls
+-------------------------------------------------------
+   2    nn_cost_function             6.664           10
+   3                 toc             0.001            1
+   1                 tic             0.000            1
+   4             profile             0.000            1
+   5              nargin             0.000            1
+   6           binary !=             0.000            1
+   7               false             0.000            1
+   8 __profiler_enable__             0.000            1
+

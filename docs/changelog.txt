@@ -17,3 +17,4 @@
 - Added implementation for show_cuda_info plugin.
 - Added initial profile info for current nnCostFunction implementation.
 - Implementing nn_cost_function cpp method.
+- Completed initial cpp implementation of nn_cost_function.

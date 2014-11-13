@@ -60,7 +60,54 @@
 %!		costFuncCPU = @(p) nn_cost_function(p, lsizes, X, yy, lambda);
 %!	
 %!		% check that we have the same values:
-%!		j1 = costFunc(nn_params);
-%!		j2 = costFuncCPU(nn_params);
+%!		[j1 grad1] = costFunc(nn_params);
+%!		[j2 grad2]= costFuncCPU(nn_params);
+%!		%size(grad1)
+%!		%size(grad2)
+%!		%grad2 = grad1;
 %!		assert(abs(j1-j2)<1e-10,'Mismatch in computed cost value: %.16f!=%.16f',j1,j2);
+%!		len = sum(sum(abs(grad1 - grad2)));
+%!		assert(len<1e-10,'Mismatch in computed gradients value: len=%.16f',len);
 %!	end
+
+% ==> Check the performances for a not too small network:
+%!test
+%!	num_labels = 3;
+%!	lsizes = [1441; 200; num_labels];
+%!	m = 2000;
+%!	X  = nnDebugInitializeWeights(lsizes(1) - 1, m);
+%!	y  = mod(1:m, num_labels)'; % We use 0-bazed labels.
+%!	lambda = 0.1;
+%!	
+%!	% Prepare the matrix of labels here:
+%!	yy = zeros(num_labels,m);
+%!	
+%!	for c=1:m,
+%!		% Note that the labels are 0-based, so we need to offset them by one:
+%!		yy(y(c)+1,c)=1;
+%!	end;
+%!	
+%!	% Prepare the nn params:
+%!	nl = size(lsizes,1);
+%!	
+%!	nn_params = [];
+%!	nt = nl-1;
+%!	
+%!	% We generate some 'random' test data
+%!	for i=1:nt,
+%!		theta = nnDebugInitializeWeights(lsizes(i), lsizes(i+1));
+%!		nn_params = [nn_params; theta(:)];
+%!	end
+%!	size(X)
+%!	size(yy)
+%!	costFunc = @(p) nn_cost_function(p, lsizes, X, yy, lambda);
+%!	
+%!	num=10;
+%!	profile on;
+%!	tic()
+%!	for i=1:num,
+%!		costFunc(nn_params);
+%!	end
+%! toc()
+%!	profile off;
+%!	profshow(profile('info'))

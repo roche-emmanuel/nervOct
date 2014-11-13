@@ -45,7 +45,7 @@ DEFUN_DLD (nn_cost_function, args, nargout,
   typedef std::vector<Matrix> MatrixVector;
   MatrixVector Thetas;
   MatrixVector Activation;
-  MatrixVector Deltas;
+  MatrixVector Deltas(nl);
   MatrixVector Inputs;
 
   const double* ptr = (double*)nn_params.data();
@@ -153,6 +153,95 @@ DEFUN_DLD (nn_cost_function, args, nargout,
   J += b * reg;
 
   result.append(J);
+
+
+  // Part 2: 
+  // now implementing back propagation.
+
+  // We start with the latest delta value:
+  Deltas[nl-1] = Matrix(hx.dim1(),hx.dim2());
+  num = hx.numel();
+  double* dest = (double*)Deltas[nl-1].data();
+  hptr = (double*)hx.data();
+  yptr = (double*)yy.data();
+
+  for(octave_idx_type i=0;i<num;++i) {
+    (*dest++) = (*hptr++) - (*yptr++);    
+  }
+
+  Matrix delta = Deltas[nl-1];
+
+  for(octave_idx_type i=nt-1;i>0;i--) {
+    // We have to accumulate the correction for each sample
+    Matrix mat = Thetas[i].transpose() * delta;
+
+    // We need to drop the first ROW of this matrix,
+    // So we take the transpose, remove the first col,
+    // then transpose again:
+    mat = mat.transpose();
+
+    const double* dptr = mat.data();
+
+    // Then we have to discard the first row, so we just offset the pointer:
+    dptr += mat.dim1();
+
+    Matrix mat2 = Matrix(mat.dim1(),mat.dim2()-1);
+    double* dest = (double*)mat2.data();
+    memcpy(dest,dptr,sizeof(double)*mat2.dim1()*mat2.dim2());
+
+    // transpose back:
+    mat = mat2.transpose();
+    dptr = (double*)mat.data();
+
+    // And we multiply by the sigmoid gradient of the previous activation value:
+    Matrix& z = Inputs[i];
+    const double* zptr = z.data();
+
+    // Prepare the final detal matrix:
+    delta = Matrix(z.dim1(),z.dim2());
+    dest = (double*)delta.data();
+    octave_idx_type num = z.numel();
+    double sig;
+    for(octave_idx_type j=0;j<num;++j) {
+      sig = 1.0 /(1.0 +exp(-(*zptr++)));
+      (*dest++) = (*dptr++)*sig*(1.0-sig);
+    }
+
+    // Save that delta value:
+    Deltas[i] = delta;
+  }
+
+  // result.append(Activation[nt-1]);
+  // result.append(Deltas[nt]);
+
+  // Now we can compute the theta grad values:
+  octave_idx_type np = nn_params.dim1();
+  Matrix grad = Matrix(np,1,0.0);
+  double* gptr = (double*)grad.data();
+
+  for(octave_idx_type i=0;i<nt;++i) {
+    // Also add the regularization term at the same time:
+    Matrix& Theta = Thetas[i];
+    octave_idx_type n1 = Theta.dim1();
+    octave_idx_type n2 = Theta.dim2();
+    octave_idx_type count = n1*n2;
+
+    Matrix reg = Matrix(n1,n2);
+    memcpy((void*)reg.data(),(void*)Theta.data(),sizeof(double)*count);
+    double* rptr = (double*)reg.data();
+    for(octave_idx_type j=0;j<n1;++j) {
+      // Reset the first column to zero:
+      (*rptr++) = 0.0;
+    }
+
+    // Matrix mat = (Deltas[i+1] * Activation[i].transpose())/m; 
+    Matrix mat = (Deltas[i+1] * Activation[i].transpose() + lambda * reg)/m; 
+
+    memcpy((void*)gptr,(void*)mat.data(),sizeof(double)*count);
+    gptr += count;
+  }
+
+  result.append(grad);
 
   return result;
 }
