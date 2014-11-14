@@ -28,3 +28,4 @@
 - Trying to avoid shared memory bank conflicts.
 - Working on compute_activation kernel.
 - Validated computation of activation and inputs in kernel.
+- Moved cudaDeviceReset call in nervcuda test.

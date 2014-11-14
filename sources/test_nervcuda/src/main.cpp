@@ -344,8 +344,6 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_performances )
   logDEBUG("GPU matrix mult taking " << (sec.count()/num) << " seconds.");
 
   BOOST_CHECK(FreeLibrary(h));
-
-  cudaDeviceReset();
 }
 
 BOOST_AUTO_TEST_CASE( test_cost_function )
@@ -534,6 +532,8 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   }
 
   BOOST_CHECK(FreeLibrary(h));
+
+  cudaDeviceReset();
 }
 
 
