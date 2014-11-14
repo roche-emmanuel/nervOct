@@ -25,3 +25,4 @@
 - Updating cost_function_cuda implementation.
 - Using tpB multMat version.
 - Added implementation for tpA support in mult mat.
+- Trying to avoid shared memory bank conflicts.

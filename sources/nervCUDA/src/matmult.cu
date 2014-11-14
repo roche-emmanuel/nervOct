@@ -13,26 +13,32 @@ __global__ void MatMulKernel(unsigned int nrowA, unsigned int ncolA, const doubl
   int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
   int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
-  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
-  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
+  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1]; // Adding +1 to avoid shared memory bank conflict
+  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 
   int xx, yy;
   for (int k = 0; k < (BLOCK_SIZE + ncolA - 1)/BLOCK_SIZE; k++) {
 
-  	xx = k*BLOCK_SIZE + threadIdx.x;
-  	yy = row;
+  	// Here we try to access the A matrix data in a coaleased way:
+  	// keeping in mind that A is row major. So we need to read A per column
+  	// while the threads in the wrap are (probably) organized by row.
+  	// So we invert the roles palyed by threadIdx.x and threadIdx.y.
+  	xx = k*BLOCK_SIZE + threadIdx.y;
+  	yy = blockIdx.y*BLOCK_SIZE + threadIdx.x;
 		if (xx < ncolA && yy < nrowA) 
-		 	As[threadIdx.y][threadIdx.x] = A[xx*nrowA + yy];
+		 	As[threadIdx.x][threadIdx.y] = A[xx*nrowA + yy];
 		else
-			As[threadIdx.y][threadIdx.x] = 0.0;
+			As[threadIdx.x][threadIdx.y] = 0.0;
 
-		xx = col;
-		yy = k*BLOCK_SIZE + threadIdx.y;
+
+		// Same for the B matrix, we need to invert the x and y coords:
+		xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+		yy = k*BLOCK_SIZE + threadIdx.x;
 
 		if (yy < nrowB && xx < ncolB)
-			Bs[threadIdx.y][threadIdx.x] = B[xx*nrowB + yy];
+			Bs[threadIdx.x][threadIdx.y] = B[xx*nrowB + yy];
 		else
-			Bs[threadIdx.y][threadIdx.x] = 0.0;
+			Bs[threadIdx.x][threadIdx.y] = 0.0;
 
 		__syncthreads();
 
@@ -56,26 +62,27 @@ __global__ void MatMulKernelTpA(unsigned int nrowA, unsigned int ncolA, const do
   int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
   int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
-  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
-  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
+  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1];
+  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 
   int xx, yy;
   for (int k = 0; k < (BLOCK_SIZE + nrowA - 1)/BLOCK_SIZE; k++) {
 
   	xx = k*BLOCK_SIZE + threadIdx.x;
   	yy = row;
+  	
 		if (yy < ncolA && xx < nrowA) 
 		 	As[threadIdx.y][threadIdx.x] = A[yy*nrowA + xx];
 		else
 			As[threadIdx.y][threadIdx.x] = 0.0;
 
-		xx = col;
-		yy = k*BLOCK_SIZE + threadIdx.y;
+		xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+		yy = k*BLOCK_SIZE + threadIdx.x;
 
 		if (yy < nrowB && xx < ncolB)
-			Bs[threadIdx.y][threadIdx.x] = B[xx*nrowB + yy];
+			Bs[threadIdx.x][threadIdx.y] = B[xx*nrowB + yy];
 		else
-			Bs[threadIdx.y][threadIdx.x] = 0.0;
+			Bs[threadIdx.x][threadIdx.y] = 0.0;
 
 		__syncthreads();
 
@@ -99,20 +106,20 @@ __global__ void MatMulKernelTpB(unsigned int nrowA, unsigned int ncolA, const do
   int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
   int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
-  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
-  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
+  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1];
+  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 
   int xx, yy;
 
   for (int k = 0; k < (BLOCK_SIZE + ncolA - 1)/BLOCK_SIZE; k++) {
 
-  	xx = k*BLOCK_SIZE + threadIdx.x;
-  	yy = row;
+  	xx = k*BLOCK_SIZE + threadIdx.y;
+  	yy = blockIdx.y*BLOCK_SIZE + threadIdx.x;
 
 		if (xx < ncolA && yy < nrowA) 
-		 	As[threadIdx.y][threadIdx.x] = A[xx*nrowA + yy];
+		 	As[threadIdx.x][threadIdx.y] = A[xx*nrowA + yy];
 		else
-			As[threadIdx.y][threadIdx.x] = 0.0;
+			As[threadIdx.x][threadIdx.y] = 0.0;
 
 		xx = col;
 		yy = k*BLOCK_SIZE + threadIdx.y;
