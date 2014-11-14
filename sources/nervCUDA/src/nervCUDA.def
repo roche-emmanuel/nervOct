@@ -3,3 +3,5 @@ LIBRARY	"nervCUDA"
 EXPORTS
 
 multiplyMatrices	@1
+costFunc					@2
+costFuncCPU				@3

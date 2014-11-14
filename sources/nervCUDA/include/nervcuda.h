@@ -19,6 +19,12 @@ extern "C" {
 void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
+void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+
+void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+	double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+
 };
 
 #endif

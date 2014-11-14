@@ -26,3 +26,4 @@
 - Using tpB multMat version.
 - Added implementation for tpA support in mult mat.
 - Trying to avoid shared memory bank conflicts.
+- Working on compute_activation kernel.

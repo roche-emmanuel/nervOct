@@ -16,6 +16,9 @@ protected:
   typedef void (* MultMatFunc)(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
+  typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+
 public:
   CUDAManager() {
     logDEBUG("Loading nervCUDA...");
@@ -28,6 +31,11 @@ public:
     _multMat = (MultMatFunc) GetProcAddress(_h, "multiplyMatrices");
     if(!_multMat) {
       error("ERROR: cannot find multiplyMatrices method! err=%d",GetLastError());
+    }
+
+    _costFuncCPU = (CostFunc) GetProcAddress(_h, "costFuncCPU");
+    if(!_costFuncCPU) {
+      error("ERROR: cannot find costFuncCPU method! err=%d",GetLastError());
     }
   }
 
@@ -57,12 +65,27 @@ public:
     return C;
   }
 
+  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& activation, Matrix& inputs) {
+    unsigned int nl = lsizes_mat.numel();
+    unsigned int* lsizes = new unsigned int[nl];
+    for(unsigned int i=0;i<nl;++i) {
+      lsizes[i] = lsizes_mat(i);
+    }
+
+    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data());
+
+    delete [] lsizes;
+  }
+
 protected:
   HMODULE _h;
   MultMatFunc _multMat;
+  CostFunc _costFuncCPU;
 };
 
 CUDAManager g_cuda;
+
+// #define TEST_ACT
 
 DEFUN_DLD (nn_cost_function_cuda, args, nargout,
            "nn_cost_function_cuda function providing C++ implementation of nnCostFunction")
@@ -96,6 +119,37 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   // Number of samples:
   octave_idx_type nsamples = X.dim1();
 
+  // compute expected activation and input lengths:
+  octave_idx_type dbg_act_count_exp = 0;
+  octave_idx_type dbg_input_count_exp = 0;
+  for(octave_idx_type i=0;i<nl;++i) {
+    dbg_act_count_exp += layer_sizes(i)+1;
+  }
+
+  for(octave_idx_type i=0;i<nt;++i) {
+    dbg_input_count_exp += layer_sizes(i+1);
+  }
+
+  dbg_act_count_exp = nsamples*dbg_act_count_exp;
+  dbg_input_count_exp = nsamples*dbg_input_count_exp;
+
+#ifdef TEST_ACT
+  // Here we try to compute the activation and input values as vectors in a dedicated CPU method.
+  Matrix act_array = Matrix(dbg_act_count_exp,1);
+  memset((void*)act_array.data(),0,sizeof(double)*dbg_act_count_exp);
+  Matrix input_array = Matrix(dbg_input_count_exp,1);
+  memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
+
+  Matrix act_array2 = Matrix(dbg_act_count_exp,1);
+  Matrix input_array2 = Matrix(dbg_input_count_exp,1);
+  double* act_data = (double*)act_array2.data();
+  double* input_data = (double*)input_array2.data();
+
+  // compute the expected values:
+  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, act_array, input_array);
+#endif
+
+
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
   typedef std::vector<Matrix> MatrixVector;
   MatrixVector Thetas;
@@ -111,12 +165,21 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   //a = a.transpose();  //DISCARDED
 
   Activation.push_back(a);
+#ifdef TEST_ACT  
+  memcpy(act_data,a.data(),sizeof(double)*a.numel());
+  act_data += a.numel();
+#endif
 
   // add a dummy value in the input vector:
   Inputs.push_back(Matrix());
 
   const double* ptr = (double*)nn_params.data();
   octave_idx_type pos = 0;
+
+  octave_idx_type dbg_act_count = a.numel();
+  octave_idx_type dbg_input_count = 0;
+  
+
 
   for(octave_idx_type i=0; i<nt;++i) {
     octave_idx_type n = layer_sizes.elem(i+1);
@@ -141,8 +204,14 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     // Matrix z = theta * a;
     Matrix z = g_cuda.multMat(theta,a,false,true);
 
+    dbg_input_count += z.numel();
+
     // We have to store the z input for the backpropagation later:
     Inputs.push_back(z);
+#ifdef TEST_ACT    
+    memcpy(input_data,z.data(),sizeof(double)*z.numel());
+    input_data += z.numel();
+#endif
 
     // Compute the output of the next layer:
     a = Matrix(z.dim1(),z.dim2());
@@ -158,8 +227,37 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     //ac = ac.transpose(); //DISCARDED
 
     // Also save the activation value:
-    Activation.push_back(ac);    
+    Activation.push_back(ac);
+#ifdef TEST_ACT    
+    memcpy(act_data,ac.data(),sizeof(double)*ac.numel());
+    act_data += ac.numel();
+#endif
+
+    dbg_act_count += ac.numel();  
   }
+
+#ifdef TEST_ACT
+  // check that the inputs do match:
+  num = input_array.numel();
+  for(octave_idx_type j=0;j<num;++j) {
+    double v1 = input_array.elem(j);
+    double v2 = input_array2.elem(j);
+    CHECK(abs(v1-v2)<1e-10,"Mismatch in input arrays at index "<<j<<": "<<v1<<"!="<<v2);
+  }
+
+  num = act_array.numel();
+  for(octave_idx_type j=0;j<num;++j) {
+    double v1 = act_array.elem(j);
+    double v2 = act_array2.elem(j);
+    CHECK(abs(v1-v2)<1e-10,"Mismatch in act arrays at index "<<j<<": "<<v1<<"!="<<v2);
+  }
+#endif
+
+  // Matrix res = (input_array - input_array2).abs().sum().sum();
+
+  // Compare the observed counts with the expected values:
+  CHECK(dbg_act_count==dbg_act_count_exp,"Mismatch in act count: "<<dbg_act_count<<"!="<<dbg_act_count_exp);
+  CHECK(dbg_input_count==dbg_input_count_exp,"Mismatch in input count: "<<dbg_input_count<<"!="<<dbg_input_count_exp);
 
   // note that the pos variable is now on the next index available:
   CHECK(pos== nn_params.dim1(),"Mismatch in unrolled vector size " << pos <<"!="<< nn_params.dim1());
