@@ -40,11 +40,19 @@ public:
   }
 
   inline void multMat(const Matrix& A, const Matrix& B, Matrix& C, bool tpA = false, bool tpB = false) {
+    if(tpA && tpB) {
+      error("Dual transpose in multMat not supported yet.");
+    }
+
     _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data(),tpA,tpB);
   }
 
   inline Matrix multMat(const Matrix& A, const Matrix& B, bool tpA = false, bool tpB = false) {
-    Matrix C = Matrix(A.dim1(),tpB ? B.dim1() : B.dim2());
+    if(tpA && tpB) {
+      error("Dual transpose in multMat not supported yet.");
+    }
+
+    Matrix C = Matrix(tpA ? A.dim2() : A.dim1(),tpB ? B.dim1() : B.dim2());
     _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data(),tpA,tpB);
     return C;
   }
@@ -221,7 +229,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   for(octave_idx_type i=nt-1;i>0;i--) {
     // We have to accumulate the correction for each sample
     // Matrix mat = Thetas[i].transpose() * delta;
-    Matrix mat = g_cuda.multMat(Thetas[i].transpose(),delta);
+    Matrix mat = g_cuda.multMat(Thetas[i],delta,true);
 
     // We need to drop the first ROW of this matrix,
     // So we take the transpose, remove the first col,

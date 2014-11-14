@@ -27,7 +27,7 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 	// logDEBUG("CUDA malloc B: "<<cudaGetErrorString(err));
 	cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice);
 
-	size = nrowA * (tpB ? nrowB : ncolB) * sizeof(double);
+	size = (tpA ? ncolA : nrowA) * (tpB ? nrowB : ncolB) * sizeof(double);
 	double* d_C = NULL;
 	err = cudaMalloc(&d_C, size);
 	// logDEBUG("CUDA malloc C: "<<cudaGetErrorString(err));
@@ -35,10 +35,13 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 
 	// Call the kernel directly:
 	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-	dim3 dimGrid((BLOCK_SIZE + (tpB ? nrowB : ncolB)-1)/BLOCK_SIZE, (BLOCK_SIZE + nrowA-1)/BLOCK_SIZE);
+	dim3 dimGrid((BLOCK_SIZE + (tpB ? nrowB : ncolB)-1)/BLOCK_SIZE, (BLOCK_SIZE + (tpA ? ncolA : nrowA)-1)/BLOCK_SIZE);
 	// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 
-	if(tpB) {
+	if(tpA) {
+		MatMulKernelTpA<<<dimGrid, dimBlock>>>(nrowA, ncolA, d_A, nrowB, ncolB, d_B, d_C);
+	}
+	else if(tpB) {
 		MatMulKernelTpB<<<dimGrid, dimBlock>>>(nrowA, ncolA, d_A, nrowB, ncolB, d_B, d_C);
 	}
 	else {

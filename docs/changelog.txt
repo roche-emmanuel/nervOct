@@ -24,3 +24,4 @@
 - Added support for matrix transpose operation.
 - Updating cost_function_cuda implementation.
 - Using tpB multMat version.
+- Added implementation for tpA support in mult mat.

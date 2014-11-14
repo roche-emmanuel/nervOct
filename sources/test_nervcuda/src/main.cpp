@@ -123,6 +123,78 @@ BOOST_AUTO_TEST_CASE( test_mult_mat )
   BOOST_CHECK(FreeLibrary(h));
 }
 
+BOOST_AUTO_TEST_CASE( test_mult_mat_tp_a )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");  
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (* MultMatFunc)(unsigned int nrowA, unsigned int ncolA, const double* A,
+    unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
+
+  // We should be able to retrieve the train function:
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatrices");
+  BOOST_CHECK(mult_mat != nullptr);
+
+  // Now we use the mult mat method to compute a few matrices multiplication:
+  unsigned int num = 100; // number of tests to perform.
+  for(unsigned int i = 0;i<num;++i) {
+    unsigned int nrowA = random_int(10,100);
+    unsigned int ncolA = random_int(10,100);
+    unsigned int nrowB = nrowA;
+    unsigned int ncolB = random_int(10,100);
+
+    // prepare the matrix data:
+    unsigned int count = nrowA*ncolA;
+    double* ptr;
+    double* A = new double[count];
+    ptr = A;
+    for(unsigned int j=0;j<count;++j) {
+      (*ptr++) = random_double(-10.0,10.0);
+    }
+
+    count = nrowB*ncolB;
+    double* B = new double[count];
+    ptr = B;
+    for(unsigned int j=0;j<count;++j) {
+      (*ptr++) = random_double(-10.0,10.0);
+    }
+
+    count = ncolA*ncolB;
+    double* C = new double[count];
+    memset((void*)C,0,sizeof(double)*count);
+
+    double* predC = new double[count];
+    for(unsigned int row=0;row<ncolA;++row) {
+      for(unsigned int col=0;col<ncolB;++col) {
+        // compute the value C(row,col):
+        double val = 0.0;
+        for(unsigned int n = 0;n<nrowA;++n) {
+          // val += A(row,n)*B(n,col);
+          val += A[row*nrowA+n]*B[col*nrowB+n];
+        }
+        predC[ncolA*col+row] = val;
+      }
+    }
+
+    // Now compute the value using the CUDA kernel:
+    // logDEBUG("Testing wih A: "<<nrowA<<" x "<<ncolA<<" and B: "<<nrowB<<" x "<<ncolB);
+
+    mult_mat(nrowA, ncolA, A, nrowB, ncolB, B, C, true, false);
+
+    // finally we need to compare the computed matrices value by value:
+    for(unsigned int row=0;row<ncolA;++row) {
+      for(unsigned int col=0;col<ncolB;++col) {
+        double v1 = C[ncolA*col+row];
+        double v2 = predC[ncolA*col+row];
+        BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at element ("<<row<<", "<<col<<"): "<<v1<<"!="<<v2);
+      }
+    }
+
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
 BOOST_AUTO_TEST_CASE( test_mult_mat_tp_b )
 {
   HMODULE h = LoadLibrary("nervCUDA.dll");  
