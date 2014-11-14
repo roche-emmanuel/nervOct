@@ -207,6 +207,15 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		logDEBUG("CUDA reading inputs: "<<cudaGetErrorString(err));
 	}
 
+	// update the intercept values in the activation array:
+	ptr = activation;
+	for(unsigned int i=0;i<nl;++i) {
+		for(unsigned int j=0;j<nsamples;++j) {
+			(*ptr++) = 1.0;
+		}
+		ptr += nsamples*(lsizes[i]);
+	}
+
 	// Free device memory
 	cudaFree(d_lsizes);
 	cudaFree(d_params);
