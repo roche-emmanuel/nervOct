@@ -352,12 +352,15 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   BOOST_CHECK(h != nullptr);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+  double* nn_params, double* X, double* yy, double lambda, double* inputs);
+
+  typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
   double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
 
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "costFunc");
   BOOST_CHECK(costfunc != nullptr);
-  CostFunc costfunc_cpu = (CostFunc) GetProcAddress(h, "costFuncCPU");
+  CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "costFuncCPU");
   BOOST_CHECK(costfunc_cpu != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
@@ -434,7 +437,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
 
     // Now we call the cost function method:
-    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, activation, inputs);
+    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs);
 
     // Now we should manually compute the activation/input values:
     double* pred_act = new double[act_size];
@@ -444,70 +447,10 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
     costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input);
 
-#if 0
-    // prepare the prediction data:
-    // First we need to add the a0 data:
-    ptr = pred_act;
-    ptr += nsamples;
-
-    // for(unsigned int j=0;j<nsamples;++j) {
-    //   *ptr++ = 0.0;
-    // }
-
-    // inject the X matrix in a row major version:
-    double* xptr = X;
-    unsigned int nrows = nsamples;
-    unsigned int ncols = lsizes[0];
-    memcpy(ptr,xptr,sizeof(double)*nrows*ncols);
-
-    // make the prediction for the other layer:
-    unsigned int theta_offset = 0;
-    unsigned int act_offset = 0;
-    unsigned int next_act_offset = nsamples*(lsizes[0]+1);
-    unsigned int input_offset = 0;
-
-    for(unsigned int i=0; i<nt;++i) {
-
-      // compute the matrix z_i = theta_i * a_i^T
-      unsigned int nrows = lsizes[i+1];
-      unsigned int ncols = nsamples;
-
-      double* z = new double[nsamples*lsizes[i+1]];
-      memset(z,0,sizeof(double)*nsamples*lsizes[i+1]);
-      
-      unsigned int num = lsizes[i]+1;
-
-      for(unsigned int c=0;c<ncols;++c) {
-        for(unsigned int r=0;r<nrows;++r) {
-          // compute the value of z_i(r,c):
-          double val = 0;
-          for(unsigned int n=0;n<num;++n) {
-            // val += theta_i(r,n)*a_i(c,n); // note that we transpose a_i here.
-            val += params[theta_offset+nrows*n+r]*pred_act[act_offset+nsamples*n+c]; 
-          }
-
-          // We have compute the total value of the element z_i(r,c), but we still need to take the sigmoid:
-          val = 1.0 / (1.0 + exp(-val));
-
-          // Now we store this as the new value computed for the input:
-          pred_input[input_offset+nrows*c+r] = val;
-
-          // finally we also set the new activation matrix value
-          // the value of z_i(r,c) is stored as a_(i+1)(c,r+1):
-          pred_act[next_act_offset + nsamples*(r+1) + c] = val;
-        }
-      }
-
-      // update the offsets:
-      theta_offset += lsizes[i+1]*(lsizes[i]+1);
-      act_offset = next_act_offset;
-      next_act_offset += nsamples*(lsizes[i+1]+1);
-      input_offset += nsamples*lsizes[i+1];
-    }
-#endif
-
 
     // Compare the content of the activation array:
+    // This doesn't make sense anymore since we do not compute activation matrices anymore
+    // (duplicate of input matrices)
     // for(unsigned int j=0;j<act_size;++j) {
     //   double v1 = activation[j];
     //   double v2 = pred_act[j];

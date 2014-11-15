@@ -56,7 +56,6 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 				Bs[threadIdx.x][threadIdx.y] = 0.0;
 		}
 
-
 		__syncthreads();
 
 		for (int n = 0; n < BLOCK_SIZE; ++n) 
@@ -71,9 +70,6 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 
   	// we just computed the value z_i(row,col), now we store it:
   	inputs[next_input_offset + nrows*col + row] = zval;
-
-  	// we also store the value as activation (transposed)
-  	// activation[next_act_offset + (row+1)*ncols + col] = zval;
   }
 
 }

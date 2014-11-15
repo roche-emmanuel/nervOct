@@ -65,8 +65,7 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 }
 
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	double* nn_params, double* X, double* yy, double lambda,
-	double* activation, double* inputs)
+	double* nn_params, double* X, double* yy, double lambda, double* inputs)
 {
 	// Allocate the device memory:
 	size_t size;
@@ -96,32 +95,6 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	}
 	cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice);
 
-	// Prepare the activation data:
-	// the size of each activation matrix is nsamples*(lsize[i]+1);
-	// and we need activation 0 to nt-1, inclusive.
-	// So that's nl activation matrices.
-	unsigned int count = 0;
-	for(unsigned int i=0;i<nl;++i) {
-		count += lsizes[i]+1;
-	}
-
-	size = nsamples * count * sizeof(double);
-	size_t act_size = size;
-	double* d_activation = NULL;
-	err = cudaMalloc(&d_activation, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc activation: "<<cudaGetErrorString(err));
-	}
-	cudaMemset(d_activation,0,size); // This is needed for debugging only.
-
-	double* ptr = d_activation;
-	
-	// Copy the intercept vector:
-	// cudaMemcpy(ptr, intercept, nsamples, cudaMemcpyHostToDevice); // No need to copy that.
-	ptr += nsamples;
-	size = sizeof(double) * nsamples * lsizes[0];
-	cudaMemcpy(ptr, X, size, cudaMemcpyHostToDevice);
-
 	// Prepare the X matrix:
 	size = sizeof(double) * nsamples * lsizes[0];
 	double* d_X = NULL;
@@ -136,7 +109,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	// the size of each input matrix is lsize[i+1]*nsamples;
 	// and we need input 0 to nt-1, inclusive.
 	// So that's nl input matrices.
-	count = 0;
+	unsigned int count = 0;
 	for(unsigned int i=0;i<nt;++i) {
 		count += lsizes[i+1];
 	}
@@ -197,31 +170,15 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		next_input_offset += nrows*ncols;
   }
 
-	// Read activations from device memory
-	err = cudaMemcpy(activation, d_activation, act_size, cudaMemcpyDeviceToHost);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA reading activation: "<<cudaGetErrorString(err));
-	}
-
 	// Read inputs from device memory
 	err = cudaMemcpy(inputs, d_inputs, input_size, cudaMemcpyDeviceToHost);
 	if(err!=cudaSuccess) {
 		logDEBUG("CUDA reading inputs: "<<cudaGetErrorString(err));
 	}
 
-	// update the intercept values in the activation array:
-	ptr = activation;
-	for(unsigned int i=0;i<nl;++i) {
-		for(unsigned int j=0;j<nsamples;++j) {
-			(*ptr++) = 1.0;
-		}
-		ptr += nsamples*(lsizes[i]);
-	}
-
 	// Free device memory
 	cudaFree(d_lsizes);
 	cudaFree(d_params);
-	cudaFree(d_activation);	
 	cudaFree(d_inputs);	
 	cudaFree(d_yy);	
 	cudaFree(d_X);	
