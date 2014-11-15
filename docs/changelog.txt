@@ -31,3 +31,4 @@
 - Moved cudaDeviceReset call in nervcuda test.
 - Working implementation of compute_activation with no activation array.
 - Cleaning code
+- Using input values computed on GPU in nn_cost_function_cuda.
