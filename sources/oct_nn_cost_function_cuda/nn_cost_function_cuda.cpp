@@ -106,8 +106,6 @@ protected:
 
 CUDAManager g_cuda;
 
-// #define TEST_ACT
-
 #define USE_GPU_INPUTS
 
 DEFUN_DLD (nn_cost_function_cuda, args, nargout,
@@ -156,29 +154,11 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   dbg_act_count_exp = nsamples*dbg_act_count_exp;
   dbg_input_count_exp = nsamples*dbg_input_count_exp;
 
-#ifdef TEST_ACT
-  // Here we try to compute the activation and input values as vectors in a dedicated CPU method.
-  Matrix act_array = Matrix(dbg_act_count_exp,1);
-  memset((void*)act_array.data(),0,sizeof(double)*dbg_act_count_exp);
-  Matrix input_array = Matrix(dbg_input_count_exp,1);
-  memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
-
-  Matrix act_array2 = Matrix(dbg_act_count_exp,1);
-  Matrix input_array2 = Matrix(dbg_input_count_exp,1);
-  double* act_data = (double*)act_array2.data();
-  double* input_data = (double*)input_array2.data();
-
-  // compute the expected values:
-  g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array);
-#endif
-
-#ifdef USE_GPU_INPUTS
   Matrix input_array = Matrix(dbg_input_count_exp,1);
   memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
 
   // compute the expected values:
   g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array);
-#endif
 
 
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
@@ -197,11 +177,6 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
   Activation.push_back(a);
 
-#ifdef TEST_ACT  
-  memcpy(act_data,a.data(),sizeof(double)*a.numel());
-  act_data += a.numel();
-#endif
-
   // add a dummy value in the input vector:
   Inputs.push_back(Matrix());
 
@@ -211,10 +186,8 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   octave_idx_type dbg_act_count = a.numel();
   octave_idx_type dbg_input_count = 0;
   
-#ifdef USE_GPU_INPUTS
   octave_idx_type input_offset = 0;
   const double* input_ptr = input_array.data();
-#endif
 
   for(octave_idx_type i=0; i<nt;++i) {
     octave_idx_type n = layer_sizes.elem(i+1);
@@ -237,34 +210,15 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     CHECK(theta.dim2()==a.dim2(),"Mismatch on forward propagation on level "<<i<<", "<< theta.dim2()<<"!="<<a.dim2())
 
     // We have to store the z input for the backpropagation later:
-#ifdef USE_GPU_INPUTS
+
     // We use the inputs from the GPU computation instead:
     // Note that the Z matrix here already contain the sigmoid computation.
     Matrix z = Matrix(theta.dim1(),nsamples);
     memcpy((void*)z.data(),input_ptr,sizeof(double)*z.numel());
     input_ptr += z.numel();
-    
+
     Inputs.push_back(z);
     a = z;
-#else
-    // Matrix z = theta * a;
-    Matrix z = g_cuda.multMat(theta,a,false,true);
-
-    Inputs.push_back(z);
-#ifdef TEST_ACT    
-    memcpy(input_data,z.data(),sizeof(double)*z.numel());
-    input_data += z.numel();
-#endif
-
-    // Compute the output of the next layer:
-    a = Matrix(z.dim1(),z.dim2());
-    double* src = (double*)z.data();
-    double* dest = (double*)a.data();
-    num = z.numel();
-    for(octave_idx_type j=0;j<num;++j) {
-      *dest++ = 1.0/(1.0 + exp(- *src++));
-    } 
-#endif
 
     dbg_input_count += z.numel();
 
@@ -274,30 +228,9 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
     // Also save the activation value:
     Activation.push_back(ac);
-#ifdef TEST_ACT    
-    memcpy(act_data,ac.data(),sizeof(double)*ac.numel());
-    act_data += ac.numel();
-#endif
 
     dbg_act_count += ac.numel();  
   }
-
-#ifdef TEST_ACT
-  // check that the inputs do match:
-  num = input_array.numel();
-  for(octave_idx_type j=0;j<num;++j) {
-    double v1 = input_array.elem(j);
-    double v2 = input_array2.elem(j);
-    CHECK(abs(v1-v2)<1e-10,"Mismatch in input arrays at index "<<j<<": "<<v1<<"!="<<v2);
-  }
-
-  num = act_array.numel();
-  for(octave_idx_type j=0;j<num;++j) {
-    double v1 = act_array.elem(j);
-    double v2 = act_array2.elem(j);
-    CHECK(abs(v1-v2)<1e-10,"Mismatch in act arrays at index "<<j<<": "<<v1<<"!="<<v2);
-  }
-#endif
 
   // Matrix res = (input_array - input_array2).abs().sum().sum();
 
@@ -403,11 +336,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     num = z.numel();
     double sig;
     for(octave_idx_type j=0;j<num;++j) {
-#ifdef USE_GPU_INPUTS
       sig = (*zptr++);
-#else
-      sig = 1.0 /(1.0 +exp(-(*zptr++)));
-#endif
       (*dest++) = (*dptr++)*sig*(1.0-sig);
     }
 
