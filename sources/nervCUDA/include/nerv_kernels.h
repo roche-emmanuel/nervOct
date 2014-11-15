@@ -15,7 +15,7 @@ __global__ void MatMulKernelTpA(unsigned int nrowA, unsigned int ncolA, const do
 __global__ void CostFuncKernel(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 		double* nn_params, double* X, double* yy, double lambda);
 
-__global__ void ComputeActivation(unsigned int theta_offset, unsigned int act_offset, unsigned int next_act_offset, unsigned int input_offset,
-		unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* activation, double* inputs);
+__global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X);
 
 #endif

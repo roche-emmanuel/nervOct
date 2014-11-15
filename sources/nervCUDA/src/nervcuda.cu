@@ -116,13 +116,21 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	double* ptr = d_activation;
 	
-	// Coyp the intercept vector:
+	// Copy the intercept vector:
 	// cudaMemcpy(ptr, intercept, nsamples, cudaMemcpyHostToDevice); // No need to copy that.
 	ptr += nsamples;
-
-	// size of the X matrix:
 	size = sizeof(double) * nsamples * lsizes[0];
 	cudaMemcpy(ptr, X, size, cudaMemcpyHostToDevice);
+
+	// Prepare the X matrix:
+	size = sizeof(double) * nsamples * lsizes[0];
+	double* d_X = NULL;
+	err = cudaMalloc(&d_X, size);
+	if(err!=cudaSuccess) {
+		logDEBUG("CUDA malloc X: "<<cudaGetErrorString(err));
+	}
+	cudaMemcpy(d_X, X, size, cudaMemcpyHostToDevice);
+
 
 	// Prepare the input data:
 	// the size of each input matrix is lsize[i+1]*nsamples;
@@ -154,16 +162,11 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	// offset used to locate the theta_i matrix in the d_params array.
 	unsigned int theta_offset = 0;
-	
-	// Offset used for the activation matrix i on iteration i.
-	unsigned int act_offset = 0;
-
-	// Offset used for the activation matrix (i+1) on iteration i:
-	// Note that the activation matrix has a size of nsamples*(lsizes[i]+1)
-	unsigned int next_act_offset = nsamples*(lsizes[0]+1);
 
 	// Offset used for the z(i) matrix on iteration i
 	unsigned int input_offset = 0;
+
+	unsigned int next_input_offset = 0; //nsamples*lsizes[1];
 
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:
@@ -176,7 +179,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
   	// THe dimensions for z(i) are: lsize(i+1) * nsamples
   	// When this is transposed we get: nsamples * lsize(i+1);
 		unsigned int nrows = lsizes[i+1];
-		unsigned int ncolT = lsizes[i]+1;
+		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
 		unsigned int ncols = nsamples;
 
 		dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
@@ -185,14 +188,13 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-		ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, act_offset, next_act_offset, input_offset, 
-			nrows, ncols, ncolT, d_params,d_activation,d_inputs);
+		ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
+			nrows, ncols, ncolT, d_params, d_inputs, d_X);
 
 		// update the offsets:
 		theta_offset += lsizes[i+1]*(lsizes[i]+1);
-		act_offset = next_act_offset;
-		next_act_offset += nsamples*(lsizes[i+1]+1);
-		input_offset += nsamples*lsizes[i+1];
+		input_offset = next_input_offset;
+		next_input_offset += nrows*ncols;
   }
 
 	// Read activations from device memory
@@ -222,6 +224,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	cudaFree(d_activation);	
 	cudaFree(d_inputs);	
 	cudaFree(d_yy);	
+	cudaFree(d_X);	
 }
 
 }

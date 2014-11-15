@@ -29,3 +29,4 @@
 - Working on compute_activation kernel.
 - Validated computation of activation and inputs in kernel.
 - Moved cudaDeviceReset call in nervcuda test.
+- Working implementation of compute_activation with no activation array.
