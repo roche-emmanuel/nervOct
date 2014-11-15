@@ -33,3 +33,4 @@
 - Cleaning code
 - Using input values computed on GPU in nn_cost_function_cuda.
 - Cleaned code in nn_cost_function_cuda.
+- Added support for cost J computation on GPU.

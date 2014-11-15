@@ -2,6 +2,10 @@ LIBRARY	"nervCUDA"
 
 EXPORTS
 
-multiplyMatrices	@1
-costFunc					@2
-costFuncCPU				@3
+multiplyMatrices		@1
+costFunc						@2
+costFuncCPU					@3
+reduction						@4
+reductionCPU				@5
+reduction_cost			@6
+reduction_cost_reg	@7

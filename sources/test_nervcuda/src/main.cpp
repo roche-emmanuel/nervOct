@@ -346,13 +346,162 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_performances )
   BOOST_CHECK(FreeLibrary(h));
 }
 
+BOOST_AUTO_TEST_CASE( test_reduction )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");  
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*ReductionFunc)(double* inputs, unsigned int n, double& output);
+
+  // We should be able to retrieve the train function:
+  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reductionCPU");
+  BOOST_CHECK(reducfunc != nullptr);
+
+  unsigned int num = 10; // number of tests to perform.
+  for(unsigned int i=0;i<num;++i) {
+
+    // prepare the input data:
+    unsigned int size = random_int(50,1000);
+    double* inputs = new double[size];
+    double sum = 0.0;
+
+    for(unsigned int j=0;j<size;++j) {
+      double val = random_double(-10.0,10.0);
+      sum += val;
+      inputs[j] = val;
+    }
+
+    // compute the reduction on the CPU:
+    double res = 0.0;
+    reducfunc(inputs,size,res);
+
+    BOOST_CHECK_MESSAGE(abs(sum-res)<1e-10,"Mismatch for CPU reduction: "<<sum<<"!="<<res);
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_gpu_reduction )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");  
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*ReductionFunc)(double* inputs, unsigned int n, double& output);
+
+  // We should be able to retrieve the train function:
+  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduction");
+  BOOST_CHECK(reducfunc != nullptr);
+
+  unsigned int num = 10; // number of tests to perform.
+  for(unsigned int i=0;i<num;++i) {
+
+    // prepare the input data:
+    unsigned int size = random_int(50,1000);
+    double* inputs = new double[size];
+    double sum = 0.0;
+
+    for(unsigned int j=0;j<size;++j) {
+      double val = random_double(-10.0,10.0);
+      sum += val;
+      inputs[j] = val;
+    }
+
+    // compute the reduction on the GPU:
+    double res = 0.0;
+    reducfunc(inputs,size,res);
+    delete [] inputs;
+
+    BOOST_CHECK_MESSAGE(abs(sum-res)<1e-10,"Mismatch for GPU reduction: "<<sum<<"!="<<res);
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");  
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*ReductionFunc)(double* hx, double* yy, unsigned int n, double& output);
+
+  // We should be able to retrieve the train function:
+  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduction_cost");
+  BOOST_CHECK(reducfunc != nullptr);
+
+  unsigned int num = 10; // number of tests to perform.
+  for(unsigned int i=0;i<num;++i) {
+
+    // prepare the input data:
+    unsigned int size = random_int(50,1000);
+    double* hx = new double[size];
+    double* yy = new double[size];
+    double sum = 0.0;
+
+    for(unsigned int j=0;j<size;++j) {
+      double hval = random_double(0.01,0.99);
+      double yval = random_double(0.01,0.99);
+
+      hx[j] = hval;
+      yy[j] = yval;
+      sum -= (yval * log(hval) + (1.0 - yval) * log(1.0 - hval));
+    }
+
+    // compute the reduction on the GPU:
+    double res = 0.0;
+    reducfunc(hx,yy,size,res);
+    delete [] hx;
+    delete [] yy;
+
+    BOOST_CHECK_MESSAGE(abs(sum-res)<1e-10,"Mismatch for GPU reduction_cost: "<<sum<<"!="<<res);
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost_reg )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");  
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*ReductionFunc)(double* params, unsigned int n, double& output);
+
+  // We should be able to retrieve the train function:
+  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduction_cost_reg");
+  BOOST_CHECK(reducfunc != nullptr);
+
+  unsigned int num = 10; // number of tests to perform.
+  for(unsigned int i=0;i<num;++i) {
+
+    // prepare the input data:
+    unsigned int size = random_int(50,1000);
+    double* params = new double[size];
+    double sum = 0.0;
+
+    for(unsigned int j=0;j<size;++j) {
+      double val = random_double(-10.0,10.0);
+
+      params[j] = val;
+      sum += val*val;
+    }
+
+    // compute the reduction on the GPU:
+    double res = 0.0;
+    reducfunc(params,size,res);
+    delete [] params;
+
+    BOOST_CHECK_MESSAGE(abs(sum-res)<1e-10,"Mismatch for GPU reduction_cost_reg: "<<sum<<"!="<<res);
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
 BOOST_AUTO_TEST_CASE( test_cost_function )
 {
   HMODULE h = LoadLibrary("nervCUDA.dll");  
   BOOST_CHECK(h != nullptr);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* inputs);
+  double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
   double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
@@ -437,7 +586,8 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
 
     // Now we call the cost function method:
-    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs);
+    double J=0.0;
+    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs,J);
 
     // Now we should manually compute the activation/input values:
     double* pred_act = new double[act_size];
@@ -447,6 +597,35 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
     costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input);
 
+
+    // Compute the value of J on the cpu:
+    double* hx = inputs;
+    for(unsigned int j=0;j<nt-1;++j) {
+      hx += nsamples*lsizes[j+1];
+    }
+
+    count = nsamples*lsizes[nt];
+    double pred_J = 0.0;
+    for(unsigned int j=0;j<count;++j) {
+      pred_J -= yy[j] * log(hx[j]) + (1.0 - yy[j]) * log(1.0 - hx[j]);
+    }
+
+    pred_J /= (double)nsamples;
+
+    // Add the regularisation:
+    ptr = params;
+    double Jreg = 0.0;
+    for(unsigned int j=0;j<nt;++j) {
+      ptr += lsizes[j+1];
+      count = lsizes[j+1]*(lsizes[j]);
+      for(unsigned int k=0;k<count;++k) {
+        double val = (*ptr++);
+        Jreg += val*val;
+      }
+    }
+
+    pred_J += Jreg*lambda/(2.0*nsamples);
+    BOOST_CHECK_MESSAGE(abs(J-pred_J)<1e-10,"Mismatch in J value: "<<J<<"!="<<pred_J);
 
     // Compare the content of the activation array:
     // This doesn't make sense anymore since we do not compute activation matrices anymore

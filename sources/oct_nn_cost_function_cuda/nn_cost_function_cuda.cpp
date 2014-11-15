@@ -20,7 +20,7 @@ protected:
     double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* inputs);
+    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J);
 
 public:
   CUDAManager() {
@@ -85,14 +85,14 @@ public:
     delete [] lsizes;
   }
 
-  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs) {
+  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
     for(unsigned int i=0;i<nl;++i) {
       lsizes[i] = lsizes_mat(i);
     }
 
-    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data());
+    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J);
 
     delete [] lsizes;
   }
@@ -158,7 +158,8 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
 
   // compute the expected values:
-  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array);
+  double Jcuda = 0.0;
+  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
 
 
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
@@ -250,9 +251,11 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   // cmat = yy .* log(hx) + (1-yy) .* log(1-hx);
 
   // Then we perform the summation on all classes and on all examples:
-  double J = 0;
   double* hptr = (double*)hx.data();
   double* yptr = (double*)yy.data();
+
+#if 0
+  double J = 0;
   num = hx.numel();
   CHECK(num==yy.numel(),"Mismatch in hx and yy elem count: "<<num<<"!="<<yy.numel());
   for(octave_idx_type i=0;i<num;++i) {
@@ -284,7 +287,10 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
   J += b * reg;
 
-  result.append(J);
+  CHECK(abs(Jcuda-J)<1e-10,"Mismatch in cost computation: "<<Jcuda<<"!="<<J);
+#endif
+
+  result.append(Jcuda);
 
 
   // Part 2: 

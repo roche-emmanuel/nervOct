@@ -20,10 +20,20 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* inputs);
+    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J);
 
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+
+void reductionCPU(double* inputs, unsigned int n, double& output);
+
+void reduction(double* inputs, unsigned int n, double& output);
+
+void reduction_cost(double* hx, double* yy, unsigned int n, double& output);
+void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& output);
+
+void reduction_cost_reg(double* params, unsigned int n, double& output);
+void reduction_cost_reg_device(double* d_params, unsigned int n, double& output);
 
 };
 
