@@ -221,9 +221,16 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		dimGrid = dim3((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
 
 		ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas, d_grads);
+
+		// update the gradient offset by removing the size of the next gradient matrix to be computed:
+		// except for the last iteration where the value is not available:
+		if(i>1) {
+			grad_offset -= lsizes[i-1]*(lsizes[i-2]+1);
+		}
 	}
 
-	// Here we should also read back the gradien values:
+	// Here we should also read back the gradient values:
+	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(double)*np, cudaMemcpyDeviceToHost));
 
 	// Free device memory
 	cudaFree(d_lsizes);

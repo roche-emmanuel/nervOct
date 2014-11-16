@@ -23,7 +23,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients);
 
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J);
 
 void reductionCPU(double* inputs, unsigned int n, double& output);
 

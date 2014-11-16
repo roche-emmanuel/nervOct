@@ -17,7 +17,7 @@ protected:
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* grads);
@@ -80,7 +80,8 @@ public:
       lsizes[i] = lsizes_mat(i);
     }
 
-    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data());
+    double J = 0.0;
+    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data(),J);
 
     delete [] lsizes;
   }

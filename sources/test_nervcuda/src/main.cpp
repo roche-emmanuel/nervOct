@@ -504,7 +504,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
+  double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J);
 
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "costFunc");
@@ -599,36 +599,9 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     memset(pred_act,0,sizeof(double)*act_size);
     memset(pred_input,0,sizeof(double)*input_size);
 
-    costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input);
-
-
-    // Compute the value of J on the cpu:
-    double* hx = inputs;
-    for(unsigned int j=0;j<nt-1;++j) {
-      hx += nsamples*lsizes[j+1];
-    }
-
-    count = nsamples*lsizes[nt];
     double pred_J = 0.0;
-    for(unsigned int j=0;j<count;++j) {
-      pred_J -= yy[j] * log(hx[j]) + (1.0 - yy[j]) * log(1.0 - hx[j]);
-    }
+    costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input, pred_J);
 
-    pred_J /= (double)nsamples;
-
-    // Add the regularisation:
-    ptr = params;
-    double Jreg = 0.0;
-    for(unsigned int j=0;j<nt;++j) {
-      ptr += lsizes[j+1];
-      count = lsizes[j+1]*(lsizes[j]);
-      for(unsigned int k=0;k<count;++k) {
-        double val = (*ptr++);
-        Jreg += val*val;
-      }
-    }
-
-    pred_J += Jreg*lambda/(2.0*nsamples);
     BOOST_CHECK_MESSAGE(abs(J-pred_J)<1e-10,"Mismatch in J value: "<<J<<"!="<<pred_J);
 
     // Compare the content of the activation array:

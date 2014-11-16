@@ -35,3 +35,4 @@
 - Cleaned code in nn_cost_function_cuda.
 - Added support for cost J computation on GPU.
 - Preparing computation of deltas and gradients on GPU.
+- Preparing test on deltas computation.

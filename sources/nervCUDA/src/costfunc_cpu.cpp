@@ -8,7 +8,7 @@ extern "C" {
 
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	double* params, double* X, double* yy, double lambda,
-	double* activation, double* inputs)
+	double* activation, double* inputs, double& J)
 {
   // prepare the prediction data:
   // First we need to add the a0 data:
@@ -98,6 +98,36 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     next_act_offset += nsamples*(lsizes[i+1]+1);
     input_offset += nsamples*lsizes[i+1];
   }
+
+  // Compute the value of J on the cpu:
+  J = 0.0;
+  double* hx = inputs;
+  for(unsigned int j=0;j<nt-1;++j) {
+    hx += nsamples*lsizes[j+1];
+  }
+
+  unsigned int count = nsamples*lsizes[nt];
+  
+  for(unsigned int j=0;j<count;++j) {
+    J -= yy[j] * log(hx[j]) + (1.0 - yy[j]) * log(1.0 - hx[j]);
+  }
+
+  J /= (double)nsamples;
+
+  // Add the regularisation:
+  ptr = params;
+  double Jreg = 0.0;
+  for(unsigned int j=0;j<nt;++j) {
+    ptr += lsizes[j+1];
+    count = lsizes[j+1]*(lsizes[j]);
+    for(unsigned int k=0;k<count;++k) {
+      double val = (*ptr++);
+      Jreg += val*val;
+    }
+  }
+
+  J += Jreg*lambda/(2.0*nsamples);
+
 }
 
 }
