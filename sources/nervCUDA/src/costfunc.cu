@@ -5,7 +5,7 @@
 extern "C" {
 
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients)
+	double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas)
 {
 	// Allocate the device memory:
 	size_t size;
@@ -48,6 +48,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	size = nd*sizeof(double);
 	double* d_deltas = NULL;
 	checkCudaErrors(cudaMalloc(&d_deltas, size));
+	checkCudaErrors(cudaMemset(d_deltas,0,size));
 
 	// Prepare the X matrix:
 	size = sizeof(double) * nsamples * lsizes[0];
@@ -201,10 +202,11 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	
 			// once the computation is done for that layer we move to the previous layer:
 			theta_offset -= lsizes[i]*(lsizes[i-1]+1);
-			delta_offset = next_delta_offset;
-			next_delta_offset += count;
 			input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
 		}
+
+		delta_offset = next_delta_offset;
+		next_delta_offset += count;
 
 		// At this point we have the previous theta matrix (eg. theta(i-1) pointed by theta_offset. (both when i=nt and i<nt).
 		// and thats the matrix we need to compute the gradient values.
@@ -231,6 +233,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(double)*np, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(deltas, d_deltas, sizeof(double)*nd, cudaMemcpyDeviceToHost));
 
 	// Free device memory
 	cudaFree(d_lsizes);

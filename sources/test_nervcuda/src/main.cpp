@@ -501,10 +501,10 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   BOOST_CHECK(h != nullptr);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients);
+  double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J);
+  double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J, double* gradients, double* deltas);
 
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "costFunc");
@@ -564,6 +564,8 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     // prepare the output gradient array:
     double* grads = new double[count];
     memset(grads,0,sizeof(double)*count);
+    double* pred_grads = new double[count];
+    memset(pred_grads,0,sizeof(double)*count);
 
     // prepare the lambda value:
     double lambda = random_double(0.0,1.0);
@@ -589,20 +591,39 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     memset(inputs,0,sizeof(double)*input_size);
 
 
-    // Now we call the cost function method:
-    double J=0.0;
-    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs,J, grads);
-
     // Now we should manually compute the activation/input values:
     double* pred_act = new double[act_size];
     double* pred_input = new double[input_size];
     memset(pred_act,0,sizeof(double)*act_size);
     memset(pred_input,0,sizeof(double)*input_size);
 
+    // also prepare an array to hold the predictions for the delta matrices:
+    unsigned int nd = 0;
+    for(unsigned int i=1;i<nl;++i) {
+      nd += lsizes[i]*nsamples;
+    }
+    double* deltas = new double[nd];
+    memset(deltas,0,sizeof(double)*nd);
+
+    double* pred_deltas = new double[nd];
+    memset(pred_deltas,0,sizeof(double)*nd);
+
+    // Now we call the cost function method:
+    double J=0.0;
+    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs,J, grads, deltas);
+
+    // And we call the same on the CPU:
     double pred_J = 0.0;
-    costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input, pred_J);
+    costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input, pred_J, pred_grads, pred_deltas);
 
     BOOST_CHECK_MESSAGE(abs(J-pred_J)<1e-10,"Mismatch in J value: "<<J<<"!="<<pred_J);
+
+    // Also compare the delta arrays:
+    for(unsigned int j=0; j<nd;++j) {
+      double v1 = deltas[j];
+      double v2 = pred_deltas[j];
+      BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on deltas element "<<j<<": "<<v1<<"!="<<v2);      
+    }
 
     // Compare the content of the activation array:
     // This doesn't make sense anymore since we do not compute activation matrices anymore
@@ -626,9 +647,12 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     delete [] params;
     delete [] activation;
     delete [] inputs;
+    delete [] grads;
+    delete [] deltas;
     delete [] pred_act;
     delete [] pred_input;
-    delete [] grads;
+    delete [] pred_deltas;
+    delete [] pred_grads;
   }
 
   BOOST_CHECK(FreeLibrary(h));

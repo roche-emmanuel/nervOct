@@ -51,6 +51,6 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
   	// we have to multiply that value by the corresponding sigmoid gradient value from the input matrix at the same location.
   	int index = nrows*col+row;
   	double sig = inputs[input_offset + index];
-  	deltas[next_delta_offset + index] = dval*sig*(1.0 - sig);
+  	deltas[next_delta_offset + index] = dval *sig*(1.0 - sig);
   }
 }
