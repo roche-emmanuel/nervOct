@@ -5,7 +5,7 @@
 extern "C" {
 
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J)
+	double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients)
 {
 	// Allocate the device memory:
 	size_t size;
@@ -34,6 +34,20 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		logDEBUG("CUDA malloc params: "<<cudaGetErrorString(err));
 	}
 	cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice);
+
+	// Also allocation the gradient array, with the same number of elements:
+	double* d_grads = NULL;
+	checkCudaErrors(cudaMalloc(&d_grads, size));
+
+	// Compute the total number of delta coefficients:
+	unsigned int nd = 0;
+	for(unsigned int i=1;i<nl;++i) {
+		nd += lsizes[i]*nsamples;
+	}
+
+	size = nd*sizeof(double);
+	double* d_deltas = NULL;
+	checkCudaErrors(cudaMalloc(&d_deltas, size));
 
 	// Prepare the X matrix:
 	size = sizeof(double) * nsamples * lsizes[0];
@@ -120,20 +134,22 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		next_input_offset += nrows*ncols;
   }
 
+  double* d_hx = d_inputs + input_offset;
+
   // Here we can compute the cost now:
   // The hx matrix is mapped to the last z matrix. eg at i=nt-1
   // So its dimensions are lsizes[nt-1+1] * nsamples = lsizes[nl-1] * nsamples
   // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
 	J = 0.0;
 	count = nsamples*lsizes[nt];
-	reduction_cost_device(d_inputs + input_offset, d_yy, count, J);
+	reduction_cost_device(d_hx, d_yy, count, J);
 
 	J /= (double)nsamples;
 
 	double Jreg = 0.0;
 	reduction_cost_reg_device(d_params, np, Jreg);
 	Jreg -= reg_correction;
-	
+
 	J += (Jreg*lambda)/(2.0*nsamples);
 
 	// Read inputs from device memory
@@ -142,12 +158,81 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		logDEBUG("CUDA reading inputs: "<<cudaGetErrorString(err));
 	}
 
+	// Prepare the computation of the delta matrices in reverse order:
+
+	// Offset to use when reading the delta matrix in the current iteration
+	// except when next_delta_offset is 0, in that case we read the hx and yy matrices.
+	unsigned int delta_offset = 0;
+
+	// Offset to use when writing the delta matrix in the current iteration
+	unsigned int next_delta_offset = 0;
+
+	// remove the last theta matrix size from the theta offset so that we can use
+	// that offset to retrieve the proper theta matrix:
+	theta_offset -= lsizes[nt]*(lsizes[nt-1]+1);
+
+	// initially the input_offset is pointing on the hx matrix which is z(nt-1) with our convention (eg. z(0) is not in the array.)
+	// But the first one we will need is actually the one before that: z(nt-2)
+	// So we need to update the offset, and remove the size of the matrix z(nt-2) ! (pointer is at the beginning of z(nt-1))
+	input_offset -= lsizes[nt-1]*nsamples;
+
+	// Prepare the offset for the gradient array:
+	// keep in mind we start with the latest theta matrix:
+	unsigned int grad_offset = np - lsizes[nt]*(lsizes[nt-1]+1);
+
+	for(unsigned int i=nt;i>0;--i) {
+		unsigned int nrows = lsizes[i];
+		unsigned int ncols = nsamples;
+		unsigned int niter = lsizes[i+1];
+		unsigned int count = nrows*ncols;
+
+		dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+		dim3 dimGrid((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
+
+		if(i==nt) {
+			// we should just copy the difference of hx and yy into the z matrix.
+			InitLastDelta<<<dimGrid, dimBlock>>>(nrows, ncols, d_deltas, d_hx, d_yy);
+		}
+		else {
+			// We compute the delta from the previous delta:
+			// We start this computation for delta(nt-1). this matrix is build from theta(nt-1) and delta(nt).
+			// also in the process we use the input matrix z(nt-2)
+			ComputeDelta<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, next_delta_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas);
+	
+			// once the computation is done for that layer we move to the previous layer:
+			theta_offset -= lsizes[i]*(lsizes[i-1]+1);
+			delta_offset = next_delta_offset;
+			next_delta_offset += count;
+			input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
+		}
+
+		// At this point we have the previous theta matrix (eg. theta(i-1) pointed by theta_offset. (both when i=nt and i<nt).
+		// and thats the matrix we need to compute the gradient values.
+		// the gradient mat has the same size as the current theta matrix.
+		// similarly, the input_offset is pointing on z(i-2) which is the one we need to perform the computation too.
+		// and delta_offset points to the delta matrix we just wrote (eg. delta(i)).
+		nrows = lsizes[i];
+		ncols = lsizes[i-1]+1;
+		niter = nsamples;
+		count = nrows*ncols;
+
+		// Compute the gradient:
+		dimBlock = dim3(BLOCK_SIZE, BLOCK_SIZE);
+		dimGrid = dim3((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
+
+		ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas, d_grads);
+	}
+
+	// Here we should also read back the gradien values:
+
 	// Free device memory
 	cudaFree(d_lsizes);
 	cudaFree(d_params);
 	cudaFree(d_inputs);	
 	cudaFree(d_yy);	
 	cudaFree(d_X);	
+	cudaFree(d_deltas);	
+	cudaFree(d_grads);	
 }
 
 }

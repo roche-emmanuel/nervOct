@@ -88,6 +88,14 @@ __global__ void CostFuncKernel(unsigned int nl, unsigned int* lsizes, unsigned i
 __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
 	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X);
 
+__global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, double* deltas, double* hx, double* yy);
+
+__global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
+    unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas);
+
+__global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
+    unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas, double* grads); 
+
 void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata, double *d_odata);
 
 #endif

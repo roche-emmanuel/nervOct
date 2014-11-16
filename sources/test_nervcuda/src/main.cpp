@@ -501,7 +501,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   BOOST_CHECK(h != nullptr);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J);
+  double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
   double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
@@ -561,6 +561,10 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
       (*ptr++) = sin(j+0.5);
     }    
 
+    // prepare the output gradient array:
+    double* grads = new double[count];
+    memset(grads,0,sizeof(double)*count);
+
     // prepare the lambda value:
     double lambda = random_double(0.0,1.0);
 
@@ -587,7 +591,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
     // Now we call the cost function method:
     double J=0.0;
-    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs,J);
+    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs,J, grads);
 
     // Now we should manually compute the activation/input values:
     double* pred_act = new double[act_size];
@@ -651,6 +655,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     delete [] inputs;
     delete [] pred_act;
     delete [] pred_input;
+    delete [] grads;
   }
 
   BOOST_CHECK(FreeLibrary(h));

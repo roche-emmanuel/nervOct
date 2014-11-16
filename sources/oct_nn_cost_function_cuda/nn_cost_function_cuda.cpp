@@ -20,7 +20,7 @@ protected:
     double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J);
+    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* grads);
 
 public:
   CUDAManager() {
@@ -85,16 +85,18 @@ public:
     delete [] lsizes;
   }
 
-  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J) {
+  inline Matrix costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
     for(unsigned int i=0;i<nl;++i) {
       lsizes[i] = lsizes_mat(i);
     }
 
-    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J);
+    Matrix grads = Matrix(nn_params.dim1(),1);
+    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data());
 
     delete [] lsizes;
+    return grads;
   }
 
 protected:
@@ -233,15 +235,12 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     dbg_act_count += ac.numel();  
   }
 
-  // Matrix res = (input_array - input_array2).abs().sum().sum();
-
   // Compare the observed counts with the expected values:
   CHECK(dbg_act_count==dbg_act_count_exp,"Mismatch in act count: "<<dbg_act_count<<"!="<<dbg_act_count_exp);
   CHECK(dbg_input_count==dbg_input_count_exp,"Mismatch in input count: "<<dbg_input_count<<"!="<<dbg_input_count_exp);
 
   // note that the pos variable is now on the next index available:
   CHECK(pos== nn_params.dim1(),"Mismatch in unrolled vector size " << pos <<"!="<< nn_params.dim1());
-
 
   // Now the final result is stored in a, the activation vector (eg. output) of the last layer.
   // Thus we can rename this output as hx:
@@ -254,44 +253,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   double* hptr = (double*)hx.data();
   double* yptr = (double*)yy.data();
 
-#if 0
-  double J = 0;
-  num = hx.numel();
-  CHECK(num==yy.numel(),"Mismatch in hx and yy elem count: "<<num<<"!="<<yy.numel());
-  for(octave_idx_type i=0;i<num;++i) {
-    J -= (*yptr) * log(*hptr);
-    J -= (1.0 - *yptr++) * log(1.0 - *hptr++);
-  }
-
-  J /= nsamples;
-
-  // Now we add the regularization terms:
-  double b = lambda/(2*nsamples);
-
-  double reg = 0;
-  ptr = nn_params.data();
-  for(octave_idx_type i=0;i<nt;++i) {
-    // get the dimension of the theta matrix:
-    octave_idx_type nrow = layer_sizes.elem(i+1);
-    octave_idx_type ncol = layer_sizes.elem(i)+1;
-    
-    // We do NOT count the first row in that matrix:
-    ptr += nrow;
-    octave_idx_type count = (ncol-1)*nrow;
-    for(octave_idx_type j=0;j<count;++j) {
-      // then we count all the other values:
-      reg += (*ptr)*(*ptr);
-      ptr++;
-    }
-  }
-
-  J += b * reg;
-
-  CHECK(abs(Jcuda-J)<1e-10,"Mismatch in cost computation: "<<Jcuda<<"!="<<J);
-#endif
-
   result.append(Jcuda);
-
 
   // Part 2: 
   // now implementing back propagation.
