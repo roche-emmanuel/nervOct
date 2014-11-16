@@ -37,3 +37,4 @@
 - Preparing computation of deltas and gradients on GPU.
 - Preparing test on deltas computation.
 - Tested computation of delta matrices.
+- Working on gradient computation tests.

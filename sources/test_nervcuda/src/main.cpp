@@ -553,6 +553,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     for(unsigned j=0;j<nt;++j) {
       count += lsizes[j+1]*(lsizes[j]+1);
     }
+    unsigned int np = count;
 
     // logDEBUG("Allocating "<<count<<" bytes...")
     double* params = new double[count];
@@ -560,6 +561,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     for(unsigned int j=0;j<count;++j) {
       (*ptr++) = sin(j+0.5);
     }    
+
 
     // prepare the output gradient array:
     double* grads = new double[count];
@@ -623,6 +625,13 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
       double v1 = deltas[j];
       double v2 = pred_deltas[j];
       BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on deltas element "<<j<<": "<<v1<<"!="<<v2);      
+    }
+
+    // Compare the grads arrays:
+    for(unsigned int j=0; j<np;++j) {
+      double v1 = grads[j];
+      double v2 = pred_grads[j];
+      BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on gradient element "<<j<<": "<<v1<<"!="<<v2);      
     }
 
     // Compare the content of the activation array:

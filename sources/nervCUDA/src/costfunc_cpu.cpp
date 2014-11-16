@@ -150,7 +150,8 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
   // initially the input_offset is pointing on the hx matrix which is z(nt-1) with our convention (eg. z(0) is not in the array.)
   // But the first one we will need is actually the one before that: z(nt-2)
   // So we need to update the offset, and remove the size of the matrix z(nt-2) ! (pointer is at the beginning of z(nt-1))
-  input_offset -= lsizes[nt-1]*nsamples;
+  // Note that this is now done inside the loop.
+  // input_offset -= lsizes[nt-1]*nsamples;
 
   // Prepare the offset for the gradient array:
   // keep in mind we start with the latest theta matrix:
@@ -190,7 +191,6 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
       // once the computation is done for that layer we move to the previous layer:
       theta_offset -= lsizes[i]*(lsizes[i-1]+1);
-      input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
     }
 
     delta_offset = next_delta_offset;
@@ -207,16 +207,33 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     count = nrows*ncols;
 
     // Compute the gradient:
-    // dimBlock = dim3(BLOCK_SIZE, BLOCK_SIZE);
-    // dimGrid = dim3((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
+    for(unsigned int c=0;c<ncols;++c) {
+      for(unsigned int r=0;r<nrows;++r) {
+        // we want to compute the value of the gradient matrix mat(r,c)
+        // with mat_i = delta_i * act_i-1.
+        double val = 0.0;
+        for(unsigned int n=0;n<nsamples;++n) {
+          // val += delta(r,n)*act(n,c);
+          // if c==0 then act[i-1](n,c)==1 otherwise act[i-1](n,c)=z[i-2]_T(n,c-1)=z[i-2](c-1,n)
+          // val += deltas[delta_offset + nrows*n + r]; //*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+          val += 1.0; //(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+        }
 
-    // ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas, d_grads);
+        // Here we also need to add the regularization from the theta matrix:
+        double reg = (c==0 ? 0.0 : params[theta_offset + nrows*c+r]);
+        // val += lambda*reg;
 
-    // // update the gradient offset by removing the size of the next gradient matrix to be computed:
-    // // except for the last iteration where the value is not available:
-    // if(i>1) {
-    //   grad_offset -= lsizes[i-1]*(lsizes[i-2]+1);
-    // }
+        gradients[grad_offset + nrows*c + r] = val; //grad_offset + nrows*c + r; //val/niter;
+      }
+    }
+
+    input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
+
+    // update the gradient offset by removing the size of the next gradient matrix to be computed:
+    // except for the last iteration where the value is not available:
+    if(i>1) {
+      grad_offset -= lsizes[i-1]*(lsizes[i-2]+1);
+    }
   }
 
 }
