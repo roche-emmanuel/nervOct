@@ -371,9 +371,9 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
       (*rptr++) = 0.0;
     }
 
-    // Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]) + lambda * reg)/nsamples; 
+    Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]) + lambda * reg)/nsamples; 
     // Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]))/nsamples; 
-    Matrix mat = lambda * reg/nsamples; 
+    // Matrix mat = lambda * reg/nsamples; 
 
     memcpy((void*)gptr,(void*)mat.data(),sizeof(double)*count);
     gptr += count;

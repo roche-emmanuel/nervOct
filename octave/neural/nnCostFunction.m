@@ -173,9 +173,9 @@ for i=1:nt,
 
 	reg = [zeros(n1,1) Theta(:,2:end)];
 
-	% mat = (Deltas{1,i+1} * Activation{1,i}' + lambda * reg)/m; 
+	mat = (Deltas{1,i+1} * Activation{1,i}' + lambda * reg)/m; 
 	% mat = (Deltas{1,i+1} * Activation{1,i}')/m;
-	mat = lambda * reg/m;
+	% mat = lambda * reg/m;
 
 	count = n1*n2;
 	grad(pos:pos+count-1) = mat(:);

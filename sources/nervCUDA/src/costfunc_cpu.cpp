@@ -248,10 +248,9 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
         // Here we also need to add the regularization from the theta matrix:
         double reg = (c==0 ? 0.0 : params[theta_offset + nrows*c+r]);
-        // val += lambda*reg;
+        val += lambda*reg;
 
-        // gradients[grad_offset + nrows*c + r] = val/niter; //grad_offset + nrows*c + r; //val/niter;
-        gradients[grad_offset + nrows*c + r] = lambda*reg/niter; //grad_offset + nrows*c + r; //val/niter;
+        gradients[grad_offset + nrows*c + r] = val/niter; //grad_offset + nrows*c + r; //val/niter;
       }
     }
 
