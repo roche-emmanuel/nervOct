@@ -73,7 +73,7 @@ public:
     return C;
   }
 
-  inline Matrix costFuncCPU(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& activation, Matrix& inputs, double& J) {
+  inline void costFuncCPU(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& activation, Matrix& inputs, double& J, Matrix& grads) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
     for(unsigned int i=0;i<nl;++i) {
@@ -96,17 +96,15 @@ public:
       nd += lsizes[i]*X.dim1();
     }
 
-    Matrix grads = Matrix(nn_params.numel(),1,0.0);
     Matrix deltas = Matrix(nd,1,0.0);
 
-    logDEBUG("Number of inputs: "<< inputs.numel())
+    // logDEBUG("Number of inputs: "<< inputs.numel())
     _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), inputs.numel(), (double*)inputs.data(),J, (double*)grads.data(), (double*)deltas.data());
 
     delete [] lsizes;
-    return grads;
   }
 
-  inline Matrix costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J) {
+  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J, Matrix& grads) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
     for(unsigned int i=0;i<nl;++i) {
@@ -124,11 +122,9 @@ public:
       error("Invalid number of parameters: %d!=%d",np,nn_params.numel());
     }
 
-    Matrix grads = Matrix(nn_params.numel(),1);
     _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data(), NULL);    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
 
     delete [] lsizes;
-    return grads;
   }
 
 protected:
@@ -196,10 +192,16 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
   // compute the expected values:
   double Jcuda = 0.0;
-  // Matrix grads_cuda = g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array, Jcuda);
-  Matrix grads_cuda = g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
+  Matrix grads_cuda = Matrix(nn_params.numel(),1);
 
+  // g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array, Jcuda, grads_cuda);
+  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda, grads_cuda);
 
+#if 1
+  result.append(Jcuda);
+  result.append(grads_cuda);
+
+#else
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
   typedef std::vector<Matrix> MatrixVector;
   MatrixVector Thetas;
@@ -352,7 +354,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   // result.append(Deltas[nt]);
 
   // Now we can compute the theta grad values:
-  octave_idx_type np = nn_params.dim1();
+  octave_idx_type np = nn_params.numel();
   Matrix grad = Matrix(np,1,0.0);
   double* gptr = (double*)grad.data();
 
@@ -380,16 +382,44 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   }
 
   // Compare the gradients with the CUDA version:
-  octave_idx_type count = grads_cuda.dim1();
-  CHECK(count==grad.dim1(),"Mismatch in gradients dimensions.");
+  octave_idx_type count = grads_cuda.numel();
+  CHECK(count==grad.numel(),"Mismatch in gradients dimensions.");
+
+  double sum = 0.0;
+
+  double* ptr1 = (double*)grad.data();
+  const double* ptr2 = grads_cuda.data();
+
+  Matrix diff = (grads_cuda-grad).abs();
+  logDEBUG("Number of gradient element: "<<count);
 
   for(octave_idx_type j=0;j<count;++j) {
-    double v1 = grads_cuda(j);
-    double v2 = grad(j);
+    double v1 = (*ptr1++); //grads_cuda(j);
+    double v2 = (*ptr2++); //grad(j);
+    double v = diff(j);
+    CHECK(abs(v-abs(v1-v2))<1e-11,"Mismatch in abs value!! "<<v<<"!="<<abs(v1-v2));
+
+    // // logDEBUG("Comparing "<<v1<<" to "<<v2);
+    
+    // // sum +=abs(v1-v2); 
+    // sum +=abs(v1-v2);
     CHECK(abs(v1-v2)<1e-10,"Mismatch in gradient at index "<<j<<": "<<v1<<"!="<<v2);
+      
+    if(j<20)
+      logDEBUG("grad diff is: "<<abs(v1-v2)<<" with v1="<<v1<<", v2="<<v2);
+
+    // (*ptr1++) = (*ptr2++);
+
+    // CHECK(v<1e-10,"Mismatch in gradient at index "<<j<<": "<<v);
   }
 
-  result.append(grad);
+  logDEBUG("Total sum is: "<<sum);
+
+  CHECK(sum<1e-10,"Mismatch in total gradient computation: len="<<sum);
+
+  result.append(grads_cuda);
+  // result.append(grad);
+#endif
 
   return result;
 }

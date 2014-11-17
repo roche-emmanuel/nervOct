@@ -23,29 +23,37 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
   	// So we invert the roles palyed by threadIdx.x and threadIdx.y.
   	xx = k*BLOCK_SIZE + threadIdx.y;
   	yy = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+
 		if (xx < niter && yy < nrows) 
-		 	As[threadIdx.x][threadIdx.y] = deltas[delta_offset + xx*nrows + yy];
+		 	As[threadIdx.x][threadIdx.y] = deltas[delta_offset +nrows*xx + yy];
 		else
 			As[threadIdx.x][threadIdx.y] = 0.0;
 
 
-		// Same for the B matrix, we need to invert the x and y coords:
-		xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
-		yy = k*BLOCK_SIZE + threadIdx.x;
+		if(input_offset<0) {
+			xx = blockIdx.x*BLOCK_SIZE + threadIdx.x;
+			yy = k*BLOCK_SIZE + threadIdx.y;
 
-		if (yy < niter && xx < ncols) {
-			if(input_offset<0) {
+			if (yy < niter && xx < ncols) {
 				// Here we use the matrix X instead of z_T:
 				// B(r,c)= X(r,c-1) if c>0;
-				Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : X[(ncols-1)*(xx-1) + yy]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.				
+				Bs[threadIdx.y][threadIdx.x] = (xx==0 ? 1.0 : X[niter*(xx-1) + yy]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.				
 			}
-			else {
-				// B(r,c)==0 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
-				Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : inputs[input_offset + (ncols-1)*yy + xx-1]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.				
-			}
+			else
+				Bs[threadIdx.y][threadIdx.x] = 0.0;
 		}
-		else
-			Bs[threadIdx.x][threadIdx.y] = 0.0;
+		else {
+			// Same for the B matrix, we need to invert the x and y coords:
+			xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+			yy = k*BLOCK_SIZE + threadIdx.x;
+
+			if (yy < niter && xx < ncols) {
+					// B(r,c)==0 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
+					Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : inputs[input_offset + (ncols-1)*yy + xx-1]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.				
+			}
+			else
+				Bs[threadIdx.x][threadIdx.y] = 0.0;
+		}
 
 		__syncthreads();
 
@@ -58,7 +66,7 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
   if (row < nrows && col < ncols) {
   	int index = nrows*col+row;
     double reg = (col==0 ? 0.0 : nn_params[theta_offset + index]);
-    CValue += lambda*reg;
+    // CValue += lambda*reg;
 
   	grads[grad_offset + index] = CValue/niter;
   }

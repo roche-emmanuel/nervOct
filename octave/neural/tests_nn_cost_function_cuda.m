@@ -66,8 +66,15 @@
 %!		%size(grad2)
 %!		%grad2 = grad1;
 %!		assert(abs(j1-j2)<1e-10,'Mismatch in computed cost value: %.16f!=%.16f',j1,j2);
-%!		len = sum(sum(abs(grad1 - grad2)));
-%!		assert(len<1e-10,'Mismatch in computed gradients value: len=%.16f',len);
+%!		%len = sum(sum(abs(grad1 - grad2)));
+%!		count = numel(grad1);
+%!		for j=1:count,
+%!			assert(abs(grad1(j)-grad2(j))<1e-10,'Mismatch in computed gradients value ad index %d: GPU=%.16f, legacy=%.16f',j,grad2(j),grad1(j));
+%!		end
+%!		%count = min(count,10);
+%!			%grad1(1:count)
+%!			%grad2(1:count)
+%!		%assert(len<1e-10,'Mismatch in computed gradients value: len=%.16f',len);
 %!	end
 
 % ==> Check the performances for a not too small network:

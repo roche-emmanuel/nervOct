@@ -49,3 +49,4 @@
 - Working gradient computation on GPU.
 - Tested GPU computation of gradient.
 - Started code cleaning process.
+- Working gradien computation WRT nnCostFunction.
