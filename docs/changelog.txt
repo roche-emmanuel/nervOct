@@ -51,3 +51,4 @@
 - Started code cleaning process.
 - Working gradien computation WRT nnCostFunction.
 - Preparing to clean nnCostFunction.
+- Fixed costfunc_cpu test.

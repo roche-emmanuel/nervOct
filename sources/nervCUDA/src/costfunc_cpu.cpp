@@ -227,7 +227,7 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
           if(i==1) {
             // Here we have to use the X matrix instead of the z_T.
             // we still want to write the value act(n,c)=x(n,c-1) if c>0
-            val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : X[(ncols-1)*(c-1) + n]);
+            val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : X[niter*(c-1) + n]);
           }
           else {
             if(c==0) {
