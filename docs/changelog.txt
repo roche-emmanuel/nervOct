@@ -40,3 +40,4 @@
 - Working on gradient computation tests.
 - tested computation of gradients.
 - Investigationg invalid address issue.
+- Starting from working point for address issue.

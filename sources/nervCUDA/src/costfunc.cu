@@ -31,9 +31,11 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	checkCudaErrors(cudaMalloc(&d_params, size));
 	checkCudaErrors(cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice));
 
+#if 0
 	// Also allocation the gradient array, with the same number of elements:
 	double* d_grads = NULL;
 	checkCudaErrors(cudaMalloc(&d_grads, size));
+#endif
 
 	// Compute the total number of delta coefficients:
 	unsigned int nd = 0;
@@ -155,6 +157,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		logDEBUG("CUDA reading inputs: "<<cudaGetErrorString(err));
 	}
 
+#if 0
 	// Prepare the computation of the delta matrices in reverse order:
 
 	// Offset to use when reading the delta matrix in the current iteration
@@ -235,6 +238,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	if(deltas)
 		checkCudaErrors(cudaMemcpy(deltas, d_deltas, sizeof(double)*nd, cudaMemcpyDeviceToHost)); // only retrieve the deltas if requested.
+#endif
 
 	// cudaDeviceSynchronize();
 
@@ -245,7 +249,9 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	cudaFree(d_yy);	
 	cudaFree(d_X);	
 	cudaFree(d_deltas);	
+#if 0
 	cudaFree(d_grads);	
+#endif
 }
 
 }
