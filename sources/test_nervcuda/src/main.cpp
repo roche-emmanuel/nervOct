@@ -513,11 +513,11 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   BOOST_CHECK(costfunc_cpu != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
-  unsigned int num = 10; // number of tests to perform.
+  unsigned int num = 1; // number of tests to perform.
 
   for(unsigned int i = 0;i<num;++i) {
     // prepare number of samples:
-    unsigned int nsamples = random_int(10,100);
+    unsigned int nsamples = 42; //random_int(10,100);
 
     // Prepare the layer size vector:
     unsigned int nl = random_int(3,5);
