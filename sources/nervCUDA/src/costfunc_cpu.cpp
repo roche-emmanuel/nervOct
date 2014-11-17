@@ -206,6 +206,8 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     niter = nsamples;
     count = nrows*ncols;
 
+    logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset);
+
     // Compute the gradient:
     for(unsigned int c=0;c<ncols;++c) {
       for(unsigned int r=0;r<nrows;++r) {
@@ -215,7 +217,8 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
         for(unsigned int n=0;n<nsamples;++n) {
           // val += delta(r,n)*act(n,c);
           // if c==0 then act[i-1](n,c)==1 otherwise act[i-1](n,c)=z[i-2]_T(n,c-1)=z[i-2](c-1,n)
-          val += deltas[delta_offset + nrows*n + r]; //*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+          // val += deltas[delta_offset + nrows*n + r]; //*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+          val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
           // val += 1.0; //(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
         }
 

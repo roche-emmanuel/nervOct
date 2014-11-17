@@ -33,12 +33,9 @@ __global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_of
 		xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
 		yy = k*BLOCK_SIZE + threadIdx.x;
 
-		if(xx==0) {
-			Bs[threadIdx.x][threadIdx.y] = 1.0;
-		}
-		else if (yy < niter && xx < ncols) {
+		if (yy < niter && xx < ncols) {
 			// B(r,c)==0 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
-			Bs[threadIdx.x][threadIdx.y] = 1.0; //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.
+			Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : inputs[input_offset + (ncols-1)*yy + xx-1]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.
 		}
 		else
 			Bs[threadIdx.x][threadIdx.y] = 0.0;
@@ -51,7 +48,6 @@ __global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_of
 		__syncthreads();
   }
 
-#if 1
   if (row < nrows && col < ncols) {
   	int index = nrows*col+row;
     double reg = (col==0 ? 0.0 : nn_params[theta_offset + index]);
@@ -59,7 +55,6 @@ __global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_of
 
   	grads[grad_offset + index] = CValue/niter;
   }
-#endif
 
 	// // This operation is basically a matrix multiplication with transposition on A:
  //  double gval = 0.0;

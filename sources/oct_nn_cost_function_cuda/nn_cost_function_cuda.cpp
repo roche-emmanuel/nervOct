@@ -96,6 +96,17 @@ public:
       lsizes[i] = lsizes_mat(i);
     }
 
+    unsigned int np = 0;
+    unsigned int nt = nl-1; // number of matrices evolved.
+
+    for(unsigned int i=0;i<nt;++i) {
+      np += lsizes[i+1]*(lsizes[i]+1);
+    }
+
+    if(nn_params.numel()!=np) {
+      error("Invalid number of parameters: %d!=%d",np,nn_params.numel());
+    }
+    
     Matrix grads = Matrix(nn_params.numel(),1);
     _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data(), NULL);    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
 

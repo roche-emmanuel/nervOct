@@ -34,6 +34,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	// Also allocation the gradient array, with the same number of elements:
 	double* d_grads = NULL;
 	checkCudaErrors(cudaMalloc(&d_grads, size));
+	checkCudaErrors(cudaMemset(d_grads,0,size));
 
 	// Compute the total number of delta coefficients:
 	unsigned int nd = 0;
@@ -219,7 +220,9 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 		dimBlock = dim3(BLOCK_SIZE, BLOCK_SIZE);
 		dimGrid = dim3((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
 
-		ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas, d_grads, lambda);
+		logDEBUG("GPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset);
+
+		//ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas, d_grads, lambda);
 
     input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
 
