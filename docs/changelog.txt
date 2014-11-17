@@ -41,3 +41,4 @@
 - tested computation of gradients.
 - Investigationg invalid address issue.
 - Starting from working point for address issue.
+- partially working gradient computation when not using the Input matrix.

@@ -513,7 +513,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   BOOST_CHECK(costfunc_cpu != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
-  unsigned int num = 5; // number of tests to perform.
+  unsigned int num = 10; // number of tests to perform.
 
   for(unsigned int i = 0;i<num;++i) {
     // prepare number of samples:
@@ -624,21 +624,19 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     BOOST_CHECK_MESSAGE(abs(J-pred_J)<1e-10,"Mismatch in J value: "<<J<<"!="<<pred_J);
 
     // Also compare the delta arrays:
-#if 0 
     for(unsigned int j=0; j<nd;++j) {
       double v1 = deltas[j];
       double v2 = pred_deltas[j];
       BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on deltas element "<<j<<": "<<v1<<"!="<<v2);      
     }
-#endif
-    
+
     // Compare the grads arrays:
     logDEBUG("Number of parameters: "<<np);
-    // for(unsigned int j=0; j<np;++j) {
-    //   double v1 = grads[j];
-    //   double v2 = pred_grads[j];
-    //   BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on gradient element "<<j<<": "<<v1<<"!="<<v2);      
-    // }
+    for(unsigned int j=0; j<np;++j) {
+      double v1 = grads[j];
+      double v2 = pred_grads[j];
+      BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on gradient element "<<j<<": "<<v1<<"!="<<v2);      
+    }
 
     // Compare the content of the activation array:
     // This doesn't make sense anymore since we do not compute activation matrices anymore

@@ -97,12 +97,8 @@ public:
     }
 
     Matrix grads = Matrix(nn_params.numel(),1);
-    // double* gradients = new double[nn_params.numel()];
-    // memset(gradients,1,sizeof(double)*nn_params.numel());
-    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, NULL, NULL);
-    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
+    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data(), NULL);    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
 
-    // delete [] gradients;
     delete [] lsizes;
     return grads;
   }
