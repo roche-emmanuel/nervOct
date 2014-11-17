@@ -93,8 +93,8 @@ __global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, double* de
 __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
     unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas);
 
-__global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
-    unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas, double* grads, double lambda); 
+__global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
+    unsigned int nrows, unsigned int ncols, unsigned int niter, double* X, double* nn_params, double* inputs, double* deltas, double* grads, double lambda); 
 
 void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata, double *d_odata);
 

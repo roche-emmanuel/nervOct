@@ -46,3 +46,4 @@
 - testing CPU gradient computation. Warning nnCostFunction modified here to handle ONLY reg matrix.
 - Finally fixed the input array access issue.
 - Tested grad computation in CPU with regularization.
+- Working gradient computation on GPU.

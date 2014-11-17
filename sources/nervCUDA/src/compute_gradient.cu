@@ -3,8 +3,8 @@
 #include <cuda_runtime.h>
 #include <nerv_kernels.h>
 
-__global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas, double* grads, double lambda) 
+__global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int niter, double* X, double* nn_params, double* inputs, double* deltas, double* grads, double lambda) 
 {
   double CValue = 0;
 
@@ -34,8 +34,15 @@ __global__ void ComputeGradient(unsigned int theta_offset, unsigned int input_of
 		yy = k*BLOCK_SIZE + threadIdx.x;
 
 		if (yy < niter && xx < ncols) {
-			// B(r,c)==0 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
-			Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : inputs[input_offset + (ncols-1)*yy + xx-1]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.
+			if(input_offset<0) {
+				// Here we use the matrix X instead of z_T:
+				// B(r,c)= X(r,c-1) if c>0;
+				Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : X[(ncols-1)*(xx-1) + yy]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.				
+			}
+			else {
+				// B(r,c)==0 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
+				Bs[threadIdx.x][threadIdx.y] = (xx==0 ? 1.0 : inputs[input_offset + (ncols-1)*yy + xx-1]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.				
+			}
 		}
 		else
 			Bs[threadIdx.x][threadIdx.y] = 0.0;
