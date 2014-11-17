@@ -50,3 +50,4 @@
 - Tested GPU computation of gradient.
 - Started code cleaning process.
 - Working gradien computation WRT nnCostFunction.
+- Preparing to clean nnCostFunction.

@@ -66,7 +66,7 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
   if (row < nrows && col < ncols) {
   	int index = nrows*col+row;
     double reg = (col==0 ? 0.0 : nn_params[theta_offset + index]);
-    // CValue += lambda*reg;
+    CValue += lambda*reg;
 
   	grads[grad_offset + index] = CValue/niter;
   }

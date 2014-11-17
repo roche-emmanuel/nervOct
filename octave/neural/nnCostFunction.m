@@ -178,17 +178,17 @@ for i=1:nt,
 	A = ones(size(delta,1),size(delta,2));
 	B = ones(size(act,1),size(act,2));
 
-	%mat = (Deltas{1,i+1} * Activation{1,i}' + lambda * reg)/m; 
-	if i==1,
-		% act = [ones(size(B,1),1) zeros(size(B,1),size(B,2)-1)];
-		mat = (delta * act)/m; % + lambda * reg)/m;
-		% mat
-		% n1
-		% n2
-		% assert(mat(1,2)==0,'Invalid value for mat(1,2)=%f',mat(1,2)) 
-	else
-		mat = (delta * act)/m; % + lambda * reg)/m; 
-	end
+	mat = (Deltas{1,i+1} * Activation{1,i}' + lambda * reg)/m; 
+	% if i==1,
+	% 	% act = [ones(size(B,1),1) zeros(size(B,1),size(B,2)-1)];
+	% 	mat = (delta * act)/m; % + lambda * reg)/m;
+	% 	% mat
+	% 	% n1
+	% 	% n2
+	% 	% assert(mat(1,2)==0,'Invalid value for mat(1,2)=%f',mat(1,2)) 
+	% else
+	% 	mat = (delta * act)/m; % + lambda * reg)/m; 
+	% end
 
 	% mat = (Deltas{1,i+1} * Activation{1,i}')/m;
 	
