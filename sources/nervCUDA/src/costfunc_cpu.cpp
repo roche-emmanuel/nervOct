@@ -212,7 +212,7 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     count = nrows*ncols;
 
     input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
-    logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset);
+    // logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset);
 
     // Compute the gradient:
     for(unsigned int c=0;c<ncols;++c) {

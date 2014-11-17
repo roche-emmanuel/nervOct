@@ -48,3 +48,4 @@
 - Tested grad computation in CPU with regularization.
 - Working gradient computation on GPU.
 - Tested GPU computation of gradient.
+- Started code cleaning process.
