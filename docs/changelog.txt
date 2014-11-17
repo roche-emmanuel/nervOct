@@ -44,3 +44,4 @@
 - partially working gradient computation when not using the Input matrix.
 - Preparing the test the CPU gradients.
 - testing CPU gradient computation. Warning nnCostFunction modified here to handle ONLY reg matrix.
+- Finally fixed the input array access issue.

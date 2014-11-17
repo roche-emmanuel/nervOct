@@ -8,7 +8,7 @@ extern "C" {
 
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	double* params, double* X, double* yy, double lambda,
-	double* activation, double* inputs, double& J, double* gradients, double* deltas)
+	double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas)
 {
   // prepare the prediction data:
   // First we need to add the a0 data:
@@ -38,6 +38,11 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
   }
   input_size *= nsamples;
 
+  if(ninputs!=input_size) {
+    logDEBUG("ERROR: mismatch in input array size: "<<ninputs<<"!="<<input_size);
+    return; // stop processing.
+  }
+
   // for(unsigned int j=0;j<nsamples;++j) {
   //   *ptr++ = 0.0;
   // }
@@ -52,7 +57,7 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
   unsigned int theta_offset = 0;
   unsigned int act_offset = 0;
   unsigned int next_act_offset = nsamples*(lsizes[0]+1);
-  unsigned int input_offset = 0;
+  int input_offset = 0;
 
   for(unsigned int i=0; i<nt;++i) {
 
@@ -60,8 +65,8 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     unsigned int nrows = lsizes[i+1];
     unsigned int ncols = nsamples;
 
-    double* z = new double[nsamples*lsizes[i+1]];
-    memset(z,0,sizeof(double)*nsamples*lsizes[i+1]);
+    // double* z = new double[nsamples*lsizes[i+1]];
+    // memset(z,0,sizeof(double)*nsamples*lsizes[i+1]);
     
     unsigned int num = lsizes[i]+1;
 
@@ -206,7 +211,8 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     niter = nsamples;
     count = nrows*ncols;
 
-    logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset);
+    input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
+    logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset);
 
     // Compute the gradient:
     for(unsigned int c=0;c<ncols;++c) {
@@ -218,7 +224,25 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
           // val += delta(r,n)*act(n,c);
           // if c==0 then act[i-1](n,c)==1 otherwise act[i-1](n,c)=z[i-2]_T(n,c-1)=z[i-2](c-1,n)
           // val += deltas[delta_offset + nrows*n + r]; //*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
-          val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+          if(i==1) {
+            // Here we have to use the X matrix instead of the z_T.
+            // we still want to write the value act(n,c)=x(n,c-1) if c>0
+            val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : X[(ncols-1)*(c-1) + n]);
+          }
+          else {
+            if(c==0) {
+              val += deltas[delta_offset + nrows*n + r];
+            }
+            else {
+              int index = input_offset + (ncols-1)*n + c-1;
+              if(index>=ninputs || index < 0) {
+                logDEBUG("ERROR: out of range input access: "<<index<<">="<<ninputs);
+                // return;
+              }
+
+              val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : inputs[index]);            
+            }
+          }
           // val += 1.0; //(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
         }
 
@@ -230,8 +254,6 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
         gradients[grad_offset + nrows*c + r] = lambda*reg/niter; //grad_offset + nrows*c + r; //val/niter;
       }
     }
-
-    input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
 
     // update the gradient offset by removing the size of the next gradient matrix to be computed:
     // except for the last iteration where the value is not available:

@@ -504,7 +504,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J, double* gradients, double* deltas);
+  double* nn_params, double* X, double* yy, double lambda, double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas);
 
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "costFunc");
@@ -619,7 +619,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
     // And we call the same on the CPU:
     double pred_J = 0.0;
-    costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, pred_input, pred_J, pred_grads, pred_deltas);
+    costfunc_cpu(nl, lsizes, nsamples, params, X, yy, lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
 
     BOOST_CHECK_MESSAGE(abs(J-pred_J)<1e-10,"Mismatch in J value: "<<J<<"!="<<pred_J);
 

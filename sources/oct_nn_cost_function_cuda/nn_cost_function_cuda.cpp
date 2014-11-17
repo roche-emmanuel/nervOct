@@ -17,7 +17,7 @@ protected:
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J, double* gradients, double* deltas);
+    double* nn_params, double* X, double* yy, double lambda, double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas);
@@ -99,7 +99,8 @@ public:
     Matrix grads = Matrix(nn_params.numel(),1,0.0);
     Matrix deltas = Matrix(nd,1,0.0);
 
-    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data(),J, (double*)grads.data(), (double*)deltas.data());
+    logDEBUG("Number of inputs: "<< inputs.numel())
+    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), inputs.numel(), (double*)inputs.data(),J, (double*)grads.data(), (double*)deltas.data());
 
     delete [] lsizes;
     return grads;
