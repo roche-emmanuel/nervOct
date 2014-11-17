@@ -11,13 +11,12 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	size_t size;
 	cudaError_t err;
 
+	// cudaDeviceSynchronize();
+
 	size = nl * sizeof(unsigned int);
 	double* d_lsizes = NULL;
-	err = cudaMalloc(&d_lsizes, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc lsizes: "<<cudaGetErrorString(err));
-	}
-	cudaMemcpy(d_lsizes, lsizes, size, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMalloc(&d_lsizes, size));
+	checkCudaErrors(cudaMemcpy(d_lsizes, lsizes, size, cudaMemcpyHostToDevice));
 
 	// Compute the total number of parameters in this network:
 	unsigned int np = 0;
@@ -29,11 +28,8 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	size = np * sizeof(double);
 	double* d_params = NULL;
-	err = cudaMalloc(&d_params, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc params: "<<cudaGetErrorString(err));
-	}
-	cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMalloc(&d_params, size));
+	checkCudaErrors(cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice));
 
 	// Also allocation the gradient array, with the same number of elements:
 	double* d_grads = NULL;
@@ -234,9 +230,13 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	}
 
 	// Here we should also read back the gradient values:
-	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(double)*np, cudaMemcpyDeviceToHost));
+	// checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(double)*np, cudaMemcpyDeviceToHost));
+	// memset(gradients,0,sizeof(double)*np);
+
 	if(deltas)
 		checkCudaErrors(cudaMemcpy(deltas, d_deltas, sizeof(double)*nd, cudaMemcpyDeviceToHost)); // only retrieve the deltas if requested.
+
+	// cudaDeviceSynchronize();
 
 	// Free device memory
 	cudaFree(d_lsizes);

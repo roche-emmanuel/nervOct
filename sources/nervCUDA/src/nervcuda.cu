@@ -11,30 +11,20 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 {
 	// Allocate the device memory:
 	size_t size;
-	cudaError_t err;
 
 	size = nrowA * ncolA * sizeof(double);
 	double* d_A = NULL;
-	err = cudaMalloc(&d_A, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc A: "<<cudaGetErrorString(err));
-	}
-	cudaMemcpy(d_A, A, size, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMalloc(&d_A, size));
+	checkCudaErrors(cudaMemcpy(d_A, A, size, cudaMemcpyHostToDevice));
 
 	size = nrowB * ncolB * sizeof(double);
 	double* d_B = NULL;
-	err = cudaMalloc(&d_B, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc B: "<<cudaGetErrorString(err));
-	}
-	cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMalloc(&d_B, size));
+	checkCudaErrors(cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice));
 
 	size = (tpA ? ncolA : nrowA) * (tpB ? nrowB : ncolB) * sizeof(double);
 	double* d_C = NULL;
-	err = cudaMalloc(&d_C, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc C: "<<cudaGetErrorString(err));
-	}
+	checkCudaErrors(cudaMalloc(&d_C, size));
 	// cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice); // no need to set this.
 
 	// Call the kernel directly:
@@ -53,7 +43,7 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 	}
 
 	// Read C from device memory
-	err = cudaMemcpy(C, d_C, size, cudaMemcpyDeviceToHost);
+	checkCudaErrors(cudaMemcpy(C, d_C, size, cudaMemcpyDeviceToHost));
 	// logDEBUG("Copy C off of device: "<<cudaGetErrorString(err));
 
 	// Free device memory

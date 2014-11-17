@@ -9,6 +9,6 @@ exit
 
 :mode_x64
 set PATH=W:\Cloud\Projects\nervtech\bin\x64;%PATH%
-start X:\Softwares\octave-3.8.2-x64-mingw\bin\octave-gui.exe
+start X:\Softwares\octave-3.8.2-x64-mingw\bin\octave-cli.exe
 
 

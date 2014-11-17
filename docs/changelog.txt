@@ -39,3 +39,4 @@
 - Tested computation of delta matrices.
 - Working on gradient computation tests.
 - tested computation of gradients.
+- Investigationg invalid address issue.

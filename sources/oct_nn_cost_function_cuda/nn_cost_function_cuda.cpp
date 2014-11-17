@@ -17,10 +17,10 @@ protected:
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J);
+    double* nn_params, double* X, double* yy, double lambda, double* activation, double* inputs, double& J, double* gradients, double* deltas);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* grads);
+    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas);
 
 public:
   CUDAManager() {
@@ -73,6 +73,7 @@ public:
     return C;
   }
 
+#if 0
   inline void costFuncCPU(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& activation, Matrix& inputs) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
@@ -81,10 +82,12 @@ public:
     }
 
     double J = 0.0;
+    // TODO : this method call needs update grads and deltas parameters are missing!
     _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data(),J);
 
     delete [] lsizes;
   }
+#endif
 
   inline Matrix costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J) {
     unsigned int nl = lsizes_mat.numel();
@@ -93,9 +96,13 @@ public:
       lsizes[i] = lsizes_mat(i);
     }
 
-    Matrix grads = Matrix(nn_params.dim1(),1);
-    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data());
+    Matrix grads = Matrix(nn_params.numel(),1);
+    // double* gradients = new double[nn_params.numel()];
+    // memset(gradients,1,sizeof(double)*nn_params.numel());
+    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, NULL, NULL);
+    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
 
+    // delete [] gradients;
     delete [] lsizes;
     return grads;
   }
@@ -162,7 +169,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
   // compute the expected values:
   double Jcuda = 0.0;
-  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
+  Matrix grads_cuda = g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
 
 
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
@@ -341,6 +348,16 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
     memcpy((void*)gptr,(void*)mat.data(),sizeof(double)*count);
     gptr += count;
   }
+
+  // Compare the gradients with the CUDA version:
+  // octave_idx_type count = grads_cuda.dim1();
+  // CHECK(count==grad.dim1(),"Mismatch in gradients dimensions.");
+
+  // for(octave_idx_type j=0;j<count;++j) {
+  //   double v1 = grads_cuda(j);
+  //   double v2 = grad(j);
+  //   CHECK(abs(v1-v2)<1e-10,"Mismatch in gradient at index "<<j<<": "<<v1<<"!="<<v2);
+  // }
 
   result.append(grad);
 
