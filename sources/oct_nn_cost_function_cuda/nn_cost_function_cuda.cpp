@@ -73,21 +73,37 @@ public:
     return C;
   }
 
-#if 0
-  inline void costFuncCPU(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& activation, Matrix& inputs) {
+  inline Matrix costFuncCPU(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& activation, Matrix& inputs, double& J) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
     for(unsigned int i=0;i<nl;++i) {
       lsizes[i] = lsizes_mat(i);
     }
 
-    double J = 0.0;
-    // TODO : this method call needs update grads and deltas parameters are missing!
-    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data(),J);
+    unsigned int np = 0;
+    unsigned int nt = nl-1; // number of matrices evolved.
+
+    for(unsigned int i=0;i<nt;++i) {
+      np += lsizes[i+1]*(lsizes[i]+1);
+    }
+
+    if(nn_params.numel()!=np) {
+      error("Invalid number of parameters: %d!=%d",np,nn_params.numel());
+    }
+
+    unsigned int nd = 0;
+    for(unsigned int i=1;i<nl;++i) {
+      nd += lsizes[i]*X.dim1();
+    }
+
+    Matrix grads = Matrix(nn_params.numel(),1,0.0);
+    Matrix deltas = Matrix(nd,1,0.0);
+
+    _costFuncCPU(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)activation.data(), (double*)inputs.data(),J, (double*)grads.data(), (double*)deltas.data());
 
     delete [] lsizes;
+    return grads;
   }
-#endif
 
   inline Matrix costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J) {
     unsigned int nl = lsizes_mat.numel();
@@ -106,7 +122,7 @@ public:
     if(nn_params.numel()!=np) {
       error("Invalid number of parameters: %d!=%d",np,nn_params.numel());
     }
-    
+
     Matrix grads = Matrix(nn_params.numel(),1);
     _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data(), NULL);    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
 
@@ -174,9 +190,13 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   Matrix input_array = Matrix(dbg_input_count_exp,1);
   memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
 
+  Matrix act_array = Matrix(dbg_act_count_exp,1);
+  memset((void*)act_array.data(),0,sizeof(double)*dbg_act_count_exp);
+
   // compute the expected values:
   double Jcuda = 0.0;
-  Matrix grads_cuda = g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
+  Matrix grads_cuda = g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array, Jcuda);
+  // Matrix grads_cuda = g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
 
 
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
@@ -350,21 +370,23 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
       (*rptr++) = 0.0;
     }
 
-    Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]) + lambda * reg)/nsamples; 
+    // Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]) + lambda * reg)/nsamples; 
+    // Matrix mat = (g_cuda.multMat(Deltas[i+1],Activation[i]))/nsamples; 
+    Matrix mat = lambda * reg/nsamples; 
 
     memcpy((void*)gptr,(void*)mat.data(),sizeof(double)*count);
     gptr += count;
   }
 
   // Compare the gradients with the CUDA version:
-  // octave_idx_type count = grads_cuda.dim1();
-  // CHECK(count==grad.dim1(),"Mismatch in gradients dimensions.");
+  octave_idx_type count = grads_cuda.dim1();
+  CHECK(count==grad.dim1(),"Mismatch in gradients dimensions.");
 
-  // for(octave_idx_type j=0;j<count;++j) {
-  //   double v1 = grads_cuda(j);
-  //   double v2 = grad(j);
-  //   CHECK(abs(v1-v2)<1e-10,"Mismatch in gradient at index "<<j<<": "<<v1<<"!="<<v2);
-  // }
+  for(octave_idx_type j=0;j<count;++j) {
+    double v1 = grads_cuda(j);
+    double v2 = grad(j);
+    CHECK(abs(v1-v2)<1e-10,"Mismatch in gradient at index "<<j<<": "<<v1<<"!="<<v2);
+  }
 
   result.append(grad);
 
