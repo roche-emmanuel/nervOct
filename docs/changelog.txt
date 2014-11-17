@@ -47,3 +47,4 @@
 - Finally fixed the input array access issue.
 - Tested grad computation in CPU with regularization.
 - Working gradient computation on GPU.
+- Tested GPU computation of gradient.

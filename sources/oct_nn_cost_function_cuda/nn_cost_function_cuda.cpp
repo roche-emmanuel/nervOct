@@ -196,8 +196,8 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
 
   // compute the expected values:
   double Jcuda = 0.0;
-  Matrix grads_cuda = g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array, Jcuda);
-  // Matrix grads_cuda = g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
+  // Matrix grads_cuda = g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array, Jcuda);
+  Matrix grads_cuda = g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda);
 
 
   // Reshape nn_params back into the parameters Thetas i, the weight matrices for our neural network:
