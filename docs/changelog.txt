@@ -38,3 +38,4 @@
 - Preparing test on deltas computation.
 - Tested computation of delta matrices.
 - Working on gradient computation tests.
+- tested computation of gradients.

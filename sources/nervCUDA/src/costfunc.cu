@@ -235,7 +235,8 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(double)*np, cudaMemcpyDeviceToHost));
-	checkCudaErrors(cudaMemcpy(deltas, d_deltas, sizeof(double)*nd, cudaMemcpyDeviceToHost));
+	if(deltas)
+		checkCudaErrors(cudaMemcpy(deltas, d_deltas, sizeof(double)*nd, cudaMemcpyDeviceToHost)); // only retrieve the deltas if requested.
 
 	// Free device memory
 	cudaFree(d_lsizes);

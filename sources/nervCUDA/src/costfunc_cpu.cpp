@@ -215,15 +215,15 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
         for(unsigned int n=0;n<nsamples;++n) {
           // val += delta(r,n)*act(n,c);
           // if c==0 then act[i-1](n,c)==1 otherwise act[i-1](n,c)=z[i-2]_T(n,c-1)=z[i-2](c-1,n)
-          // val += deltas[delta_offset + nrows*n + r]; //*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
-          val += 1.0; //(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+          val += deltas[delta_offset + nrows*n + r]*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
+          // val += 1.0; //(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
         }
 
         // Here we also need to add the regularization from the theta matrix:
         double reg = (c==0 ? 0.0 : params[theta_offset + nrows*c+r]);
-        // val += lambda*reg;
+        val += lambda*reg;
 
-        gradients[grad_offset + nrows*c + r] = val; //grad_offset + nrows*c + r; //val/niter;
+        gradients[grad_offset + nrows*c + r] = val/niter; //grad_offset + nrows*c + r; //val/niter;
       }
     }
 

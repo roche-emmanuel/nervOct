@@ -628,6 +628,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     }
 
     // Compare the grads arrays:
+    // logDEBUG("Numer of parameters: "<<np);
     for(unsigned int j=0; j<np;++j) {
       double v1 = grads[j];
       double v2 = pred_grads[j];
