@@ -52,3 +52,4 @@
 - Working gradien computation WRT nnCostFunction.
 - Preparing to clean nnCostFunction.
 - Fixed costfunc_cpu test.
+- Added support for analog fov in sensor menus.

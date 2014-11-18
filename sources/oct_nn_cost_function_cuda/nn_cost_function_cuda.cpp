@@ -187,9 +187,11 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   Matrix input_array = Matrix(dbg_input_count_exp,1);
   memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
 
+#if 0
   Matrix act_array = Matrix(dbg_act_count_exp,1);
   memset((void*)act_array.data(),0,sizeof(double)*dbg_act_count_exp);
-
+#endif
+  
   // compute the expected values:
   double Jcuda = 0.0;
   Matrix grads_cuda = Matrix(nn_params.numel(),1);
