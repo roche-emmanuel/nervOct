@@ -5,7 +5,7 @@
 extern "C" {
 
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas)
+	double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs)
 {
 	// Allocate the device memory:
 	size_t size;
@@ -151,11 +151,9 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	J += (Jreg*lambda)/(2.0*nsamples);
 
 	// Read inputs from device memory
-	err = cudaMemcpy(inputs, d_inputs, input_size, cudaMemcpyDeviceToHost);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA reading inputs: "<<cudaGetErrorString(err));
+	if(inputs) {
+		checkCudaErrors(cudaMemcpy(inputs, d_inputs, input_size, cudaMemcpyDeviceToHost));
 	}
-
 
 	// Prepare the computation of the delta matrices in reverse order:
 

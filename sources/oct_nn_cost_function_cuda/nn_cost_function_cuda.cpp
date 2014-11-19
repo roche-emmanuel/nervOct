@@ -20,7 +20,7 @@ protected:
     double* nn_params, double* X, double* yy, double lambda, double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas);
+    double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
 
 public:
   CUDAManager() {
@@ -104,7 +104,7 @@ public:
     delete [] lsizes;
   }
 
-  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, Matrix& inputs, double& J, Matrix& grads) {
+  inline void costFunc(const Matrix& lsizes_mat, const Matrix& nn_params, const Matrix& X, const Matrix& yy, double lambda, double& J, Matrix& grads) {
     unsigned int nl = lsizes_mat.numel();
     unsigned int* lsizes = new unsigned int[nl];
     for(unsigned int i=0;i<nl;++i) {
@@ -122,7 +122,7 @@ public:
       error("Invalid number of parameters: %d!=%d",np,nn_params.numel());
     }
 
-    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, (double*)inputs.data(), J, (double*)grads.data(), NULL);    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
+    _costFunc(nl, lsizes, X.dim1(), (double*)nn_params.data(), (double*)X.data(), (double*)yy.data(), lambda, J, (double*)grads.data(), NULL, NULL);    // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
 
     delete [] lsizes;
   }
@@ -191,13 +191,13 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   Matrix act_array = Matrix(dbg_act_count_exp,1);
   memset((void*)act_array.data(),0,sizeof(double)*dbg_act_count_exp);
 #endif
-  
+
   // compute the expected values:
   double Jcuda = 0.0;
   Matrix grads_cuda = Matrix(nn_params.numel(),1);
 
   // g_cuda.costFuncCPU(layer_sizes, nn_params, X, yy, lambda, act_array, input_array, Jcuda, grads_cuda);
-  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, input_array, Jcuda, grads_cuda);
+  g_cuda.costFunc(layer_sizes, nn_params, X, yy, lambda, Jcuda, grads_cuda);
 
 #if 1
   result.append(Jcuda);

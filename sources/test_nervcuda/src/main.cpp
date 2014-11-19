@@ -501,7 +501,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   BOOST_CHECK(h != nullptr);
 
   typedef void (*CostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double* inputs, double& J, double* gradients, double* deltas);
+  double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
   double* nn_params, double* X, double* yy, double lambda, double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas);
@@ -615,7 +615,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
 
     // Now we call the cost function method:
     double J=0.0;
-    costfunc(nl, lsizes, nsamples, params, X, yy, lambda, inputs,J, grads, deltas);
+    costfunc(nl, lsizes, nsamples, params, X, yy, lambda,J, grads, deltas, inputs);
 
     // And we call the same on the CPU:
     double pred_J = 0.0;
