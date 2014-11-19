@@ -53,3 +53,4 @@
 - Preparing to clean nnCostFunction.
 - Fixed costfunc_cpu test.
 - Added support for analog fov in sensor menus.
+- Fixed #3048: proper content for Video IO menu for NASS. Also fixed #3049: proper az/el indicators for digital/analog overlays menus.
