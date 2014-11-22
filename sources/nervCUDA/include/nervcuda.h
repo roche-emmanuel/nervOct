@@ -38,6 +38,10 @@ void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& o
 void reduction_cost_reg(double* params, unsigned int n, double& output);
 void reduction_cost_reg_device(double* d_params, unsigned int n, double& output);
 
+void cgtrainCPU(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
+    unsigned int* lsizes, double* X, double* yy, double* init_params, 
+    double lambda, unsigned int maxiter);
+
 };
 
 #endif

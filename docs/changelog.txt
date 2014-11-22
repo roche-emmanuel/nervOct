@@ -55,3 +55,4 @@
 - Made inputs array optional for costfunc call.
 - Refactored test nervcuda app.
 - Added costfunc_device implementation.
+- Started implementation of cgtrainCPU
