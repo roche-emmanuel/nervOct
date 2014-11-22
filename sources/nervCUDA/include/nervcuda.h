@@ -22,6 +22,9 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
 
+void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
+    double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double reg_correction);
+
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     double* nn_params, double* X, double* yy, double lambda, double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas);
 

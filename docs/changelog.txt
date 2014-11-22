@@ -54,3 +54,4 @@
 - Fixed costfunc_cpu test.
 - Made inputs array optional for costfunc call.
 - Refactored test nervcuda app.
+- Added costfunc_device implementation.
