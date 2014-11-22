@@ -4,6 +4,12 @@
 
 extern "C" {
 
+void costFunc_device(unsigned int nl, unsigned int* d_lsizes, unsigned int nsamples, 
+	double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs)
+{
+
+}
+
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs)
 {

@@ -160,6 +160,7 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   Matrix yy = args(3).matrix_value();
   double lambda = args(4).double_value();
 
+#if 0
   // Check how may layers we have:
   octave_idx_type nl = layer_sizes.numel();
 
@@ -187,7 +188,6 @@ DEFUN_DLD (nn_cost_function_cuda, args, nargout,
   Matrix input_array = Matrix(dbg_input_count_exp,1);
   memset((void*)input_array.data(),0,sizeof(double)*dbg_input_count_exp);
 
-#if 0
   Matrix act_array = Matrix(dbg_act_count_exp,1);
   memset((void*)act_array.data(),0,sizeof(double)*dbg_act_count_exp);
 #endif
