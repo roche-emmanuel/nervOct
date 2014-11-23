@@ -104,7 +104,7 @@ void ConjugateGradient::updateS()
 	// update the value in _s using _df1 and _df2:
 	// Then we also swap the values for df1 and df2;
 	double tmp;
-	double _d2 = 0.0;
+	
 	// Compute the coeff for the update of s:
 	double df22 = 0.0;
 	double df12 = 0.0;
@@ -116,6 +116,7 @@ void ConjugateGradient::updateS()
 	}
 
 	double coeff = (df22 - df12)/df11;
+	_d2 = 0.0;
 
 	for(unsigned int i=0;i<_nparams; ++i) {
 		_s[i] = coeff*_s[i] - _df2[i];
@@ -159,7 +160,7 @@ void ConjugateGradient::run()
 
 	init();
 
-	logDEBUG("cg: Value of f1: "<<_f1);
+	// logDEBUG("cg: Value of f1: "<<_f1);
 
 	double red = 1.0;
 	double z1 = red/(1.0-_d1);

@@ -23,10 +23,10 @@
 %!endfunction
 
 %!test
-%!	num=10
+%!	num=100
 %!	for i=1:num,
 %!		num_labels = 3; %random2(1,5);
-%!		niter=1
+%!		niter=5
 %!		nl = random2(3,5);
 %!		lsizes=zeros(nl,1);
 %!		for j=1:nl
