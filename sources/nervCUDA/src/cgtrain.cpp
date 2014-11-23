@@ -1,7 +1,7 @@
 #include <nervCUDA.h>
 
 #include <iostream>
-#include "ConjugateGradient.h"
+#include "ConjugateGradientCPU.h"
 
 #define logDEBUG(msg) std::cout << msg << std::endl;
 
@@ -13,7 +13,7 @@ void cgtrain(unsigned int nl, unsigned int nsamples, unsigned int nparams,
 {
   // we instanciate a need instance of the conjugate gradient class, and we run it:
   // logDEBUG("Creating conjugate gradient object...");
-  nerv::ConjugateGradient cg(nl, nsamples, nparams, lsizes, X, yy, init_params, lambda, maxiter, params);
+  nerv::ConjugateGradientCPU cg(nl, nsamples, nparams, lsizes, X, yy, init_params, lambda, maxiter, params);
 
   // logDEBUG("Running conjugate gradient...");
   cg.run();

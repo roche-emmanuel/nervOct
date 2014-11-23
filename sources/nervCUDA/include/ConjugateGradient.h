@@ -8,49 +8,43 @@ class ConjugateGradient {
 public:
     // Constructor taking all the parameters needed for computation:
     ConjugateGradient(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
-        unsigned int* lsizes, double* X, double* yy, double* init_params, 
-        double lambda, unsigned int maxiter, double* params);
+        unsigned int* lsizes, double lambda, unsigned int maxiter, double* params);
 
     ~ConjugateGradient();
 
-    void init();
+    virtual void init() = 0;
 
-    void evaluateCost(double zval);
+    virtual void evaluateCost(double zval) = 0;
 
     void run();
 
-    void saveParameters();
-    void restoreParameters();
+    virtual void saveParameters() = 0;
+    virtual void restoreParameters() = 0;
 
-    void updateS();
-    double resetS();
+    virtual void updateS() = 0;
+    virtual double resetS() = 0;
 
-    void swapDfs();
+    virtual void swapDfs() = 0;
 
+    // Method used to load the parameters in the params array if necessary.
+    virtual void retrieveParameters() {}
+    
 protected:
     unsigned int _nl;
     unsigned int _nsamples;
     unsigned int _nparams;
 
     unsigned int* _lsizes;
-    double* _X;
-    double* _yy;
-    double* _params;
-
     double _lambda;
     unsigned int _maxiter;
 
-    double* _params0;
+    double* _params;
+
     double _f0;
-    double* _df0;
     double _f1;
-    double* _df1;
     double _f2;
-    double* _df2;
-    double* _s;
 
     double _d1;
-
     double _d2;
     double _realmin;
 };
