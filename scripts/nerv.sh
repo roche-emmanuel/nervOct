@@ -61,6 +61,8 @@ build_all)
 	build_octave_plugin "nn_cost_function" "x64"
 	build_octave_plugin "nn_cost_function_cuda" "x86"
 	build_octave_plugin "nn_cost_function_cuda" "x64"
+	build_octave_plugin "nn_cg_train_cpu" "x86"
+	build_octave_plugin "nn_cg_train_cpu" "x64"
 
 	;;
 

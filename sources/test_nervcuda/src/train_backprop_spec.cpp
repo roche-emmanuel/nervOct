@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE( test_retrieve_train_method_cpu )
   // now load the train method:
   typedef void (* TrainFunc)(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
     unsigned int* lsizes, double* X, double* yy, double* init_params, 
-    double lambda, unsigned int maxiter);
+    double lambda, unsigned int maxiter, double* params);
 
   TrainFunc cgtrain = (TrainFunc) GetProcAddress(h, "cgtrainCPU");
   BOOST_CHECK(cgtrain != nullptr);

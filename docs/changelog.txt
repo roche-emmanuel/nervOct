@@ -56,3 +56,4 @@
 - Refactored test nervcuda app.
 - Added costfunc_device implementation.
 - Started implementation of cgtrainCPU
+- Working on test for nn_cg_train_cpu.
