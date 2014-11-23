@@ -9,9 +9,23 @@ public:
     // Constructor taking all the parameters needed for computation:
     ConjugateGradient(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
         unsigned int* lsizes, double* X, double* yy, double* init_params, 
-        double lambda, unsigned int maxiter);
+        double lambda, unsigned int maxiter, double* params);
 
     ~ConjugateGradient();
+
+    void init();
+
+    void evaluateCost(double zval);
+
+    void run();
+
+    void saveParameters();
+    void restoreParameters();
+
+    void updateS();
+    double resetS();
+
+    void swapDfs();
 
 protected:
     unsigned int _nl;
@@ -25,6 +39,20 @@ protected:
 
     double _lambda;
     unsigned int _maxiter;
+
+    double* _params0;
+    double _f0;
+    double* _df0;
+    double _f1;
+    double* _df1;
+    double _f2;
+    double* _df2;
+    double* _s;
+
+    double _d1;
+
+    double _d2;
+    double _realmin;
 };
 
 };

@@ -68,7 +68,7 @@ public:
 
     // CostList clist;
 
-    // _cgtrain(nl, nsamples, nparams, lsizes, (double*)X.data(), (double*)yy.data(), (double*)init_params.data(), lambda, maxiter, (double*)params.data()); //,clist
+    _cgtrain(nl, nsamples, nparams, lsizes, (double*)X.data(), (double*)yy.data(), (double*)init_params.data(), lambda, maxiter, (double*)params.data()); //,clist
 
     // if(clist.empty()) {
     //   error("Cost list is empty after cgtrain call.");

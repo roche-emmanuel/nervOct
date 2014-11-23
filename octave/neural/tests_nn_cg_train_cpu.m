@@ -60,21 +60,29 @@
 %!			cpu_params = [cpu_params; theta(:)];
 %!		end
 %!	
+%!		% Compare the cost values we can get out of the functions:
+%!		[j1 grad1] = nnCostFunction(nn_params, lsizes, X, yy', lambda);
+%!		[j2 grad2] = nn_cost_function_cuda(nn_params, lsizes, X, yy', lambda);	
+%!
+%!		ng = numel(grad1);
+%!		assert(ng==numel(grad2),'Mismatch in number of gradients: %d!=%d',ng,numel(grad2))
+%!		for j=1:ng,
+%!			assert(abs(grad1(j)-grad2(j))<1e-10,'Mismatch at gradient %d: %.16f!=%.16f',j,grad1(j),grad2(j))
+%!		end
+%!
 %!		% size(X)
 %!		% size(yy)
 %!		costFunc = @(p) nnCostFunction(p, lsizes, X, yy', lambda);
 %!		% costFuncCPU = @(p) nn_cost_function_cuda(p, lsizes, X, yy, lambda);	
 %!
-%!		%for j=1:niter,
-%!			nn_params = fmincg(costFunc, nn_params, options);
-%!			cpu_params = fmincg(costFunc, cpu_params, options);
-%!		%end
+%!		nn_params = fmincg(costFunc, nn_params, options);
+%!		cpu_params = nn_cg_train_cpu(lsizes, X, yy', cpu_params, lambda, niter);
 %!	
 %!		% Compare the cpu params and the octave params:
 %!		np = numel(nn_params);
 %!		assert(np==numel(cpu_params),'Mismatch in number of parameters: %d!=%d',np,numel(cpu_params))
 %!	
 %!		for j=1:np,
-%!			assert(abs(nn_params(j)-cpu_params(j))<1e-10,'Mismatch at parameter %d: %f!=%f',j,nn_params(j),cpu_params(j))
+%!			assert(abs(nn_params(j)-cpu_params(j))<1e-10,'Mismatch at parameter %d: %.16f!=%.16f',j,nn_params(j),cpu_params(j))
 %!		end
 %!	end

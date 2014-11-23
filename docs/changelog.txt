@@ -58,3 +58,4 @@
 - Started implementation of cgtrainCPU
 - Working on test for nn_cg_train_cpu.
 - Prepared comparaison test for cg_train_cpu.
+- testing cg_train_cpu: success with 1 iteration.

@@ -4,8 +4,13 @@
 #include <nervcuda.h>
 #include <windows.h>
 #include <cuda_runtime.h>
+#include <limits>
 
 #include <boost/chrono.hpp>
+
+#ifdef min
+#undef min
+#endif
 
 #define logDEBUG(msg) std::cout << msg << std::endl;
 
@@ -39,6 +44,8 @@ BOOST_AUTO_TEST_CASE( test_retrieve_train_method_cpu )
 
   TrainFunc cgtrain = (TrainFunc) GetProcAddress(h, "cgtrainCPU");
   BOOST_CHECK(cgtrain != nullptr);
+
+  logDEBUG("Double min value is: "<< std::numeric_limits<double>::min());
 
   // Should be able to free the library:
   BOOST_CHECK(FreeLibrary(h));
