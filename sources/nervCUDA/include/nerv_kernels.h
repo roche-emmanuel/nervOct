@@ -67,6 +67,25 @@ void check(T result, char const *const func, const char *const file, int const l
 
 #define checkCudaErrors(val)           check ( (val), #val, __FILE__, __LINE__ )
 
+#define CHECK_KERNEL() checkCudaErrors( cudaPeekAtLastError() ); \
+checkCudaErrors( cudaDeviceSynchronize() );
+
+// This will output the proper error string when calling cudaGetLastError
+#define getLastCudaError(msg)      __getLastCudaError (msg, __FILE__, __LINE__)
+
+inline void __getLastCudaError(const char *errorMessage, const char *file, const int line)
+{
+    cudaError_t err = cudaGetLastError();
+
+    if (cudaSuccess != err)
+    {
+        fprintf(stderr, "%s(%i) : getLastCudaError() CUDA error : %s : (%d) %s.\n",
+                file, line, errorMessage, (int)err, cudaGetErrorString(err));
+        DEVICE_RESET
+        exit(EXIT_FAILURE);
+    }
+}
+
 extern "C" bool isPow2(unsigned int x);
 
 unsigned int nextPow2(unsigned int x);

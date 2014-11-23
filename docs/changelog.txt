@@ -62,3 +62,4 @@
 - validated test for nn_cg_train_cpu.
 - Preparing implementation for conjugateGradient on GPU.
 - Separated conjugate gradient implementation in multi classes.
+- Started implementation/test of cg_train GPU.

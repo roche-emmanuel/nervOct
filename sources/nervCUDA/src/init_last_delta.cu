@@ -12,7 +12,7 @@ __global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, double* de
   int index = nrows*col+row;
 
   if (row < nrows && col < ncols) {
-  	deltas[index] = hx[index] - yy[index];
+   	deltas[index] = hx[index] - yy[index];
   }
 
 }

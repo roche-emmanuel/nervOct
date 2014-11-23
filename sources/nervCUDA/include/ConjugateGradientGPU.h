@@ -2,9 +2,11 @@
 #ifndef NERV_CONJUGATEGRADIENT_GPU_H_
 #define NERV_CONJUGATEGRADIENT_GPU_H_
 
+#include <ConjugateGradient.h>
+
 namespace nerv {
 
-class ConjugateGradientGPU {
+class ConjugateGradientGPU : public ConjugateGradient {
 public:
     // Constructor taking all the parameters needed for computation:
     ConjugateGradientGPU(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
@@ -13,46 +15,40 @@ public:
 
     ~ConjugateGradientGPU();
 
-    void init();
+    virtual void init();
 
-    void evaluateCost(double zval);
+    virtual void evaluateCost(double zval);
 
-    void run();
+    virtual void saveParameters();
+    virtual void restoreParameters();
 
-    void saveParameters();
-    void restoreParameters();
+    virtual void updateS();
+    virtual double resetS();
 
-    void updateS();
-    double resetS();
+    virtual void swapDfs();
 
-    void swapDfs();
+    double computeRegCorrection();
 
 protected:
-    unsigned int _nl;
-    unsigned int _nsamples;
-    unsigned int _nparams;
+    double* d_X;
+    double* d_yy;
+    double* d_grads;
+    double* d_deltas;
+    double* d_inputs;
+    
+    double* d_params;
+    double* d_params0;
 
-    unsigned int* _lsizes;
-    double* _X;
-    double* _yy;
-    double* _params;
-
-    double _lambda;
-    unsigned int _maxiter;
+    double* d_df0;
+    double* d_df1;
+    double* d_df2;
+    double* d_s;
 
     double* _params0;
-    double _f0;
     double* _df0;
-    double _f1;
     double* _df1;
-    double _f2;
     double* _df2;
-    double* _s;
-
-    double _d1;
-
-    double _d2;
-    double _realmin;
+    double* _s;    
 };
 
 };
