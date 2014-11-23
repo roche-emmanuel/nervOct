@@ -114,7 +114,7 @@ DEFUN_DLD (nn_cg_train_cpu, args, nargout,
   double lambda = args(4).double_value();
   int maxiter = (int)args(5).double_value();
 
-  logDEBUG("Received number of maxiter: "<<maxiter);
+  // logDEBUG("Received number of maxiter: "<<maxiter);
 
   // Prepare the result matrices:  
   Matrix params = Matrix(init_params.numel(),1);

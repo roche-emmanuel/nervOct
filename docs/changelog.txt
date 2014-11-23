@@ -57,3 +57,4 @@
 - Added costfunc_device implementation.
 - Started implementation of cgtrainCPU
 - Working on test for nn_cg_train_cpu.
+- Prepared comparaison test for cg_train_cpu.
