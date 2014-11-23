@@ -60,3 +60,4 @@
 - Prepared comparaison test for cg_train_cpu.
 - testing cg_train_cpu: success with 1 iteration.
 - validated test for nn_cg_train_cpu.
+- Preparing implementation for conjugateGradient on GPU.

@@ -9,4 +9,5 @@ reduction						@4
 reductionCPU				@5
 reduction_cost			@6
 reduction_cost_reg	@7
-cgtrainCPU					@8
+cgtrain							@8
+cgtrainCPU					@9
