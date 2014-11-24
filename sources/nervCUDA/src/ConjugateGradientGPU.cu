@@ -221,37 +221,16 @@ void ConjugateGradientGPU::updateS()
 	// update the value in _s using _df1 and _df2:
 	// Then we also swap the values for df1 and df2;
 	
-	// double df22_gpu = compute_length2_device(d_df2,d_redtmp,_nparams);
-	// double df11_gpu = compute_length2_device(d_df1,d_redtmp,_nparams);
-	// double df12_gpu = compute_dot_device(d_df1,d_df2,d_redtmp,_nparams);
-	// double coeff_gpu = (df22_gpu - df12_gpu)/df11_gpu;
-
-	// mix_vectors_device(d_s,d_s,d_df2,coeff,-1.0,_nparams);
-	// swapDfs();
-	// _d2 = compute_dot_device(d_df1,d_s,d_redtmp,_nparams);
-	
-	// Compute the coeff for the update of s:
-	double df22 = 0.0;
-	double df12 = 0.0;
-	double df11 = 0.0;
-	for(unsigned int i=0;i<_nparams; ++i) {
-		df22 += _df2[i]*_df2[i];
-		df12 += _df1[i]*_df2[i];
-		df11 += _df1[i]*_df1[i];
-	}
-
+	double df22 = compute_length2_device(d_df2,d_redtmp,_nparams);
+	double df11 = compute_length2_device(d_df1,d_redtmp,_nparams);
+	double df12 = compute_dot_device(d_df1,d_df2,d_redtmp,_nparams);
 	double coeff = (df22 - df12)/df11;
-	_d2 = 0.0;
 
-	for(unsigned int i=0;i<_nparams; ++i) {
-		_s[i] = coeff*_s[i] - _df2[i];
-	}
-	
+	mix_vectors_device(d_s,d_s,d_df2,coeff,-1.0,_nparams);
+	checkCudaErrors(cudaMemcpy(_s, d_s, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
+
 	swapDfs();
-
-	for(unsigned int i=0;i<_nparams; ++i) {
-		_d2 += _df1[i]*_s[i];
-	}
+	_d2 = compute_dot_device(d_df1,d_s,d_redtmp,_nparams);
 }
 
 double ConjugateGradientGPU::resetS()
@@ -264,6 +243,7 @@ double ConjugateGradientGPU::resetS()
 		_s[i] = -_df1[i];
 		d -= _s[i]*_s[i];
 	}
+	checkCudaErrors(cudaMemcpy(d_s, _s, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
 	return d;
 }
 
