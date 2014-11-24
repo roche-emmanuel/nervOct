@@ -117,12 +117,6 @@ ConjugateGradientGPU::ConjugateGradientGPU(unsigned int nl, unsigned int nsample
 	d_inputs = NULL;
 	checkCudaErrors(cudaMalloc(&d_inputs, size));
 	checkCudaErrors(cudaMemset(d_inputs,0,size));
-	
-	_s = new double[nparams];
-	_params0 = new double[nparams];
-
-	// Copy the init params in the current parameters:
-	memcpy(_params, init_params, sizeof(double)*nparams);
 }
 
 ConjugateGradientGPU::~ConjugateGradientGPU()
@@ -140,8 +134,6 @@ ConjugateGradientGPU::~ConjugateGradientGPU()
 	checkCudaErrors(cudaFree(d_df2));	
 	checkCudaErrors(cudaFree(d_s));	
 	checkCudaErrors(cudaFree(d_redtmp));	
-	delete [] _s;
-	delete [] _params0;
 }
 
 void ConjugateGradientGPU::init()
@@ -196,8 +188,6 @@ void ConjugateGradientGPU::updateS()
 	double coeff = (df22 - df12)/df11;
 
 	mix_vectors_device(d_s,d_s,d_df2,coeff,-1.0,_nparams);
-	checkCudaErrors(cudaMemcpy(_s, d_s, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
-
 	swapDfs();
 	_d2 = compute_dot_device(d_df1,d_s,d_redtmp,_nparams);
 }
@@ -205,8 +195,6 @@ void ConjugateGradientGPU::updateS()
 double ConjugateGradientGPU::resetS()
 {
 	copy_vector_device(d_s, d_df1, _nparams, true);
-	checkCudaErrors(cudaMemcpy(_s, d_s, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
-
 	return -compute_length2_device(d_s,d_redtmp,_nparams);
 }
 
