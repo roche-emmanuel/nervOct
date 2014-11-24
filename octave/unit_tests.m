@@ -73,8 +73,11 @@ addpath([pname '/neural']);
 % fprintf('Testing nnTrainNetwork...\n')
 % test nnTrainNetwork
 
-fprintf('Testing nn_cg_train_cpu...\n')
-test tests_nn_cg_train_cpu;
+% fprintf('Testing nn_cg_train_cpu...\n')
+% test tests_nn_cg_train_cpu;
+
+fprintf('Testing nn_cg_train...\n')
+test tests_nn_cg_train;
 
 % fprintf('Testing nnTrainNetworkCUDA...\n')
 % test nnTrainNetworkCUDA

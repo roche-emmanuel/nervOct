@@ -668,8 +668,6 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
   }
 
   BOOST_CHECK(FreeLibrary(h));
-
-  cudaDeviceReset();
 }
 
 

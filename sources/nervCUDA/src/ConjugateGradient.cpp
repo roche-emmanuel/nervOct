@@ -143,7 +143,7 @@ void ConjugateGradient::run()
 
 		if(success) {
 			_f1 = _f2;
-			logDEBUG("Iteration "<<i<<" | Cost: "<<_f1);
+			// logDEBUG("Iteration "<<i<<" | Cost: "<<_f1);
 			updateS();
 			if(_d2>0) {
 				_d2 = resetS();

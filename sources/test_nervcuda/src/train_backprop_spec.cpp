@@ -347,6 +347,8 @@ BOOST_AUTO_TEST_CASE( test_dot_method )
 
   // Should be able to free the library:
   BOOST_CHECK(FreeLibrary(h));
+
+  cudaDeviceReset(); 
 }
 
 

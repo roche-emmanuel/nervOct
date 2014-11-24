@@ -73,3 +73,4 @@
 - removed _df0,1,2 on cpu.
 - Removing need for _s array on CPU.
 - Finalized cgGPU implementation with test.
+- Validated Test of cgGPU in octave.
