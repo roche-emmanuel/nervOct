@@ -117,11 +117,7 @@ ConjugateGradientGPU::ConjugateGradientGPU(unsigned int nl, unsigned int nsample
 	d_inputs = NULL;
 	checkCudaErrors(cudaMalloc(&d_inputs, size));
 	checkCudaErrors(cudaMemset(d_inputs,0,size));
-
-	_df0 = new double[nparams];
-	_df1 = new double[nparams];
-	memset(_df1,0,sizeof(double)*nparams);
-	_df2 = new double[nparams];
+	
 	_s = new double[nparams];
 	_params0 = new double[nparams];
 
@@ -144,9 +140,6 @@ ConjugateGradientGPU::~ConjugateGradientGPU()
 	checkCudaErrors(cudaFree(d_df2));	
 	checkCudaErrors(cudaFree(d_s));	
 	checkCudaErrors(cudaFree(d_redtmp));	
-	delete [] _df0;
-	delete [] _df1;
-	delete [] _df2;
 	delete [] _s;
 	delete [] _params0;
 }
@@ -157,20 +150,19 @@ void ConjugateGradientGPU::init()
 	// here we need to compute the regularization from the current parameters:
 	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f1, d_df1, d_deltas, d_inputs, d_regw);
 
-	// Here we should also read back the gradient values:
-	checkCudaErrors(cudaMemcpy(_df1, d_df1, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
-
 	// compute d1 as the dot product of s by s after reseting s:
 	_d1 = resetS();
 }
 
 void ConjugateGradientGPU::evaluateCost(double zval)
 {
-	// mix_vectors_device(d_params,d_params,d_s,1.0,zval,_nparams);
+	// 
 	// costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f2, d_df2, d_deltas, d_inputs, d_regw);
 	// _d2 = compute_dot_device(d_df2,d_s,d_redtmp,_nparams);
 
 	// move the current parameters to X = X + zval * s:
+	// mix_vectors_device(d_params,d_params,d_s,1.0,zval,_nparams);
+
 	for(unsigned int i=0;i<_nparams;++i) {
 		_params[i] += zval * _s[i];
 	}
@@ -180,9 +172,6 @@ void ConjugateGradientGPU::evaluateCost(double zval)
 
 	// Evaluate cost at that point and store in f2 and df2:
 	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f2, d_df2, d_deltas, d_inputs, d_regw);
-
-	// Here we should also read back the gradient values:
-	checkCudaErrors(cudaMemcpy(_df2, d_df2, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
 
 	// compute the value _d2:
 	_d2 = compute_dot_device(d_df2,d_s,d_redtmp,_nparams);
@@ -232,8 +221,4 @@ void ConjugateGradientGPU::swapDfs()
 	double* tmp = d_df1;
 	d_df1 = d_df2;
 	d_df2 = tmp;
-
-	tmp = _df1;
-	_df1 = _df2;
-	_df2 = tmp;
 }

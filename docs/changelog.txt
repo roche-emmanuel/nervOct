@@ -70,3 +70,4 @@
 - Updated cgGPU::resetS() method.
 - Updated cgGPU::evaluateCost() method.
 - Updated cgGPU::save and restoreParameters.
+- removed _df0,1,2 on cpu.

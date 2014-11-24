@@ -45,9 +45,6 @@ protected:
     double* d_redtmp;
 
     double* _params0;
-    double* _df0;
-    double* _df1;
-    double* _df2;
     double* _s;    
 };
 
