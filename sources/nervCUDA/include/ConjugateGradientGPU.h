@@ -27,6 +27,8 @@ public:
 
     virtual void swapDfs();
 
+    virtual void retrieveParameters();
+
 protected:
     double* d_X;
     double* d_yy;

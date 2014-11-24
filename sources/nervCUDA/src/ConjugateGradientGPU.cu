@@ -154,21 +154,15 @@ void ConjugateGradientGPU::init()
 	_d1 = resetS();
 }
 
+void ConjugateGradientGPU::retrieveParameters()
+{
+	checkCudaErrors(cudaMemcpy(_params, d_params, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
+}
+
 void ConjugateGradientGPU::evaluateCost(double zval)
 {
-	// 
-	// costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f2, d_df2, d_deltas, d_inputs, d_regw);
-	// _d2 = compute_dot_device(d_df2,d_s,d_redtmp,_nparams);
-
 	// move the current parameters to X = X + zval * s:
-	// mix_vectors_device(d_params,d_params,d_s,1.0,zval,_nparams);
-
-	for(unsigned int i=0;i<_nparams;++i) {
-		_params[i] += zval * _s[i];
-	}
-
-	// update the params:
-	checkCudaErrors(cudaMemcpy(d_params, _params, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
+	mix_vectors_device(d_params,d_params,d_s,1.0,zval,_nparams);
 
 	// Evaluate cost at that point and store in f2 and df2:
 	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f2, d_df2, d_deltas, d_inputs, d_regw);
