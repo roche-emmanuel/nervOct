@@ -12,3 +12,6 @@ reduction_cost_reg	@7
 cgtrain							@8
 cgtrainCPU					@9
 copy_vector					@10
+mix_vectors					@11
+compute_length2			@12
+compute_dot					@13

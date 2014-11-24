@@ -43,11 +43,11 @@ void copy_vector_device(double* d_dest, double* d_src, unsigned int size, bool i
 
 extern "C" {
 
-void copy_vector(double* dest, double* src, unsigned int size, bool invert)
+void copy_vector(double* dest, double* src, unsigned int n, bool invert)
 {
 	size_t size;
 
-	size = size * sizeof(double);
+	size = n * sizeof(double);
 	double* d_dest = NULL;
 	checkCudaErrors(cudaMalloc(&d_dest, size));
 	// checkCudaErrors(cudaMemcpy(d_dest, nn_params, size, cudaMemcpyHostToDevice));
@@ -55,7 +55,7 @@ void copy_vector(double* dest, double* src, unsigned int size, bool invert)
 	checkCudaErrors(cudaMalloc(&d_src, size));
 	checkCudaErrors(cudaMemcpy(d_src, src, size, cudaMemcpyHostToDevice));
 
- 	copy_vector_device(d_dest, d_src, size, invert);
+ 	copy_vector_device(d_dest, d_src, n, invert);
 
 	checkCudaErrors(cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost));
 

@@ -46,8 +46,14 @@ void cgtrain(unsigned int nl, unsigned int nsamples, unsigned int nparams,
     unsigned int* lsizes, double* X, double* yy, double* init_params, 
     double lambda, unsigned int maxiter, double* params);
 
+void copy_vector(double* dest, double* src, unsigned int size, bool invert = false);
+
+void mix_vectors(double* res, double* vec1, double* vec2, double w1, double w2, unsigned int size);
+
+double compute_length2(double* vec, unsigned int size);
+double compute_dot(double* vec1, double* vec2, unsigned int size);
+
 };
 
-void copy_vector(double* dest, double* src, unsigned int size, bool invert = false);
 
 #endif

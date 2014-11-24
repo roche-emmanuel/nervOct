@@ -187,20 +187,162 @@ BOOST_AUTO_TEST_CASE( test_copy_vector_method )
     double* dest = new double[size];
     double* src = new double[size];
 
-    for(unsigned int j=0; i<size; ++i) {
+    for(unsigned int j=0; j<size; ++j) {
       src[j] = random_double(-10.0,10.0);
     }
 
-    copy_vector(desc,src,size);
+    copy_vector(dest,src,size,false);
 
-    for(unsigned int j=0;i<size;++i) {
+    for(unsigned int j=0;j<size;++j) {
       double v1 = src[j];
       double v2 = dest[j];
       BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on copied element "<<j<<": "<<v1<<"!="<<v2); 
     }
 
+    copy_vector(dest,src,size,true);
+
+    for(unsigned int j=0;j<size;++j) {
+      double v1 = src[j];
+      double v2 = -dest[j];
+      BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on niverted copied element "<<j<<": "<<v1<<"!="<<v2); 
+    }
+
     delete [] dest;
     delete [] src;
+  }
+
+  // Should be able to free the library:
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_mix_vectors_method )
+{
+  // For this test we try to load/unload the NervMBP library.
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  
+  // The pointer should not be null:
+  BOOST_CHECK(h != nullptr);
+
+  // now load the train method:
+  typedef void (* Func)(double* res, double* vec1, double* vec2, double w1, double w2, unsigned int size);
+
+  Func mix_vectors = (Func) GetProcAddress(h, "mix_vectors");
+  BOOST_CHECK(mix_vectors != nullptr);
+
+  // Prepare some test cases to check that the 2 methods are computing the same things:
+  unsigned int num = 10;
+  for(unsigned int i=0;i<num;++i) {
+    // prepare number of samples:
+    unsigned int size = random_int(50,100);
+
+    double* dest = new double[size];
+    double* pred = new double[size];
+    double* src1 = new double[size];
+    double* src2 = new double[size];
+    double w1 = random_double(-10.0,10.0);
+    double w2 = random_double(-10.0,10.0);
+
+    for(unsigned int j=0; j<size; ++j) {
+      src1[j] = random_double(-10.0,10.0);
+      src2[j] = random_double(-10.0,10.0);
+      pred[j] = w1 * src1[j] + w2 * src2[j];
+    }
+
+    mix_vectors(dest,src1,src2,w1,w2,size);
+
+    for(unsigned int j=0;j<size;++j) {
+      double v1 = pred[j];
+      double v2 = dest[j];
+      BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on copied element "<<j<<": "<<v1<<"!="<<v2); 
+    }
+
+    delete [] dest;
+    delete [] pred;
+    delete [] src1;
+    delete [] src2;
+  }
+
+  // Should be able to free the library:
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_length2_method )
+{
+  // For this test we try to load/unload the NervMBP library.
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  
+  // The pointer should not be null:
+  BOOST_CHECK(h != nullptr);
+
+  // now load the train method:
+  typedef double (*Func)(double* src, unsigned int size);
+
+  Func length2 = (Func) GetProcAddress(h, "compute_length2");
+  BOOST_CHECK(length2 != nullptr);
+
+  // Prepare some test cases to check that the 2 methods are computing the same things:
+  unsigned int num = 10;
+  for(unsigned int i=0;i<num;++i) {
+    // prepare number of samples:
+    unsigned int size = random_int(50,100);
+
+    double* src = new double[size];
+
+    double pred = 0.0;
+
+    for(unsigned int j=0; j<size; ++j) {
+      src[j] = random_double(-10.0,10.0);
+      pred += src[j]*src[j];
+    }
+
+    double len = length2(src,size);
+
+    BOOST_CHECK_MESSAGE(abs(len-pred)<1e-10,"Mismatch on length2 value: "<<len<<"!="<<pred); 
+
+    delete [] src;
+  }
+
+  // Should be able to free the library:
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_dot_method )
+{
+  // For this test we try to load/unload the NervMBP library.
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  
+  // The pointer should not be null:
+  BOOST_CHECK(h != nullptr);
+
+  // now load the train method:
+  typedef double (*Func)(double* src1, double* src2, unsigned int size);
+
+  Func dot = (Func) GetProcAddress(h, "compute_dot");
+  BOOST_CHECK(dot != nullptr);
+
+  // Prepare some test cases to check that the 2 methods are computing the same things:
+  unsigned int num = 10;
+  for(unsigned int i=0;i<num;++i) {
+    // prepare number of samples:
+    unsigned int size = random_int(50,100);
+
+    double* src = new double[size];
+    double* src2 = new double[size];
+
+    double pred = 0.0;
+
+    for(unsigned int j=0; j<size; ++j) {
+      src[j] = random_double(-10.0,10.0);
+      src2[j] = random_double(-10.0,10.0);
+      pred += src[j]*src2[j];
+    }
+
+    double len = dot(src,src2,size);
+
+    BOOST_CHECK_MESSAGE(abs(len-pred)<1e-10,"Mismatch on dot value: "<<len<<"!="<<pred); 
+
+    delete [] src;
+    delete [] src2;
   }
 
   // Should be able to free the library:

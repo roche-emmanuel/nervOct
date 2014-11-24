@@ -305,3 +305,26 @@ double compute_length2_device(double* d_vec, double* d_odata, unsigned int n)
   return output;
 }
 
+extern "C" {
+
+double compute_length2(double* vec, unsigned int n)
+{
+  size_t size;
+
+  size = n * sizeof(double);
+  double* d_tmp = NULL;
+  checkCudaErrors(cudaMalloc(&d_tmp, size));
+
+  double* d_vec = NULL;
+  checkCudaErrors(cudaMalloc(&d_vec, size));
+  checkCudaErrors(cudaMemcpy(d_vec, vec, size, cudaMemcpyHostToDevice));
+
+  double res = compute_length2_device(d_vec, d_tmp, n);
+
+  checkCudaErrors(cudaFree(d_tmp));
+  checkCudaErrors(cudaFree(d_vec));
+  return res;
+}
+
+}
+
