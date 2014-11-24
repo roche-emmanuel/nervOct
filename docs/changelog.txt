@@ -63,4 +63,4 @@
 - Preparing implementation for conjugateGradient on GPU.
 - Separated conjugate gradient implementation in multi classes.
 - Started implementation/test of cg_train GPU.
-- Fixed #3066: proper content for video IO menu and operator payload menu.
+- Integrated regularization correction on GPU algorithm.

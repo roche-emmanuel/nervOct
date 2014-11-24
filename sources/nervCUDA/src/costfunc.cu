@@ -5,7 +5,7 @@
 extern "C" {
 
 void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-	double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double reg_correction)
+	double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double* d_regw)
 {
 	getLastCudaError("Checkpoint1");
 
@@ -63,9 +63,8 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 	J /= (double)nsamples;
 
 	double Jreg = 0.0;
-	reduction_cost_reg_device(d_params, np, Jreg);
+	reduction_cost_reg_device(d_params, d_regw, np, Jreg);
 	CHECK_KERNEL()
-	Jreg -= reg_correction;
 
 	J += (Jreg*lambda)/(2.0*nsamples);
 
@@ -176,6 +175,32 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	checkCudaErrors(cudaMalloc(&d_params, size));
 	checkCudaErrors(cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice));
 
+	// prepare regularization weigths:
+	double* h_regw = new double[size];
+	memset(h_regw,0,size);
+
+	// prepare the regularization correction:
+	double* rptr = h_regw;
+
+	for(unsigned int i=0; i<nt;++i) {
+		unsigned int nrows = lsizes[i+1];
+		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
+
+		rptr += nrows;
+		unsigned int count = nrows*ncolT;
+
+		for(unsigned int j=0;j<count;++j) {
+			(*rptr++) = 1.0;
+		}
+	}
+
+
+	// Prepare the reg weights for this network:
+	double* d_regw = NULL;
+	checkCudaErrors(cudaMalloc(&d_regw, size));
+
+	checkCudaErrors(cudaMemcpy(d_regw, h_regw, size, cudaMemcpyHostToDevice));
+
 	// Also allocation the gradient array, with the same number of elements:
 	double* d_grads = NULL;
 	checkCudaErrors(cudaMalloc(&d_grads, size));
@@ -228,24 +253,8 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	}
 	cudaMemcpy(d_yy, yy, size, cudaMemcpyHostToDevice);
 
-	// prepare the regularization correction:
-	double reg_correction = 0.0;
-	double* tptr = nn_params;
-	double rval;
-
-	for(unsigned int i=0; i<nt;++i) {
-		unsigned int nrows = lsizes[i+1];
-		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
-
-		for(unsigned int j=0;j<nrows;++j) {
-			rval = (*tptr++);
-			reg_correction += rval*rval;
-		}
-		tptr += nrows*ncolT;
-	}
-
 	// Call the actual method to perform the computations:
-	costFunc_device(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs,reg_correction);
+	costFunc_device(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs, d_regw);
 
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(double)*np, cudaMemcpyDeviceToHost));
@@ -265,11 +274,13 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	// Free device memory
 	// checkCudaErrors(cudaFree(d_lsizes));
 	checkCudaErrors(cudaFree(d_params));
+	checkCudaErrors(cudaFree(d_regw));
 	checkCudaErrors(cudaFree(d_inputs));	
 	checkCudaErrors(cudaFree(d_yy));	
 	checkCudaErrors(cudaFree(d_X));	
 	checkCudaErrors(cudaFree(d_deltas));	
 	checkCudaErrors(cudaFree(d_grads));	
+	delete [] h_regw;
 }
 
 }

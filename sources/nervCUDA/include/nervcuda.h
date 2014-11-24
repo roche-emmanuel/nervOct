@@ -23,7 +23,7 @@ void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
 
 void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-    double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double reg_correction);
+    double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double* d_regw);
 
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     double* nn_params, double* X, double* yy, double lambda, double* activation, unsigned int ninputs, double* inputs, double& J, double* gradients, double* deltas);
@@ -35,8 +35,8 @@ void reduction(double* inputs, unsigned int n, double& output);
 void reduction_cost(double* hx, double* yy, unsigned int n, double& output);
 void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& output);
 
-void reduction_cost_reg(double* params, unsigned int n, double& output);
-void reduction_cost_reg_device(double* d_params, unsigned int n, double& output);
+void reduction_cost_reg(double* params, double* regweights, unsigned int n, double& output);
+void reduction_cost_reg_device(double* d_params, double* regweights, unsigned int n, double& output);
 
 void cgtrainCPU(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
     unsigned int* lsizes, double* X, double* yy, double* init_params, 

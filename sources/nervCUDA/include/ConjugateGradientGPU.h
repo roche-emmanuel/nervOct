@@ -35,6 +35,7 @@ protected:
     double* d_grads;
     double* d_deltas;
     double* d_inputs;
+    double* d_regw;
     
     double* d_params;
     double* d_params0;

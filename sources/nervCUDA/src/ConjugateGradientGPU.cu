@@ -43,6 +43,32 @@ ConjugateGradientGPU::ConjugateGradientGPU(unsigned int nl, unsigned int nsample
 	checkCudaErrors(cudaMalloc(&d_params, size));
 	checkCudaErrors(cudaMemcpy(d_params, init_params, size, cudaMemcpyHostToDevice));
 
+	// prepare regularization weigths:
+	double* h_regw = new double[size];
+	memset(h_regw,0,size);
+
+	// prepare the regularization correction:
+	double* rptr = h_regw;
+
+	for(unsigned int i=0; i<nt;++i) {
+		unsigned int nrows = lsizes[i+1];
+		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
+
+		rptr += nrows;
+		unsigned int count = nrows*ncolT;
+
+		for(unsigned int j=0;j<count;++j) {
+			(*rptr++) = 1.0;
+		}
+	}
+
+
+	// Prepare the reg weights for this network:
+	d_regw = NULL;
+	checkCudaErrors(cudaMalloc(&d_regw, size));
+	checkCudaErrors(cudaMemcpy(d_regw, h_regw, size, cudaMemcpyHostToDevice));
+	delete [] h_regw;
+
 	// Also prepare the backup array for the parameters:
 	// d_params0 = NULL;
 	// checkCudaErrors(cudaMalloc(&d_params0, size));
@@ -107,6 +133,7 @@ ConjugateGradientGPU::~ConjugateGradientGPU()
 	checkCudaErrors(cudaFree(d_yy));	
 	checkCudaErrors(cudaFree(d_X));	
 	checkCudaErrors(cudaFree(d_params));	
+	checkCudaErrors(cudaFree(d_regw));	
 	// checkCudaErrors(cudaFree(d_params0));	
 	checkCudaErrors(cudaFree(d_grads));	
 	checkCudaErrors(cudaFree(d_deltas));	
@@ -122,34 +149,11 @@ ConjugateGradientGPU::~ConjugateGradientGPU()
 	delete [] _params0;
 }
 
-double ConjugateGradientGPU::computeRegCorrection()
-{
-	double reg_correction = 0.0;
-	double* tptr = _params;
-	double rval;
-	unsigned int nt =_nl-1;
-
-	for(unsigned int i=0; i<nt;++i) {
-		unsigned int nrows = _lsizes[i+1];
-		unsigned int ncolT = _lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
-
-		for(unsigned int j=0;j<nrows;++j) {
-			rval = (*tptr++);
-			reg_correction += rval*rval;
-		}
-		tptr += nrows*ncolT;
-	}
-
- 	return reg_correction;
-}
-
 void ConjugateGradientGPU::init()
 {
 	// evaluate the cost in _f1 and _df1 and assign value if _s.
 	// here we need to compute the regularization from the current parameters:
-	double reg_correction = computeRegCorrection();
-
-	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f1, d_grads, d_deltas, d_inputs, reg_correction);
+	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f1, d_grads, d_deltas, d_inputs, d_regw);
 
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(_df1, d_grads, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
@@ -180,10 +184,8 @@ void ConjugateGradientGPU::evaluateCost(double zval)
 	// update the params:
 	checkCudaErrors(cudaMemcpy(d_params, _params, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
 
-	double reg_correction = computeRegCorrection();
-
 	// Evaluate cost at that point and store in f2 and df2:
-	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f2, d_grads, d_deltas, d_inputs, reg_correction);
+	costFunc_device(_nl, _nparams, _lsizes, _nsamples, d_params, d_X, d_yy, _lambda, _f2, d_grads, d_deltas, d_inputs, d_regw);
 
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(_df2, d_grads, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
