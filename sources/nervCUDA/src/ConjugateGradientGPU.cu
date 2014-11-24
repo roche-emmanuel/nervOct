@@ -212,6 +212,7 @@ void ConjugateGradientGPU::restoreParameters()
 	memcpy(_params,_params0,sizeof(double)*_nparams);
 	checkCudaErrors(cudaMemcpy(d_params, _params, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
 	memcpy(_df1,_df0,sizeof(double)*_nparams);	
+	checkCudaErrors(cudaMemcpy(d_df1, _df1, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
 	_f1 = _f0;
 }
 
