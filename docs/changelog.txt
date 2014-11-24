@@ -69,3 +69,4 @@
 - working on conjugateDradientGPU implementation.
 - Updated cgGPU::resetS() method.
 - Updated cgGPU::evaluateCost() method.
+- Updated cgGPU::save and restoreParameters.

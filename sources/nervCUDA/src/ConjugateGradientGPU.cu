@@ -190,23 +190,15 @@ void ConjugateGradientGPU::evaluateCost(double zval)
 
 void ConjugateGradientGPU::saveParameters()
 {
-	// copy_vector_device(d_params0, d_params, _nparams);
-	// copy_vector_device(d_df0, d_df1, _nparams);
-
-	memcpy(_params0,_params,sizeof(double)*_nparams);
-	memcpy(_df0,_df1,sizeof(double)*_nparams);
+	copy_vector_device(d_params0, d_params, _nparams);
+	copy_vector_device(d_df0, d_df1, _nparams);
 	_f0 = _f1;
 }
 
 void ConjugateGradientGPU::restoreParameters()
 {
-	// copy_vector_device(d_params, d_params0, _nparams);
-	// copy_vector_device(d_df1, d_df0, _nparams);
-
-	memcpy(_params,_params0,sizeof(double)*_nparams);
-	checkCudaErrors(cudaMemcpy(d_params, _params, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
-	memcpy(_df1,_df0,sizeof(double)*_nparams);	
-	checkCudaErrors(cudaMemcpy(d_df1, _df1, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
+	copy_vector_device(d_params, d_params0, _nparams);
+	copy_vector_device(d_df1, d_df0, _nparams);
 	_f1 = _f0;
 }
 
