@@ -158,6 +158,7 @@ void ConjugateGradient::run()
 				break;
 			}
 			swapDfs();
+			_d1 = resetS();
 			z1 = 1/(1-_d1);
 			ls_failed = true;
 		}
