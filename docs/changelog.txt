@@ -64,3 +64,4 @@
 - Separated conjugate gradient implementation in multi classes.
 - Started implementation/test of cg_train GPU.
 - Integrated regularization correction on GPU algorithm.
+- Implemented methods for pure GPU conjugate gradient descent support.

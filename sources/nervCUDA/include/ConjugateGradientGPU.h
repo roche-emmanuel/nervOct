@@ -27,8 +27,6 @@ public:
 
     virtual void swapDfs();
 
-    double computeRegCorrection();
-
 protected:
     double* d_X;
     double* d_yy;
@@ -44,6 +42,7 @@ protected:
     double* d_df1;
     double* d_df2;
     double* d_s;
+    double* d_redtmp;
 
     double* _params0;
     double* _df0;
