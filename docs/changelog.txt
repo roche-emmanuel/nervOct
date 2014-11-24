@@ -68,3 +68,4 @@
 - Added test for gpu basic vector operations.
 - working on conjugateDradientGPU implementation.
 - Updated cgGPU::resetS() method.
+- Updated cgGPU::evaluateCost() method.

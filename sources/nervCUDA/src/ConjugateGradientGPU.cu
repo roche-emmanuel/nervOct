@@ -160,9 +160,6 @@ void ConjugateGradientGPU::init()
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(_df1, d_df1, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
 
-	// copy the values from df1 to s:
-	// memcpy(_s,_df1,sizeof(double)*_nparams);
-
 	// compute d1 as the dot product of s by s after reseting s:
 	_d1 = resetS();
 }
@@ -188,10 +185,7 @@ void ConjugateGradientGPU::evaluateCost(double zval)
 	checkCudaErrors(cudaMemcpy(_df2, d_df2, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
 
 	// compute the value _d2:
-	_d2 = 0.0;
-	for(unsigned int i=0;i<_nparams;++i) {
-		_d2 += _df2[i]*_s[i];
-	}
+	_d2 = compute_dot_device(d_df2,d_s,d_redtmp,_nparams);
 }
 
 void ConjugateGradientGPU::saveParameters()
