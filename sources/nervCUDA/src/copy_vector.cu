@@ -40,3 +40,27 @@ void copy_vector_device(double* d_dest, double* d_src, unsigned int size, bool i
   }
   CHECK_KERNEL()
 }
+
+extern "C" {
+
+void copy_vector(double* dest, double* src, unsigned int size, bool invert)
+{
+	size_t size;
+
+	size = size * sizeof(double);
+	double* d_dest = NULL;
+	checkCudaErrors(cudaMalloc(&d_dest, size));
+	// checkCudaErrors(cudaMemcpy(d_dest, nn_params, size, cudaMemcpyHostToDevice));
+	double* d_src = NULL;
+	checkCudaErrors(cudaMalloc(&d_src, size));
+	checkCudaErrors(cudaMemcpy(d_src, src, size, cudaMemcpyHostToDevice));
+
+ 	copy_vector_device(d_dest, d_src, size, invert);
+
+	checkCudaErrors(cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost));
+
+	checkCudaErrors(cudaFree(d_dest));
+	checkCudaErrors(cudaFree(d_src));
+}
+
+}

@@ -11,3 +11,4 @@ reduction_cost			@6
 reduction_cost_reg	@7
 cgtrain							@8
 cgtrainCPU					@9
+copy_vector					@10

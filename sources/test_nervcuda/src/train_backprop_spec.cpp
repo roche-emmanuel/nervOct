@@ -164,5 +164,48 @@ BOOST_AUTO_TEST_CASE( test_compare_cg_train_method )
   BOOST_CHECK(FreeLibrary(h));
 }
 
+BOOST_AUTO_TEST_CASE( test_copy_vector_method )
+{
+  // For this test we try to load/unload the NervMBP library.
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  
+  // The pointer should not be null:
+  BOOST_CHECK(h != nullptr);
+
+  // now load the train method:
+  typedef void (*Func)(double* dest, double* src, unsigned int size, bool invert);
+
+  Func copy_vector = (Func) GetProcAddress(h, "copy_vector");
+  BOOST_CHECK(copy_vector != nullptr);
+
+  // Prepare some test cases to check that the 2 methods are computing the same things:
+  unsigned int num = 10;
+  for(unsigned int i=0;i<num;++i) {
+    // prepare number of samples:
+    unsigned int size = random_int(50,100);
+
+    double* dest = new double[size];
+    double* src = new double[size];
+
+    for(unsigned int j=0; i<size; ++i) {
+      src[j] = random_double(-10.0,10.0);
+    }
+
+    copy_vector(desc,src,size);
+
+    for(unsigned int j=0;i<size;++i) {
+      double v1 = src[j];
+      double v2 = dest[j];
+      BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch on copied element "<<j<<": "<<v1<<"!="<<v2); 
+    }
+
+    delete [] dest;
+    delete [] src;
+  }
+
+  // Should be able to free the library:
+  BOOST_CHECK(FreeLibrary(h));
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -48,4 +48,6 @@ void cgtrain(unsigned int nl, unsigned int nsamples, unsigned int nparams,
 
 };
 
+void copy_vector(double* dest, double* src, unsigned int size, bool invert = false);
+
 #endif
