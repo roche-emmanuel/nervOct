@@ -67,3 +67,4 @@
 - Implemented methods for pure GPU conjugate gradient descent support.
 - Added test for gpu basic vector operations.
 - working on conjugateDradientGPU implementation.
+- Updated cgGPU::resetS() method.

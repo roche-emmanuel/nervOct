@@ -235,16 +235,10 @@ void ConjugateGradientGPU::updateS()
 
 double ConjugateGradientGPU::resetS()
 {
-	// copy_vector_device(d_s, d_df1, true);
-	// return -compute_length2_device(d_s,d_redtmp,_nparams);
+	copy_vector_device(d_s, d_df1, _nparams, true);
+	checkCudaErrors(cudaMemcpy(_s, d_s, sizeof(double)*_nparams, cudaMemcpyDeviceToHost));
 
-	double d = 0.0;
-	for(unsigned int i=0;i<_nparams; ++i) {
-		_s[i] = -_df1[i];
-		d -= _s[i]*_s[i];
-	}
-	checkCudaErrors(cudaMemcpy(d_s, _s, sizeof(double)*_nparams, cudaMemcpyHostToDevice));
-	return d;
+	return -compute_length2_device(d_s,d_redtmp,_nparams);
 }
 
 void ConjugateGradientGPU::swapDfs()
