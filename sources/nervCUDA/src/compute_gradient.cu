@@ -8,9 +8,6 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
 {
   double CValue = 0;
 
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
-
   __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1]; // Adding +1 to avoid shared memory bank conflict
   __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 
@@ -58,10 +55,13 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
 		__syncthreads();
 
 		for (int n = 0; n < BLOCK_SIZE; ++n) 
-			CValue += As[threadIdx.y][n] * Bs[n][threadIdx.x];
+			CValue += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
   }
+
+  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
 
   if (row < nrows && col < ncols) {
   	int index = nrows*col+row;
