@@ -76,3 +76,4 @@
 - Validated Test of cgGPU in octave.
 - Added some performances improvements and tests.
 - Minor improvement on compute gradient kernel.
+- Trying to improve compute delta kernel.

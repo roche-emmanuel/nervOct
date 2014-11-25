@@ -9,9 +9,6 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 	// This operation is basically a matrix multiplication with transposition on A:
   double dval = 0.0;
 
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
-
   __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1];
   __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 
@@ -21,7 +18,7 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
   for (int k = 0; k < (BLOCK_SIZE + ncols - 1)/BLOCK_SIZE; k++) {
 
   	xx = k*BLOCK_SIZE + threadIdx.x;
-  	yy = row;
+  	yy = blockIdx.y*BLOCK_SIZE + threadIdx.y;
   	
 		if (yy < nrows && xx < niter) {
 			// We add 1 below because we do not want to use the first row of theta_T, so that's
@@ -46,6 +43,9 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 
 		__syncthreads();
   }
+
+  int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
+  int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
   if (row < nrows && col < ncols) {
   	// we have to multiply that value by the corresponding sigmoid gradient value from the input matrix at the same location.
