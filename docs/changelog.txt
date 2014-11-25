@@ -75,3 +75,4 @@
 - Finalized cgGPU implementation with test.
 - Validated Test of cgGPU in octave.
 - Added some performances improvements and tests.
+- Minor improvement on compute gradient kernel.
