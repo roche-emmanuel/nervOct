@@ -39,13 +39,13 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 		__syncthreads();
 
 		for (int n = 0; n < BLOCK_SIZE; ++n) 
-			dval += As[threadIdx.y][n] * Bs[n][threadIdx.x];
+			dval += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
   }
 
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
+  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
 
   if (row < nrows && col < ncols) {
   	// we have to multiply that value by the corresponding sigmoid gradient value from the input matrix at the same location.

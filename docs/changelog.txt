@@ -77,3 +77,4 @@
 - Added some performances improvements and tests.
 - Minor improvement on compute gradient kernel.
 - Trying to improve compute delta kernel.
+- Coalesced access to inputs and deltas in compute delta kernel.
