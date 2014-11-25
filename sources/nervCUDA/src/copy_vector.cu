@@ -38,7 +38,7 @@ void copy_vector_device(double* d_dest, double* d_src, unsigned int size, bool i
   else {
 		CopyVector<<<dimGrid, dimBlock>>>(d_dest, d_src, size);
   }
-  CHECK_KERNEL()
+  //CHECK_KERNEL()
 }
 
 extern "C" {

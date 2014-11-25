@@ -7,30 +7,38 @@ void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThread
 {
 
     //get device capability, to avoid block/grid size excceed the upbound
+    unsigned int maxGridSize = 2147483647;
+    unsigned int maxThreadsPerBlock = 1024;
+
+#if 0
     cudaDeviceProp prop;
     int device;
     checkCudaErrors(cudaGetDevice(&device));
     checkCudaErrors(cudaGetDeviceProperties(&prop, device));
-
+    maxGridSize = prop.maxGridSize[0];
+    maxThreadsPerBlock = prop.maxThreadsPerBlock;
+    
     if (whichKernel < 3)
     {
         threads = (n < maxThreads) ? nextPow2(n) : maxThreads;
         blocks = (n + threads - 1) / threads;
     }
     else
+#endif
+
     {
         threads = (n < maxThreads*2) ? nextPow2((n + 1)/ 2) : maxThreads;
         blocks = (n + (threads * 2 - 1)) / (threads * 2);
     }
 
-    if ((float)threads*blocks > (float)prop.maxGridSize[0] * prop.maxThreadsPerBlock)
+    if ((float)threads*blocks > (float)maxGridSize * maxThreadsPerBlock)
     {
         logDEBUG("ERROR: n is too large, please choose a smaller number!");
     }
 
-    if (blocks > prop.maxGridSize[0])
+    if (blocks > maxGridSize)
     {
-        logDEBUG("Grid size <"<<blocks<<"> excceeds the device capability <"<<prop.maxGridSize[0]<<">, set block size as "<< threads*2 <<" (original "<<threads<<")");
+        logDEBUG("Grid size <"<<blocks<<"> excceeds the device capability <"<<maxGridSize<<">, set block size as "<< threads*2 <<" (original "<<threads<<")");
 
         blocks /= 2;
         threads *= 2;

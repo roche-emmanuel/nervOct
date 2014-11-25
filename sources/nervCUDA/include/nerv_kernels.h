@@ -67,8 +67,10 @@ void check(T result, char const *const func, const char *const file, int const l
 
 #define checkCudaErrors(val)           check ( (val), #val, __FILE__, __LINE__ )
 
-#define CHECK_KERNEL() checkCudaErrors( cudaPeekAtLastError() ); \
-checkCudaErrors( cudaDeviceSynchronize() );
+#define CHECK_KERNEL() 
+
+// checkCudaErrors( cudaPeekAtLastError() ); \
+// checkCudaErrors( cudaDeviceSynchronize() );
 
 // This will output the proper error string when calling cudaGetLastError
 #define getLastCudaError(msg)      __getLastCudaError (msg, __FILE__, __LINE__)

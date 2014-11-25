@@ -7,7 +7,7 @@ extern "C" {
 void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
 	double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double* d_regw)
 {
-	getLastCudaError("Checkpoint1");
+	// getLastCudaError("Checkpoint1");
 
 	unsigned int nt = nl-1; // number of matrices evolved.
 
@@ -41,7 +41,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 		ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
 			nrows, ncols, ncolT, d_params, d_inputs, d_X);
-		CHECK_KERNEL();
+		// CHECK_KERNEL();
 
 		// update the offsets:
 		theta_offset += lsizes[i+1]*(lsizes[i]+1);
@@ -58,13 +58,13 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 	J = 0.0;
 	unsigned int count = nsamples*lsizes[nt];
 	reduction_cost_device(d_hx, d_yy, count, J);
-	CHECK_KERNEL()
+	// CHECK_KERNEL()
 
 	J /= (double)nsamples;
 
 	double Jreg = 0.0;
 	reduction_cost_reg_device(d_params, d_regw, np, Jreg);
-	CHECK_KERNEL()
+	// CHECK_KERNEL()
 
 	J += (Jreg*lambda)/(2.0*nsamples);
 
@@ -102,16 +102,16 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 
 		if(i==nt) {
 			// we should just copy the difference of hx and yy into the z matrix.
-			CHECK_KERNEL()
+			// CHECK_KERNEL()
 			InitLastDelta<<<dimGrid, dimBlock>>>(nrows, ncols, d_deltas, d_hx, d_yy);
-			CHECK_KERNEL()
+			// CHECK_KERNEL()
 		}
 		else {
 			// We compute the delta from the previous delta:
 			// We start this computation for delta(nt-1). this matrix is build from theta(nt-1) and delta(nt).
 			// also in the process we use the input matrix z(nt-2)
 			ComputeDelta<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, next_delta_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas);
-			CHECK_KERNEL()
+			// CHECK_KERNEL()
 
 			// once the computation is done for that layer we move to the previous layer:
 			theta_offset -= lsizes[i]*(lsizes[i-1]+1);
@@ -138,7 +138,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 		// logDEBUG("GPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset<<", nsamples="<<nsamples);
 
 		ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_X, d_params, d_inputs, d_deltas, d_grads, lambda);
-		CHECK_KERNEL()
+		// CHECK_KERNEL()
 
 		// update the gradient offset by removing the size of the next gradient matrix to be computed:
 		// except for the last iteration where the value is not available:

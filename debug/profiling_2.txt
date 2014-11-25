@@ -1,0 +1,96 @@
+Performing Post build for NervTech
+Running 15 test cases...
+
+*** No errors detected
+Running 1 test case...
+Entering test suite "all_tests"
+Entering test suite "basic_suite"
+Leaving test suite "basic_suite"
+Entering test suite "train_backprop"
+Entering test case "test_cg_train_performances"
+GPU cgtrain taking 1.55789 seconds.
+Leaving test case "test_cg_train_performances"; testing time: 1673ms
+Leaving test suite "train_backprop"
+Leaving test suite "all_tests"
+
+*** No errors detected
+==9324== NVPROF is profiling process 9324, command: test_nervcuda.exe --log_level=test_suite --run_test=*/test_cg_train_performances
+==9324== Profiling application: test_nervcuda.exe --log_level=test_suite --run_test=*/test_cg_train_performances
+==9324== Profiling result:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 37.84%  488.40ms        38  12.853ms  743.11us  28.245ms  ComputeGradient(unsigned int, int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, double*, double*, double*, double*, double*, double)
+ 34.32%  443.00ms        19  23.316ms  22.652ms  26.418ms  ComputeDelta(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, double*, double*, double*)
+ 26.68%  344.39ms        38  9.0629ms  396.07us  20.072ms  ComputeActivation(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, double*, double*, double*)
+  0.57%  7.4162ms         4  1.8541ms  8.6090us  6.0720ms  [CUDA memcpy HtoD]
+  0.13%  1.7375ms        28  62.054us  60.773us  65.990us  MixVectors(double*, double*, double*, double, double, unsigned int)
+  0.13%  1.7096ms        38  44.990us  43.587us  47.045us  void ComputeDot<double, unsigned int=256, bool=0>(double*, double*, double*, unsigned int)
+  0.07%  865.04us        19  45.528us  44.932us  48.133us  void reduce_cost_reg<double, unsigned int=256, bool=0>(double*, double*, double*, unsigned int)
+  0.06%  824.61us        20  41.230us  39.779us  49.540us  CopyVector(double*, double*, unsigned int)
+  0.06%  747.21us        98  7.6240us  1.3760us  543.60us  [CUDA memcpy DtoH]
+  0.04%  541.87us        21  25.803us  24.194us  28.098us  void ComputeLength2<double, unsigned int=256, bool=0>(double*, double*, unsigned int)
+  0.02%  274.71us        19  14.458us  13.889us  16.226us  void reduce_cost<double, unsigned int=256, bool=0>(double*, double*, double*, unsigned int)
+  0.02%  238.10us         9  26.455us  24.194us  32.067us  [CUDA memset]
+  0.02%  199.41us        78  2.5560us  2.2400us  2.9760us  void reduce6<double, unsigned int=32, bool=1>(double*, double*, unsigned int)
+  0.02%  194.96us        19  10.261us  9.3770us  11.809us  InitLastDelta(unsigned int, unsigned int, double*, double*, double*)
+  0.00%  44.420us        19  2.3370us  2.2400us  2.6240us  void reduce6<double, unsigned int=8, bool=0>(double*, double*, unsigned int)
+  0.00%  42.884us         1  42.884us  42.884us  42.884us  CopyVectorInv(double*, double*, unsigned int)
+
+==9324== API calls:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 63.28%  938.30ms       102  9.1990ms  36.977us  55.720ms  cudaMemcpy
+ 24.31%  360.48ms        51  7.0682ms  158.15us  21.794ms  cudaMalloc
+ 11.55%  171.25ms        50  3.4250ms  63.147us  103.88ms  cudaDeviceSynchronize
+  0.43%  6.3477ms       357  17.780us  8.8170us  74.525us  cudaLaunch
+  0.33%  4.9650ms        51  97.352us  64.000us  468.77us  cudaFree
+  0.04%  544.14us        83  6.5550us       0ns  309.19us  cuDeviceGetAttribute
+  0.02%  322.57us      2010     160ns       0ns  1.9910us  cudaSetupArgument
+  0.02%  234.67us         9  26.074us  21.618us  50.347us  cudaMemset
+  0.01%  137.66us       357     385ns       0ns  1.9920us  cudaConfigureCall
+  0.01%  96.427us         1  96.427us  96.427us  96.427us  cuDeviceGetName
+  0.00%  13.081us        49     266ns       0ns     569ns  cudaPeekAtLastError
+  0.00%  3.9830us         1  3.9830us  3.9830us  3.9830us  cuDeviceTotalMem
+  0.00%  1.1380us         2     569ns     284ns     854ns  cuDeviceGetCount
+  0.00%     569ns         2     284ns     284ns     285ns  cuDeviceGet
+Running 1 test case...
+Entering test suite "all_tests"
+Entering test suite "basic_suite"
+Leaving test suite "basic_suite"
+Entering test suite "train_backprop"
+Entering test case "test_costfunc_performances"
+GPU costfunc taking 0.966853 seconds.
+Leaving test case "test_costfunc_performances"; testing time: 1098ms
+Leaving test suite "train_backprop"
+Leaving test suite "all_tests"
+
+*** No errors detected
+==13896== NVPROF is profiling process 13896, command: test_nervcuda.exe --log_level=test_suite --run_test=*/test_costfunc_performances
+==13896== Profiling application: test_nervcuda.exe --log_level=test_suite --run_test=*/test_costfunc_performances
+==13896== Profiling result:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 34.04%  252.32ms        20  12.616ms  745.83us  24.606ms  ComputeGradient(unsigned int, int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, double*, double*, double*, double*, double*, double)
+ 30.73%  227.78ms        10  22.778ms  22.634ms  22.979ms  ComputeDelta(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, double*, double*, double*)
+ 23.66%  175.39ms        20  8.7693ms  395.14us  17.289ms  ComputeActivation(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, double*, double*, double*)
+ 10.56%  78.248ms        40  1.9562ms  6.6890us  8.0332ms  [CUDA memcpy HtoD]
+  0.80%  5.9031ms        30  196.77us  1.9200us  685.50us  [CUDA memcpy DtoH]
+  0.12%  885.26us        30  29.508us  24.354us  34.467us  [CUDA memset]
+  0.06%  451.46us        10  45.146us  44.228us  45.796us  void reduce_cost_reg<double, unsigned int=256, bool=0>(double*, double*, double*, unsigned int)
+  0.02%  137.84us        10  13.783us  13.345us  14.017us  void reduce_cost<double, unsigned int=256, bool=0>(double*, double*, double*, unsigned int)
+  0.01%  101.10us        10  10.109us  9.4400us  10.561us  InitLastDelta(unsigned int, unsigned int, double*, double*, double*)
+  0.00%  26.372us        10  2.6370us  2.5920us  2.7210us  void reduce6<double, unsigned int=32, bool=1>(double*, double*, unsigned int)
+  0.00%  22.720us        10  2.2720us  2.1440us  2.3360us  void reduce6<double, unsigned int=8, bool=0>(double*, double*, unsigned int)
+
+==13896== API calls:
+Time(%)      Time     Calls       Avg       Min       Max  Name
+ 65.16%  578.88ms        70  8.2697ms  32.142us  49.798ms  cudaMemcpy
+ 33.16%  294.59ms        90  3.2732ms  168.11us  92.041ms  cudaMalloc
+  1.27%  11.291ms        90  125.46us  52.338us  354.13us  cudaFree
+  0.21%  1.8321ms       100  18.321us  8.5330us  64.568us  cudaLaunch
+  0.14%  1.2041ms        30  40.135us  23.608us  56.036us  cudaMemset
+  0.04%  398.51us        83  4.8010us       0ns  184.04us  cuDeviceGetAttribute
+  0.01%  118.91us       730     162ns       0ns  1.9910us  cudaSetupArgument
+  0.01%  95.573us         1  95.573us  95.573us  95.573us  cuDeviceGetName
+  0.01%  45.505us       100     455ns       0ns  2.8450us  cudaConfigureCall
+  0.00%  3.6970us         1  3.6970us  3.6970us  3.6970us  cuDeviceTotalMem
+  0.00%     853ns         2     426ns       0ns     853ns  cuDeviceGetCount
+  0.00%     285ns         2     142ns       0ns     285ns  cuDeviceGet
+Done Post build for NervTech

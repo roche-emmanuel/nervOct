@@ -23,7 +23,7 @@ ConjugateGradientGPU::ConjugateGradientGPU(unsigned int nl, unsigned int nsample
 
 	unsigned int nt = nl-1;
 
-	checkCudaErrors(cudaDeviceSynchronize());
+	// checkCudaErrors(cudaDeviceSynchronize());
 
 	// Load the X matrix on the GPU directly:
 	size = sizeof(double) * nsamples * lsizes[0];

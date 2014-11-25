@@ -86,3 +86,42 @@
 %!			assert(abs(nn_params(j)-cpu_params(j))<1e-8,'Mismatch at parameter %d: %.16f!=%.16f',j,nn_params(j),cpu_params(j))
 %!		end
 %!	end
+
+% ==> Check the performances for a not too small network:
+%!test
+%!	num_labels = 3;
+%!	lsizes = [1441; 200; num_labels];
+%!	m = 2000;
+%!	X  = nnDebugInitializeWeights(lsizes(1) - 1, m);
+%!	y  = mod(1:m, num_labels)'; % We use 0-bazed labels.
+%!	lambda = 0.1;
+%!	
+%!	% Prepare the matrix of labels here:
+%!	yy = zeros(num_labels,m);
+%!	
+%!	for c=1:m,
+%!		% Note that the labels are 0-based, so we need to offset them by one:
+%!		yy(y(c)+1,c)=1;
+%!	end;
+%!	
+%!	% Prepare the nn params:
+%!	nl = size(lsizes,1);
+%!	
+%!	nn_params = [];
+%!	nt = nl-1;
+%!	
+%!	% We generate some 'random' test data
+%!	for i=1:nt,
+%!		theta = nnDebugInitializeWeights(lsizes(i), lsizes(i+1));
+%!		nn_params = [nn_params; theta(:)];
+%!	end
+%!	size(X)
+%!	size(yy)
+%!	
+%!	niter=10;
+%!	profile on;
+%!	tic()
+%!	nn_params = nn_cg_train(lsizes, X, yy, nn_params, lambda, niter);
+%! 	toc()
+%!	profile off;
+%!	profshow(profile('info'))
