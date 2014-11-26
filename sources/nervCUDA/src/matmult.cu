@@ -10,9 +10,6 @@ __global__ void MatMulKernel(unsigned int nrowA, unsigned int ncolA, const doubl
 	// eg Aelem(i,jl) = A[j*nrowA+i]
   double CValue = 0;
 
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
-
   __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1]; // Adding +1 to avoid shared memory bank conflict
   __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 
@@ -43,13 +40,16 @@ __global__ void MatMulKernel(unsigned int nrowA, unsigned int ncolA, const doubl
 		__syncthreads();
 
 		for (int n = 0; n < BLOCK_SIZE; ++n) 
-			CValue += As[threadIdx.y][n] * Bs[n][threadIdx.x];
+			CValue += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
   }
 
+  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+
   if (row < nrowA && col < ncolB)
-  	C[ (blockIdx.x*BLOCK_SIZE + threadIdx.x)*nrowA + blockIdx.y*BLOCK_SIZE+threadIdx.y] = CValue;
+  	C[col*nrowA + row] = CValue;
 }
 
 __global__ void MatMulKernelTpA(unsigned int nrowA, unsigned int ncolA, const double* A,

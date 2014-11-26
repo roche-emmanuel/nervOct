@@ -9,8 +9,8 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 
 	// Note that we assume here that the matrix coefficient are stored in row major order:
 	// eg Aelem(i,jl) = A[j*nrowA+i]
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
+  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
 
   __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1];
   __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
@@ -38,7 +38,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 		if(next_input_offset==0) {
 			// In that case we need to retrieve the data from the X matrix.
 			// actually we need the data from X^T.
-			xx = col;
+			xx = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 			yy = k*BLOCK_SIZE + threadIdx.y;
 
 			if (xx < ncols && yy < ncolT)
@@ -59,7 +59,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 		__syncthreads();
 
 		for (int n = 0; n < BLOCK_SIZE; ++n) 
-			zval += As[threadIdx.y][n] * Bs[n][threadIdx.x];
+			zval += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
   }
