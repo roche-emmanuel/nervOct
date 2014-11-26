@@ -81,3 +81,4 @@
 - Coalesced access to grads in compute gradient kernel.
 - Adding tests for flot matrix multiplication.
 - minor optimization in computeActivation for global memory store.
+- Keeping reference on GPU event usage.
