@@ -79,3 +79,4 @@
 - Trying to improve compute delta kernel.
 - Coalesced access to inputs and deltas in compute delta kernel.
 - Coalesced access to grads in compute gradient kernel.
+- Adding tests for flot matrix multiplication.

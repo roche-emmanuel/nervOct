@@ -12,6 +12,7 @@ nn = nnInitNetwork(lsizes);
 
 for i=1:num,
 	training.train_ratio = ratios(i);
+	
 	if cfg.use_CUDA
 		nn = nnTrainNetworkCUDA(training,nn,cfg);
 	else

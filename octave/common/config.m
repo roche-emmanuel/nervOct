@@ -52,7 +52,7 @@ cfg.target_symbol_pair = 6; % 6 = EURUSD symbol.
 cfg.default_max_training_iterations = 50;
 
 % Default regularization parameter:
-cfg.default_regularization_parameter = 0.1;
+cfg.default_regularization_parameter = 0.0;
 
 % Number of features to consider:
 cfg.num_features = 1 + 4 * cfg.num_symbol_pairs * cfg.num_input_bars;
@@ -81,5 +81,8 @@ cfg.use_PCA = true;
 
 % Quantity of variance to retain when performing PCA: (in percent)
 cfg.PCA_variance = 99.9;
+
+% Apply early stopping when training the networks:
+cfg.use_early_stopping = false;
 
 end

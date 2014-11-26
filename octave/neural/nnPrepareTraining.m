@@ -145,6 +145,8 @@ trdata.deep_training = cfg.default_deep_training;
 % RMS stop initial value:
 trdata.rms_stop = cfg.default_rms_stop;
 
+trdata.early_stopping = cfg.use_early_stopping;
+
 end
 
 % ==> Should return a struct containing an Xtrain matrix and Ytrain vector, both with same number of rows:

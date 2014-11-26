@@ -73,10 +73,9 @@
 %!		% size(X)
 %!		% size(yy)
 %!		costFunc = @(p) nnCostFunction(p, lsizes, X, yy', lambda);
-%!		% costFuncCPU = @(p) nn_cost_function_cuda(p, lsizes, X, yy, lambda);	
 %!
 %!		nn_params = fmincg(costFunc, nn_params, options);
-%!		cpu_params = nn_cg_train(lsizes, X, yy', cpu_params, lambda, niter);
+%!		cpu_params = nn_cg_train(lsizes', X, yy', cpu_params, lambda, niter);
 %!	
 %!		% Compare the cpu params and the octave params:
 %!		np = numel(nn_params);
@@ -125,3 +124,29 @@
 %! 	toc()
 %!	profile off;
 %!	profshow(profile('info'))
+
+% ==> Should be able to train proper dimension network
+
+%test
+%	cfg = config();
+%	tr = nnPrepareTraining(1:1,cfg);
+%	nn = nnInitNetwork([tr.num_features 10 3]);
+%	X = tr.X_train;
+%	y = tr.y_train;
+%	
+%	% Before continuing we have to select the target symbol we want to train on.
+%	y = y(:,cfg.target_symbol_pair);
+%	
+%	% Now we need to convert the label vector into a matrix:
+%	yy = nnBuildLabelMatrix(y)';
+%	
+%	lambda = 0.1;
+%	niter=50;
+%	lsizes=nn.layer_sizes
+%	weights=nn.weights;
+%	lsizes
+%	size(X)
+%	size(yy)
+%	% fprintf('Starting test...\n')
+%	nn_params = nn_cg_train(lsizes, X, yy, weights, lambda, niter);
+%	% fprintf('Stopping test...\n')

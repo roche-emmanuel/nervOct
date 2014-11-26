@@ -4,6 +4,7 @@
 #include <nervcuda.h>
 #include <windows.h>
 #include <cuda_runtime.h>
+#include <cuda_profiler_api.h>
 
 #include <boost/chrono.hpp>
 
@@ -265,6 +266,8 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_tp_b )
 
 BOOST_AUTO_TEST_CASE( test_mult_mat_performances )
 {
+  cudaProfilerStart();
+
   HMODULE h = LoadLibrary("nervCUDA.dll");  
   BOOST_CHECK(h != nullptr);
 
@@ -339,6 +342,7 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_performances )
   logDEBUG("GPU matrix mult taking " << (sec.count()/num) << " seconds.");
 
   BOOST_CHECK(FreeLibrary(h));
+  cudaProfilerStop();
 }
 
 BOOST_AUTO_TEST_CASE( test_reduction )

@@ -21,14 +21,8 @@ X = X(1:m,:);
 y = y(1:m,cfg.target_symbol_pair);
 
 % Now we need to convert the label vector into a matrix:
-
-yy = nnBuildLabelMatrix(y);
-
 % Keep in mind here that we need to transpose the y matrix:
-yy = yy';
-
-% size(y)
-% size(X)
+yy = nnBuildLabelMatrix(y)';
 
 lsizes = network.layer_sizes;
 initial_nn_params = network.weights;

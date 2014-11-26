@@ -1,13 +1,12 @@
-function [network final_rms] = nnTrainNetworkCUDA(training,network,cfg)
+function [network] = nnTrainNetworkCUDA(training,network,cfg)
 % method used to train a network on the input dataset
 % using the CUDA backpropagation implementation through the method train_bp
 
 assert(exist('training', 'var') == 1, 'must provide a training structure')
 assert(exist('network', 'var') == 1, 'must provide a network structure')
 
-%  You should also try different values of lambda
-rms_stop = training.rms_stop;
 max_iter = training.max_iterations;
+lambda = training.regularization_param;
 
 X = training.X_train;
 y = training.y_train;
@@ -21,65 +20,84 @@ X = X(1:m,:);
 y = y(1:m,cfg.target_symbol_pair);
 
 % Now we need to convert the label vector into a matrix:
-yy = nnBuildLabelMatrix(y);
+yy = nnBuildLabelMatrix(y)';
 
 lsizes = network.layer_sizes;
-initial_nn_params = network.weights;
 
-% X
-% X(:,1:7)
-% yy
-nt = numel(lsizes)-1;
+% Here we need to check if we requested early stopping.
+if training.early_stopping,
+	% we need to train as long as we can reduce the error on the cv dataset:
+	% To achieve this we keep track of the previous weights generated so far with their 
+	% corresponding cost on cv:
+	costs = [];
+	wmat = [];
 
-% We should try to inject the current network weights into the bp:
-% weights = network.weights;
+	Xcv = training.X_cv;
+	% size(X)
+	ycv = training.y_cv(:,cfg.target_symbol_pair);
+	% size(y)
+	yycv = nnBuildLabelMatrix(ycv)';
 
-% iweights = zeros(numel(weights),1);
+	% window_size is the number of cost we want to keep to compute the mean value
+	window_size = 5; 
+	max_wrong = 5;
+	best_cost = -1;
+	best_weights = [];
+	cur_mean = 0.0;
+	wrong_count = 0;
 
-% pos = 1;
-% for i=1:nt,
-% 	n = lsizes(i+1);
-% 	m = lsizes(i)+1;
-% 	count = n*m;
-% 	mat = reshape(weights(pos:pos+count-1),n,m)';
-% 	iweights(pos:pos+count-1) = mat(:);
-% 	pos += count;
-% end
+	iter_count = 0;
 
-% % Check that we can convert that back into the input weights:
-% weights2 = zeros(numel(iweights),1);
+	weights = network.weights;
 
-% pos = 1;
-% for i=1:nt,
-% 	n = lsizes(i+1);
-% 	m = lsizes(i)+1;
-% 	count = n*m;
-% 	mat = reshape(weights(pos:pos+count-1),m,n)';
-% 	weights2(pos:pos+count-1) = mat(:);
-% 	pos += count;
-% end
+	while true
+		weights = nn_cg_train(lsizes, X, yy, weights, lambda, max_iter);
+		% evaluate those parameters:
+		% Now compute the cost on the cross validation dataset:
+		% J_cv = nnCostFunction(weights, lsizes, Xcv, yycv, lambda);
+		J_train = nn_cost_function_cuda(weights, lsizes, X, yy, lambda);
+		J_cv = nn_cost_function_cuda(weights, lsizes, Xcv, yycv, lambda);
+		iter_count += max_iter;
 
-% assert(sum(abs(weights-weights2))==0.0,'Invalid weight conversion process.')
+		fprintf('Costs at iteration %d: J_train=%f, J_cv=%f\n',iter_count,J_train,J_cv)
 
-% Call the training method here:
-[weights final_rms] = train_bp(lsizes,X,yy,rms_stop,max_iter); %,iweights);
+		% keep the best weights so far:
+		if best_cost < 0.0 || J_cv < best_cost,
+			best_cost = J_cv;
+			best_weights = weights;
+		end
 
-assert(all(isfinite(weights)),'Some computed weights are not finite!');
+		% push this cost in the list:
+		costs = [costs; J_cv];
 
-% once we have the weights, we must convert them from row major to column major data for octave usage:
-cweights = zeros(numel(weights),1);
+		if size(costs,1)>window_size,
+			costs = costs(2:end);
+			% compute the new mean:
+			cmean = mean(costs);
+			if cmean > cur_mean,
+				% increment the wrong count:
+				wrong_count += 1;
+				if wrong_count >= max_wrong,
+					fprintf('Stopping with best cost %f\n',best_cost)
+					network.weights = best_weights;
+					break;
+				end
+			else
+				% reset the wrong count:
+				wrong_count = 0;
+			end
+		end
 
-pos = 1;
-for i=1:nt,
-	n = lsizes(i+1);
-	m = lsizes(i)+1;
-	count = n*m;
-	mat = reshape(weights(pos:pos+count-1),m,n)';
-	cweights(pos:pos+count-1) = mat(:);
-	pos += count;
+		% initialization phase:
+		cur_mean = mean(costs);
+	end
+else
+	% just compute the weights once:
+	% fprintf('Performing training...\n')
+	network.weights = nn_cg_train(lsizes, X, yy, network.weights, lambda, max_iter);
+	% fprintf('Training done.\n')
 end
 
-network.weights = cweights;
 end
 
 % ==> Must provide the training structure:
@@ -93,7 +111,7 @@ end
 %! 	%	prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([cfg.num_features 10 3]);
+%!	nn = nnInitNetwork([tr.num_features 10 3]);
 %!	% tr.deep_training = true;
 %!	tic();
 %!	nn = nnTrainNetworkCUDA(tr,nn,cfg);
@@ -104,7 +122,7 @@ end
 %! 	% prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([cfg.num_features 10 3]);
+%!	nn = nnInitNetwork([tr.num_features 10 3]);
 %!	tr.max_iterations = 100;
 %!	tic();
 %!	nn = nnTrainNetworkCUDA(tr,nn,cfg);
@@ -115,12 +133,12 @@ end
 % prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([cfg.num_features 20 3]);
+%!	nn = nnInitNetwork([tr.num_features 20 3]);
 %!	tr.max_iterations = 1000;
 %!	tr.train_ratio = 0.1;
 %!	tr.rms_stop = 0.002;
 %!	tic();
-%!	[nn final_rms] = nnTrainNetworkCUDA(tr,nn,cfg);
+%!	nn = nnTrainNetworkCUDA(tr,nn,cfg);
 %!	toc();
 %! 	% Now check the RMS result:
 %!	X = tr.X_train;
@@ -140,4 +158,3 @@ end
 %!	[dumm pred] = nnPredict(nn, X);
 %!	rms = (pred-yy) .* (pred-yy);
 %!	rms = sqrt(sum(sum(rms))/numel(rms))/2.0;
-%!	assert(abs(rms-final_rms)<1e-10,'Invalid result in RMS computation: %f!=%f\n',rms,final_rms)

@@ -19,6 +19,7 @@ end
 addpath([pname '/common']);
 addpath([pname '/neural']);
 
+
 % fprintf('Testing sigmoid...\n')
 % test sigmoid
 
@@ -46,8 +47,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nn_cost_function...\n')
 % test tests_nn_cost_function;
 
-fprintf('Testing nn_cost_function_cuda...\n')
-test tests_nn_cost_function_cuda;
+% fprintf('Testing nn_cost_function_cuda...\n')
+% test tests_nn_cost_function_cuda;
 
 % fprintf('Testing splitDataset...\n')
 % test splitDataset
@@ -76,8 +77,8 @@ test tests_nn_cost_function_cuda;
 % fprintf('Testing nn_cg_train_cpu...\n')
 % test tests_nn_cg_train_cpu;
 
-fprintf('Testing nn_cg_train...\n')
-test tests_nn_cg_train;
+% fprintf('Testing nn_cg_train...\n')
+% test tests_nn_cg_train;
 
 % fprintf('Testing nnTrainNetworkCUDA...\n')
 % test nnTrainNetworkCUDA
@@ -99,5 +100,8 @@ test tests_nn_cg_train;
 
 % fprintf('Testing train_bp...\n')
 % test tests_train_bp;
+
+fprintf('Testing Training...\n')
+test tests_training
 
 more on;

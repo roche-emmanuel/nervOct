@@ -567,8 +567,7 @@ BOOST_AUTO_TEST_CASE( test_cg_train_performances )
 
   // Should be able to free the library:
   BOOST_CHECK(FreeLibrary(h));
-
-  // cudaDeviceReset(); 
+ 
   cudaProfilerStop();  
 }
 
