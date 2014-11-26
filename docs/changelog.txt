@@ -82,3 +82,4 @@
 - Adding tests for flot matrix multiplication.
 - minor optimization in computeActivation for global memory store.
 - Keeping reference on GPU event usage.
+- Fixed #3086: added support for image fusion as turret module.
