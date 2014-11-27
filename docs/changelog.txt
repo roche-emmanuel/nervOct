@@ -84,3 +84,4 @@
 - Keeping reference on GPU event usage.
 - Removed vbssim message.
 - Performing initial tests for gradient descent support.
+- Added test for construction of the gd object.

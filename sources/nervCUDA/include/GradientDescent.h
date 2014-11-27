@@ -19,17 +19,14 @@ public:
 
         virtual ~Traits();
 
-        /** Specify the number of layers for this session. */
-        Traits& nl(unsigned int num_layers);
-
-        /** Retrieve the number of layers.*/
-        unsigned int nl() const;
-
         /** Specify the layer sizes.*/
-        Traits& lsizes(unsigned int* layer_sizes);
+        Traits& lsizes(unsigned int* layer_sizes, unsigned int nl);
 
         /** Retrieve the layer sizes. */
         unsigned int* lsizes() const;
+
+        /** Retrieve the number of layers.*/
+        unsigned int nl() const;
 
         /** Set the number of samples.*/
         Traits& nsamples(unsigned int num_samples);
@@ -37,33 +34,47 @@ public:
         /** Retrieve the number of samples.*/
         unsigned int nsamples() const;
 
-        /** Set the number of parameters (eg. weights).*/
-        Traits& nparams(unsigned int num_params);
-
-        /** Retrieve the number of parameters.*/
-        unsigned int nparams() const;
-
         /** Set the training dataset.*/
-        Traits& X_train(value_type* X);
+        Traits& X_train(value_type* X, unsigned int size);
 
         /** Retrieve the training dataset.*/
         value_type* X_train() const;
 
+        /** Retrieve the size of the training dataset.*/
+        unsigned int X_train_size() const;
+
         /** Set the training labels.*/
-        Traits& y_train(value_type* y);
+        Traits& y_train(value_type* y, unsigned int size);
 
         /** Retrieve the training labels.*/
         value_type* y_train() const;
 
+        /** Retrieve the size of the training labels.*/
+        unsigned int y_train_size() const;
+
+        /** Set the params array.*/
+        Traits& params(value_type* p, unsigned int size);
+
+        /** Retrieve the params array.*/
+        value_type* params() const;
+
+        /** Retrieve the number of parameters.*/
+        unsigned int nparams() const;
 
     protected:
         unsigned int _nl;
         unsigned int _nsamples;
-        unsigned int _nparams;
 
         unsigned int* _lsizes;
+
         value_type* _X_train;
+        unsigned int _X_train_size;
+
         value_type* _y_train;
+        unsigned int _y_train_size;
+
+        value_type* _params;
+        unsigned int _nparams;        
     };
 
 
@@ -82,11 +93,15 @@ public:
 protected:
     Traits _traits;
 
-    // unsigned int _nl;
+    unsigned int _nl; // number of layers
+    unsigned int _nt; // number of theta matrices
+    unsigned int _np; // number of parameters
+    unsigned int _nsamples; // number of samples.
+    unsigned int* _lsizes;
+
     // unsigned int _nsamples;
     // unsigned int _nparams;
 
-    // unsigned int* _lsizes;
     // double _lambda;
     // unsigned int _maxiter;
 
