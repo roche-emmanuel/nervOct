@@ -29,6 +29,8 @@ BOOST_AUTO_TEST_CASE( test_create_gd_traits )
   BOOST_CHECK(traits.y_train()==nullptr);
   BOOST_CHECK(traits.y_train_size()==0);
   BOOST_CHECK(traits.params()==nullptr);
+  BOOST_CHECK(traits.maxiter()==-1);
+  BOOST_CHECK(traits.lambda()==0.0);
 }
 
 BOOST_AUTO_TEST_CASE( test_create_gd )
@@ -76,7 +78,11 @@ BOOST_AUTO_TEST_CASE( test_create_gd )
   y = new value_t[nsamples*1];
   traits.y_train(y,nsamples*1);
 
-  BOOST_CHECK_NO_THROW( new GradientDescentd(traits) );
+  // If we use this call here we will have a problem because of pinned memory registration.
+  // BOOST_CHECK_NO_THROW( new GradientDescentd(traits) );
+
+  // Check that we can build on stack:
+  GradientDescentd gd(traits);
 
   delete [] y;
   delete [] X;

@@ -2,6 +2,7 @@
 #ifndef NERV_GRADIENTDESCENT_H_
 #define NERV_GRADIENTDESCENT_H_
 
+#include <nervcuda.h>
 #include <sgtcore.h>
 
 namespace nerv {
@@ -61,9 +62,22 @@ public:
         /** Retrieve the number of parameters.*/
         unsigned int nparams() const;
 
+        /** Set the maximum number of iterations that can be performed.*/
+        Traits& maxiter(int num);
+
+        /** Retrieve the maximum number of iteration. */
+        int maxiter() const;
+
+        /** Set the regularizatino parameter.*/
+        Traits& lambda(value_type val);
+
+        /** Retrieve regularization parameter.*/
+        value_type lambda() const;
+
     protected:
         unsigned int _nl;
         unsigned int _nsamples;
+        unsigned int _maxiter;
 
         unsigned int* _lsizes;
 
@@ -74,7 +88,9 @@ public:
         unsigned int _y_train_size;
 
         value_type* _params;
-        unsigned int _nparams;        
+        unsigned int _nparams;
+
+        value_type _lambda;
     };
 
 
@@ -98,14 +114,23 @@ protected:
     unsigned int _np; // number of parameters
     unsigned int _nsamples; // number of samples.
     unsigned int* _lsizes;
+    int _maxiter; // max number of iterations.
 
-    // unsigned int _nsamples;
-    // unsigned int _nparams;
+    value_type _lambda; // regularization parameter.
+    value_type* _regw; // host regularization buffer.
 
-    // double _lambda;
-    // unsigned int _maxiter;
+    // GPU buffers:
+    value_type* d_X_train;
+    value_type* d_y_train;
+    value_type* d_params; // weights buffer.
+    value_type* d_grads;
+    value_type* d_deltas;
+    value_type* d_inputs;
+    
+    // buffers for cost function evaluation:
+    value_type* d_regw;
 
-    // double* _params;
+    cudaStream_t _stream1; // main processing stream. 
 };
 
 };
