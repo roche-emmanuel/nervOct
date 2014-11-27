@@ -89,4 +89,32 @@ BOOST_AUTO_TEST_CASE( test_create_gd )
   delete [] params;
 }
 
+BOOST_AUTO_TEST_CASE( test_run_gd )
+{
+  typedef GradientDescentd::value_type value_t;
+  GradientDescentd::Traits traits;
+
+  unsigned int sizes[] = { 3, 4, 1};
+  traits.lsizes(sizes,3);
+
+  unsigned int nsamples = 10;
+  traits.nsamples(nsamples);
+
+  value_t* params = new value_t[21];
+  traits.params(params,21);
+
+  value_t* X = new value_t[nsamples*3];
+  traits.X_train(X,nsamples*3);
+
+  value_t* y = new value_t[nsamples*1];
+  traits.y_train(y,nsamples*1);
+
+  // Check that we can build on stack:
+  GradientDescentd gd(traits);
+
+  delete [] y;
+  delete [] X;
+  delete [] params;
+}
+
 BOOST_AUTO_TEST_SUITE_END()
