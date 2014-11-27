@@ -5,9 +5,6 @@
 
 #define logDEBUG(msg) std::cout << msg << std::endl;
 
-#define BLOCK_SIZE 32
-
-#define MAX_THREADS_PER_BLOCK 1024
 
 
 // Utility class used to avoid linker errors with extern

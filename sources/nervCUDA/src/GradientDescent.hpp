@@ -299,7 +299,10 @@ void GradientDescentClass::run()
 		logDEBUG("Performing iteration "<<iter<<"...");
 
 		// We start with the computation of the gradient from the current parameters.
-		costFunc_device(_nl, _np, _lsizes, _nsamples, d_params, d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
+		// costFunc_device(_nl, _np, _lsizes, _nsamples, d_params, 
+		//   d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
+		gd_errfunc_device<value_type>(_nl, _np, _lsizes, _nsamples, d_params, 
+			d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
 
 		iter++;
 	}

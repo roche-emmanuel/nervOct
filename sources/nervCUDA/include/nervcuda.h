@@ -17,6 +17,10 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
+#define BLOCK_SIZE 32
+
+#define MAX_THREADS_PER_BLOCK 1024
+
 #ifndef DEVICE_RESET
 #define DEVICE_RESET cudaDeviceReset();
 #endif
@@ -97,7 +101,15 @@ void mix_vectors(double* res, double* vec1, double* vec2, double w1, double w2, 
 double compute_length2(double* vec, unsigned int size);
 double compute_dot(double* vec1, double* vec2, unsigned int size);
 
+void gd_errfunc_d(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+    double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
+
 };
+
+
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
+    T* d_params, T* d_X, T* d_yy, T lambda, T& J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw);
 
 
 #endif

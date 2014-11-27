@@ -7,7 +7,7 @@ void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThread
 {
 
     //get device capability, to avoid block/grid size excceed the upbound
-    unsigned int maxGridSize = 2147483647;
+    int maxGridSize = 2147483647;
     unsigned int maxThreadsPerBlock = 1024;
 
 #if 0

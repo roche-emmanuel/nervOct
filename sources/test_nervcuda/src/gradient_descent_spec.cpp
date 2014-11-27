@@ -89,32 +89,98 @@ BOOST_AUTO_TEST_CASE( test_create_gd )
   delete [] params;
 }
 
+int random_int(int mini, int maxi) {
+  return mini + (int)floor(0.5 + (maxi-mini)*(double)rand()/(double)RAND_MAX);
+}
+
+template <typename T>
+T random_real(T mini, T maxi) {
+  return mini + (maxi-mini)*(T)rand()/(T)RAND_MAX;
+}
+
 BOOST_AUTO_TEST_CASE( test_run_gd )
 {
   typedef GradientDescentd::value_type value_t;
-  GradientDescentd::Traits traits;
+  
+  // number of tests to run:
+  unsigned int num = 5;
+  
+  for(unsigned int i=0;i<num;++i) {
+    // prepare number of samples:
+    unsigned int nsamples = random_int(50,100);
 
-  unsigned int sizes[] = { 3, 4, 1};
-  traits.lsizes(sizes,3);
+    // max number of iterations:
+    unsigned int maxiter = 10;
 
-  unsigned int nsamples = 10;
-  traits.nsamples(nsamples);
+    // Prepare the layer size vector:
+    unsigned int nl = random_int(3,5);
+    unsigned int nt = nl-1;
 
-  value_t* params = new value_t[21];
-  traits.params(params,21);
+    // logDEBUG("Num samples: "<<nsamples<<", num layers: "<<nl);
 
-  value_t* X = new value_t[nsamples*3];
-  traits.X_train(X,nsamples*3);
+    unsigned int* lsizes = new unsigned int[nl];
 
-  value_t* y = new value_t[nsamples*1];
-  traits.y_train(y,nsamples*1);
+    for(unsigned int j = 0; j<nl; ++j) {
+      lsizes[j] = random_int(3,6);
+    }
 
-  // Check that we can build on stack:
-  GradientDescentd gd(traits);
+    value_t* ptr;
 
-  delete [] y;
-  delete [] X;
-  delete [] params;
+    // prepare the X matrix data:
+    unsigned int nx = nsamples*lsizes[0];
+    value_t* X = new value_t[nx];
+    ptr = X;
+    for(unsigned int j=0;j<nx;++j) {
+      (*ptr++) = (value_t)(sin(j)*10.0);
+      // (*ptr++) = random_value_t(-10.0,10.0);
+    }
+
+    // Prepare the y matrix:
+    unsigned int ny = nsamples*lsizes[nl-1];
+    value_t* y = new value_t[ny];
+    ptr = y;
+    for(unsigned int j=0;j<ny;++j) {
+      (*ptr++) = (value_t)(abs(cos(j)));
+      // (*ptr++) = random_value_t(-10.0,10.0);
+    }
+
+    // Prepare the current weights matrices:
+    unsigned int np = 0;
+    for(unsigned j=0;j<nt;++j) {
+      np += lsizes[j+1]*(lsizes[j]+1);
+    }
+
+    value_t* params = new value_t[np];
+    ptr = params;
+    for(unsigned int j=0;j<np;++j) {
+      (*ptr++) = (value_t)(sin(j+0.5));
+    }    
+
+    // prepare the lambda value:
+    value_t lambda = random_real<value_t>(0.0,1.0);
+
+    // Now we prepare the traits:
+    GradientDescentd::Traits traits;
+    traits.lsizes(lsizes,nl);
+    traits.nsamples(nsamples);
+    traits.params(params,np);
+    traits.X_train(X,nx);
+    traits.y_train(y,ny);
+    traits.maxiter(maxiter);
+    traits.lambda(lambda);
+
+    // Check that we can build on stack:
+    GradientDescentd gd(traits);
+
+    // try to run the gradient descent:
+    gd.run();
+
+    delete [] y;
+    delete [] X;
+    delete [] params;
+    delete [] lsizes;
+  }
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -86,3 +86,4 @@
 - Performing initial tests for gradient descent support.
 - Added test for construction of the gd object.
 - Building gradient descent class.
+- Started implementation of gd_errfunc_device function.
