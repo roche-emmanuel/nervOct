@@ -83,3 +83,4 @@
 - minor optimization in computeActivation for global memory store.
 - Keeping reference on GPU event usage.
 - Removed vbssim message.
+- Performing initial tests for gradient descent support.
