@@ -39,7 +39,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-		ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
+		ComputeActivation<double><<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
 			nrows, ncols, ncolT, d_params, d_inputs, d_X);
 		// CHECK_KERNEL();
 

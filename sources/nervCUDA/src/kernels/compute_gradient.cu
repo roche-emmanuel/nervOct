@@ -3,23 +3,24 @@
 #include <cuda_runtime.h>
 #include <nerv_kernels.h>
 
+template<typename T, unsigned int blockSize>
 __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int niter, double* X, double* nn_params, double* inputs, double* deltas, double* grads, double lambda) 
+	unsigned int nrows, unsigned int ncols, unsigned int niter, T* X, T* nn_params, T* inputs, T* deltas, T* grads, T lambda) 
 {
-  double CValue = 0;
+  T CValue = 0;
 
-  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1]; // Adding +1 to avoid shared memory bank conflict
-  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
+  __shared__ T As[blockSize][blockSize+1]; // Adding +1 to avoid shared memory bank conflict
+  __shared__ T Bs[blockSize][blockSize+1];
 
   int xx, yy;
-  for (int k = 0; k < (BLOCK_SIZE + niter - 1)/BLOCK_SIZE; k++) {
+  for (int k = 0; k < (blockSize + niter - 1)/blockSize; k++) {
 
   	// Here we try to access the A matrix data in a coaleased way:
   	// keeping in mind that A is row major. So we need to read A per column
   	// while the threads in the wrap are (probably) organized by row.
   	// So we invert the roles palyed by threadIdx.x and threadIdx.y.
-  	xx = k*BLOCK_SIZE + threadIdx.y;
-  	yy = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+  	xx = k*blockSize + threadIdx.y;
+  	yy = blockIdx.y*blockSize + threadIdx.x;
 
 		if (xx < niter && yy < nrows) 
 		 	As[threadIdx.x][threadIdx.y] = deltas[delta_offset +nrows*xx + yy];
@@ -28,8 +29,8 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
 
 
 		if(input_offset<0) {
-			xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
-			yy = k*BLOCK_SIZE + threadIdx.x;
+			xx = blockIdx.x*blockSize + threadIdx.y;
+			yy = k*blockSize + threadIdx.x;
 
 			if (yy < niter && xx < ncols) {
 				// Here we use the matrix X instead of z_T:
@@ -41,8 +42,8 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
 		}
 		else {
 			// Same for the B matrix, we need to invert the x and y coords:
-			xx = blockIdx.x*BLOCK_SIZE + threadIdx.x;
-			yy = k*BLOCK_SIZE + threadIdx.y;
+			xx = blockIdx.x*blockSize + threadIdx.x;
+			yy = k*blockSize + threadIdx.y;
 
 			if (yy < niter && xx < ncols) {
 					// B(r,c)==0 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
@@ -54,20 +55,25 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
 
 		__syncthreads();
 
-		for (int n = 0; n < BLOCK_SIZE; ++n) 
+		for (int n = 0; n < blockSize; ++n) 
 			CValue += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
   }
 
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+  int row = blockIdx.y*blockSize + threadIdx.x;
+  int col = blockIdx.x*blockSize + threadIdx.y;
 
   if (row < nrows && col < ncols) {
   	int index = nrows*col+row;
-    double reg = (col==0 ? 0.0 : nn_params[theta_offset + index]);
+    T reg = (col==0 ? 0.0 : nn_params[theta_offset + index]);
     CValue += lambda*reg;
 
   	grads[grad_offset + index] = CValue/niter;
   }
 }
+
+
+// Explicit instanciation:
+template __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int niter, double* X, double* nn_params, double* inputs, double* deltas, double* grads, double lambda);

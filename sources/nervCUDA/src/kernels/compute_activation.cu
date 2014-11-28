@@ -1,30 +1,29 @@
 #include <nervCUDA.h>
-
-#include <cuda_runtime.h>
 #include <nerv_kernels.h>
 
+template <typename T, unsigned int blockSize>
 __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X) 
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X) 
 {
 
 	// Note that we assume here that the matrix coefficient are stored in row major order:
 	// eg Aelem(i,jl) = A[j*nrowA+i]
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+  int row = blockIdx.y*blockSize + threadIdx.x;
+  int col = blockIdx.x*blockSize + threadIdx.y;
 
-  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1];
-  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
+  __shared__ T As[blockSize][blockSize+1];
+  __shared__ T Bs[blockSize][blockSize+1];
 
   int xx, yy;
 
   // we can already add the element on the first row of theta_i to this element value:
-  double zval = nn_params[theta_offset + row];
+  T zval = nn_params[theta_offset + row];
 
   // Here we compute the product theta_i * a_i^T
-  for (int k = 0; k < (BLOCK_SIZE + ncolT - 1)/BLOCK_SIZE; k++) {
+  for (int k = 0; k < (blockSize + ncolT - 1)/blockSize; k++) {
 
-  	xx = k*BLOCK_SIZE + threadIdx.y;
-  	yy = blockIdx.y*BLOCK_SIZE + threadIdx.x;
+  	xx = k*blockSize + threadIdx.y;
+  	yy = blockIdx.y*blockSize + threadIdx.x;
 
 		if (xx < ncolT && yy < nrows) 
 			// Note here that we should NOT use the first row of theta_i in those computation:
@@ -38,8 +37,8 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 		if(next_input_offset==0) {
 			// In that case we need to retrieve the data from the X matrix.
 			// actually we need the data from X^T.
-			xx = blockIdx.x*BLOCK_SIZE + threadIdx.x;
-			yy = k*BLOCK_SIZE + threadIdx.y;
+			xx = blockIdx.x*blockSize + threadIdx.x;
+			yy = k*blockSize + threadIdx.y;
 
 			if (xx < ncols && yy < ncolT)
 				Bs[threadIdx.y][threadIdx.x] = X[yy*ncols + xx];
@@ -47,8 +46,8 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 				Bs[threadIdx.y][threadIdx.x] = 0.0;
 		}
 		else {
-			xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
-			yy = k*BLOCK_SIZE + threadIdx.x;
+			xx = blockIdx.x*blockSize + threadIdx.y;
+			yy = k*blockSize + threadIdx.x;
 
 			if (yy < ncolT && xx < ncols)
 				Bs[threadIdx.x][threadIdx.y] = inputs[input_offset + xx*ncolT + yy];
@@ -58,7 +57,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 
 		__syncthreads();
 
-		for (int n = 0; n < BLOCK_SIZE; ++n) 
+		for (int n = 0; n < blockSize; ++n) 
 			zval += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
@@ -73,3 +72,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
   }
 
 }
+
+// Explicit specialization:
+template __global__ void ComputeActivation<double>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X);

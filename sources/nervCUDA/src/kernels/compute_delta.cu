@@ -1,24 +1,23 @@
 #include <nervCUDA.h>
-
-#include <cuda_runtime.h>
 #include <nerv_kernels.h>
 
+template<typename T, unsigned int blockSize>
 __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas) 
+	unsigned int nrows, unsigned int ncols, unsigned int niter, T* nn_params, T* inputs, T* deltas) 
 {
 	// This operation is basically a matrix multiplication with transposition on A:
-  double dval = 0.0;
+  T dval = 0.0;
 
-  __shared__ double As[BLOCK_SIZE][BLOCK_SIZE+1];
-  __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE+1];
+  __shared__ T As[blockSize][blockSize+1];
+  __shared__ T Bs[blockSize][blockSize+1];
 
   // So we want to compute the value d(row,col);
   // note that since we transpose A, the A number of cols is nrows and its number of row is ncols.
   int xx, yy;
-  for (int k = 0; k < (BLOCK_SIZE + ncols - 1)/BLOCK_SIZE; k++) {
+  for (int k = 0; k < (blockSize + ncols - 1)/blockSize; k++) {
 
-  	xx = k*BLOCK_SIZE + threadIdx.x;
-  	yy = blockIdx.y*BLOCK_SIZE + threadIdx.y;
+  	xx = k*blockSize + threadIdx.x;
+  	yy = blockIdx.y*blockSize + threadIdx.y;
   	
 		if (yy < nrows && xx < niter) {
 			// We add 1 below because we do not want to use the first row of theta_T, so that's
@@ -28,8 +27,8 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 		else
 			As[threadIdx.y][threadIdx.x] = 0.0;
 
-		xx = blockIdx.x*BLOCK_SIZE + threadIdx.y;
-		yy = k*BLOCK_SIZE + threadIdx.x;
+		xx = blockIdx.x*blockSize + threadIdx.y;
+		yy = k*blockSize + threadIdx.x;
 
 		if (yy < niter && xx < ncols)
 			Bs[threadIdx.x][threadIdx.y] = deltas[delta_offset + xx*niter + yy];
@@ -38,19 +37,23 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 
 		__syncthreads();
 
-		for (int n = 0; n < BLOCK_SIZE; ++n) 
+		for (int n = 0; n < blockSize; ++n) 
 			dval += As[threadIdx.x][n] * Bs[n][threadIdx.y];
 
 		__syncthreads();
   }
 
-  int row = blockIdx.y*BLOCK_SIZE + threadIdx.x;
-  int col = blockIdx.x*BLOCK_SIZE + threadIdx.y;
+  int row = blockIdx.y*blockSize + threadIdx.x;
+  int col = blockIdx.x*blockSize + threadIdx.y;
 
   if (row < nrows && col < ncols) {
   	// we have to multiply that value by the corresponding sigmoid gradient value from the input matrix at the same location.
   	int index = nrows*col+row;
-  	double sig = inputs[input_offset + index];
+  	T sig = inputs[input_offset + index];
   	deltas[next_delta_offset + index] = dval *sig*(1.0 - sig);
   }
 }
+
+// Explicit instanciation:
+template __global__ void ComputeDelta<double>(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas);

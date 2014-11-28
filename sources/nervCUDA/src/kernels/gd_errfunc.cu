@@ -1,5 +1,4 @@
 #include <nervCUDA.h>
-
 #include <nerv_kernels.h>
 
 template<typename T, unsigned int blockSize>
@@ -148,6 +147,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 }
 
 // Explicit specializations:
+// Note that this is not needed since those templates are instantiated anyway below in the "C" functions.
 
 // template void gd_errfunc_device<double, BLOCK_SIZE>(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
 // 	double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double* d_regw);

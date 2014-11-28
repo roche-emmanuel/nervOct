@@ -66,16 +66,20 @@ __global__ void MatMulKernelTpA(unsigned int nrowA, unsigned int ncolA, const do
 __global__ void CostFuncKernel(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 		double* nn_params, double* X, double* yy, double lambda);
 
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X);
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X);
 
-__global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, double* deltas, double* hx, double* yy);
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, T* deltas, T* hx, T* yy);
 
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
-    unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas);
+    unsigned int nrows, unsigned int ncols, unsigned int niter, T* nn_params, T* inputs, T* deltas);
 
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeGradient(unsigned int theta_offset, int input_offset, unsigned int delta_offset, unsigned int grad_offset,
-    unsigned int nrows, unsigned int ncols, unsigned int niter, double* X, double* nn_params, double* inputs, double* deltas, double* grads, double lambda); 
+    unsigned int nrows, unsigned int ncols, unsigned int niter, T* X, T* nn_params, T* inputs, T* deltas, T* grads, T lambda); 
 
 void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata, double *d_odata);
 
