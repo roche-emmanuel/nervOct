@@ -120,5 +120,7 @@ T compute_length2_device(T* d_vec, T* d_redtmp, unsigned int size);
 template<typename T>
 void copy_vector_device(T* d_s, T* d_df1, unsigned int size, bool invert = false);
 
+template<typename T>
+void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int size);
 
 #endif

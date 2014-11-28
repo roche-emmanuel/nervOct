@@ -90,3 +90,4 @@
 - Refactoring kernels to templates.
 - Moved the compute_dot kernel.
 - Moved copy_vector method.
+- Moved mix_vector kernel.
