@@ -83,9 +83,6 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset, uns
 
 void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata, double *d_odata);
 
-void copy_vector_device(double* d_s, double* d_df1, unsigned int size, bool invert = false);
 void mix_vectors_device(double* d_res, double* d_vec1, double* d_vec2, double w1, double w2, unsigned int size);
-
-double compute_length2_device(double* d_vec, double* d_redtmp, unsigned int size);
 
 #endif
