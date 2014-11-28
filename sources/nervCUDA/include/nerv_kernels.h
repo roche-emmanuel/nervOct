@@ -87,6 +87,5 @@ void copy_vector_device(double* d_s, double* d_df1, unsigned int size, bool inve
 void mix_vectors_device(double* d_res, double* d_vec1, double* d_vec2, double w1, double w2, unsigned int size);
 
 double compute_length2_device(double* d_vec, double* d_redtmp, unsigned int size);
-double compute_dot_device(double* d_vec1, double* d_vec2, double* d_redtmp, unsigned int size);
 
 #endif

@@ -88,3 +88,4 @@
 - Building gradient descent class.
 - Started implementation of gd_errfunc_device function.
 - Refactoring kernels to templates.
+- Moved the compute_dot kernel.

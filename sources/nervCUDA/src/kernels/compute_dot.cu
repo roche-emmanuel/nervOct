@@ -1,5 +1,4 @@
 #include <nervCUDA.h>
-
 #include <nerv_kernels.h>
 
 /*
@@ -123,15 +122,16 @@ __global__ void ComputeDot(T *g_vec1, T *g_vec2, T *g_odata, unsigned int n)
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper function for kernel launch
 ////////////////////////////////////////////////////////////////////////////////
+template<typename T>
 void compute_dot(int size, int threads, int blocks,
-       int whichKernel, double *d_vec1, double* d_vec2, double *d_odata)
+       int whichKernel, T *d_vec1, T* d_vec2, T *d_odata)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize = (threads <= 32) ? 2 * threads * sizeof(double) : threads * sizeof(double);
+  int smemSize = (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
   // choose which of the optimized versions of reduction to launch
   if (isPow2(size))
@@ -139,43 +139,43 @@ void compute_dot(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              ComputeDot<double, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 256:
-              ComputeDot<double, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 128:
-              ComputeDot<double, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 64:
-              ComputeDot<double,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 32:
-              ComputeDot<double,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 16:
-              ComputeDot<double,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  8:
-              ComputeDot<double,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  4:
-              ComputeDot<double,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  2:
-              ComputeDot<double,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  1:
-              ComputeDot<double,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
       }
   }
@@ -184,49 +184,50 @@ void compute_dot(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              ComputeDot<double, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 256:
-              ComputeDot<double, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 128:
-              ComputeDot<double, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 64:
-              ComputeDot<double,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 32:
-              ComputeDot<double,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case 16:
-              ComputeDot<double,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  8:
-              ComputeDot<double,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  4:
-              ComputeDot<double,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  2:
-              ComputeDot<double,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
 
           case  1:
-              ComputeDot<double,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
+              ComputeDot<T,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_vec1, d_vec2, d_odata, size);
               break;
       }
   }
 }
 
-double compute_dot_device(double *d_vec1, double* d_vec2, double* d_odata, unsigned int n)
+template<typename T>
+T compute_dot_device(T *d_vec1, T* d_vec2, T* d_odata, unsigned int n)
 {
   int maxThreads = 256;
   int maxBlocks = 64;
@@ -239,18 +240,18 @@ double compute_dot_device(double *d_vec1, double* d_vec2, double* d_odata, unsig
   getNumBlocksAndThreads(whichKernel, n, maxBlocks, maxThreads, numBlocks, numThreads);
 
   // Allocate output array:
-  // size_t size = numBlocks*sizeof(double);
-  // double* d_odata = NULL;
+  // size_t size = numBlocks*sizeof(T);
+  // T* d_odata = NULL;
   // checkCudaErrors(cudaMalloc(&d_odata, size));
 
   // Allocate mem for the result on host side
-  double *h_odata = (double *) malloc(numBlocks*sizeof(double));
+  T *h_odata = (T *) malloc(numBlocks*sizeof(T));
 
-  double gpu_result = 0.0;
+  T gpu_result = 0.0;
   bool needReadBack = true;
 
   // execute the kernel
-  compute_dot(n, numThreads, numBlocks, whichKernel, d_vec1, d_vec2, d_odata);
+  compute_dot<T>(n, numThreads, numBlocks, whichKernel, d_vec1, d_vec2, d_odata);
 
   // sum partial block sums on GPU
   int s=numBlocks;
@@ -276,7 +277,7 @@ double compute_dot_device(double *d_vec1, double* d_vec2, double* d_odata, unsig
   if (s > 1)
   {
       // copy result from device to host
-      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(double), cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(T), cudaMemcpyDeviceToHost));
 
       for (int i=0; i < s; i++)
       {
@@ -289,7 +290,7 @@ double compute_dot_device(double *d_vec1, double* d_vec2, double* d_odata, unsig
   if (needReadBack)
   {
       // copy final sum from device to host
-      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(double), cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost));
   }
 
   // Free host memory:
@@ -299,6 +300,9 @@ double compute_dot_device(double *d_vec1, double* d_vec2, double* d_odata, unsig
   // checkCudaErrors(cudaFree(d_odata));
   return gpu_result;
 }
+
+// explicit instanciation:
+// template double compute_dot_device<double>(double *d_vec1, double* d_vec2, double* d_odata, unsigned int n);
 
 extern "C" {
 
