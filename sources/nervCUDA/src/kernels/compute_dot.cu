@@ -262,7 +262,7 @@ T compute_dot_device(T *d_vec1, T* d_vec2, T* d_odata, unsigned int n)
       int threads = 0, blocks = 0;
       getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce(s, threads, blocks, kernel, d_odata, d_odata);
+      reduce_sum_device(s, threads, blocks, kernel, d_odata, d_odata);
 
       if (kernel < 3)
       {

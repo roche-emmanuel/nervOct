@@ -98,3 +98,4 @@
 - Renamed multipleMatricesf to matmult_f
 - Renamed some files to cpp instead of cu.
 - Removed helpers.cpp file.
+- Renamed reduction to reduce_sum.

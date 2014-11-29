@@ -88,7 +88,8 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 void reductionCPU(double* inputs, unsigned int n, double& output);
 
-void reduction(double* inputs, unsigned int n, double& output);
+void reduce_sum(double* inputs, unsigned int n, double& output);
+void reduce_sum_f(float* inputs, unsigned int n, float& output);
 
 void reduction_cost(double* hx, double* yy, unsigned int n, double& output);
 void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& output);
@@ -136,5 +137,8 @@ void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int
 template<typename T>
 void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, unsigned int ncolB, 
     const T* d_A, const T* d_B, T* d_C, bool tpA, bool tpB);
+
+template<typename T>
+void reduce_sum_device(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata);
 
 #endif

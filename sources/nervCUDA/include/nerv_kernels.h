@@ -71,7 +71,4 @@ template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeGradient(unsigned int theta_offset, int input_offset, unsigned int delta_offset, unsigned int grad_offset,
     unsigned int nrows, unsigned int ncols, unsigned int niter, T* X, T* nn_params, T* inputs, T* deltas, T* grads, T lambda); 
 
-void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata, double *d_odata);
-
-
 #endif

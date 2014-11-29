@@ -128,14 +128,15 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n)
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper function for kernel launch
 ////////////////////////////////////////////////////////////////////////////////
-void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata, double *d_odata)
+template<typename T>
+void reduce_sum_device(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize = (threads <= 32) ? 2 * threads * sizeof(double) : threads * sizeof(double);
+  int smemSize = (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
   // choose which of the optimized versions of reduction to launch
   if (isPow2(size))
@@ -143,43 +144,43 @@ void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata,
       switch (threads)
       {
           case 512:
-              reduce6<double, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 256:
-              reduce6<double, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 128:
-              reduce6<double, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 64:
-              reduce6<double,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 32:
-              reduce6<double,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 16:
-              reduce6<double,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  8:
-              reduce6<double,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  4:
-              reduce6<double,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  2:
-              reduce6<double,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  1:
-              reduce6<double,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
       }
   }
@@ -188,55 +189,54 @@ void reduce(int size, int threads, int blocks, int whichKernel, double *d_idata,
       switch (threads)
       {
           case 512:
-              reduce6<double, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 256:
-              reduce6<double, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 128:
-              reduce6<double, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 64:
-              reduce6<double,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 32:
-              reduce6<double,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case 16:
-              reduce6<double,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  8:
-              reduce6<double,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  4:
-              reduce6<double,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  2:
-              reduce6<double,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
 
           case  1:
-              reduce6<double,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
               break;
       }
   }
 }
 
-extern "C" {
-
-void reduction(double* inputs, unsigned int n, double& output)
+template <typename T>
+void _reduce_sum(T* inputs, unsigned int n, T& output)
 {
-	int maxThreads = 256;
-	int maxBlocks = 64;
-	int whichKernel = 6;
+  int maxThreads = 256;
+  int maxBlocks = 64;
+  int whichKernel = 6;
   // bool cpuFinalReduction = false;
   int cpuFinalThreshold = 1;
 
@@ -245,29 +245,29 @@ void reduction(double* inputs, unsigned int n, double& output)
   getNumBlocksAndThreads(whichKernel, n, maxBlocks, maxThreads, numBlocks, numThreads);
 
 
-	// Allocate the input array:
-	size_t size = n * sizeof(double);
-	double* d_idata = NULL;
-	checkCudaErrors(cudaMalloc(&d_idata, size));
-	checkCudaErrors(cudaMemcpy(d_idata, inputs, size, cudaMemcpyHostToDevice));
+  // Allocate the input array:
+  size_t size = n * sizeof(T);
+  T* d_idata = NULL;
+  checkCudaErrors(cudaMalloc(&d_idata, size));
+  checkCudaErrors(cudaMemcpy(d_idata, inputs, size, cudaMemcpyHostToDevice));
 
-	// Allocate output array:
-	size = numBlocks*sizeof(double);
-	double* d_odata = NULL;
-	checkCudaErrors(cudaMalloc(&d_odata, size));
-	checkCudaErrors(cudaMemcpy(d_odata, inputs, size, cudaMemcpyHostToDevice));
+  // Allocate output array:
+  size = numBlocks*sizeof(T);
+  T* d_odata = NULL;
+  checkCudaErrors(cudaMalloc(&d_odata, size));
+  checkCudaErrors(cudaMemcpy(d_odata, inputs, size, cudaMemcpyHostToDevice));
 
   // Allocate mem for the result on host side
-  double *h_odata = (double *) malloc(numBlocks*sizeof(double));
+  T *h_odata = (T *) malloc(numBlocks*sizeof(T));
 
   // warm-up
   // reduce<T>(size, numThreads, numBlocks, whichKernel, d_idata, d_odata);
 
-  double gpu_result = 0.0;
+  T gpu_result = 0.0;
   bool needReadBack = true;
 
   // execute the kernel
-  reduce(n, numThreads, numBlocks, whichKernel, d_idata, d_odata);
+  reduce_sum_device(n, numThreads, numBlocks, whichKernel, d_idata, d_odata);
 
   // sum partial block sums on GPU
   int s=numBlocks;
@@ -278,7 +278,7 @@ void reduction(double* inputs, unsigned int n, double& output)
       int threads = 0, blocks = 0;
       getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce(s, threads, blocks, kernel, d_odata, d_odata);
+      reduce_sum_device(s, threads, blocks, kernel, d_odata, d_odata);
 
       if (kernel < 3)
       {
@@ -293,7 +293,7 @@ void reduction(double* inputs, unsigned int n, double& output)
   if (s > 1)
   {
       // copy result from device to host
-      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(double), cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(T), cudaMemcpyDeviceToHost));
 
       for (int i=0; i < s; i++)
       {
@@ -306,7 +306,7 @@ void reduction(double* inputs, unsigned int n, double& output)
   if (needReadBack)
   {
       // copy final sum from device to host
-      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(double), cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost));
   }
 
   // store the result:
@@ -315,9 +315,21 @@ void reduction(double* inputs, unsigned int n, double& output)
   // Free host memory:
   free(h_odata);
 
-	// Free device memory
+  // Free device memory
   checkCudaErrors(cudaFree(d_idata));
   checkCudaErrors(cudaFree(d_odata));
+}
+
+extern "C" {
+
+void reduce_sum(double* inputs, unsigned int n, double& output)
+{
+  _reduce_sum(inputs, n, output);
+}
+
+void reduce_sum_f(float* inputs, unsigned int n, float& output)
+{
+  _reduce_sum(inputs, n, output);
 }
 
 }

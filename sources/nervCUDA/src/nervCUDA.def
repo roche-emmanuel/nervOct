@@ -5,7 +5,7 @@ EXPORTS
 matmult							@1
 costFunc						@2
 costFuncCPU					@3
-reduction						@4
+reduce_sum					@4
 reductionCPU				@5
 reduction_cost			@6
 reduction_cost_reg	@7
