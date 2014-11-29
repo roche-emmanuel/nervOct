@@ -61,8 +61,7 @@ template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void MatMultTpB(unsigned int nrowC, unsigned int niter, unsigned int ncolC, const T* A, const T* B, T* C);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void MatMultTpA(unsigned int nrowA, unsigned int ncolA, const T* A,
-    unsigned int nrowB, unsigned int ncolB, const T* B, T* C);
+__global__ void MatMultTpA(unsigned int nrowC, unsigned int niter, unsigned int ncolC, const T* A, const T* B, T* C);
 
 __global__ void CostFuncKernel(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 		double* nn_params, double* X, double* yy, double lambda);

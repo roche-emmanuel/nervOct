@@ -93,3 +93,4 @@
 - Moved mix_vector kernel.
 - Refactoring matrix multiplication kernels.
 - Refactoring matrix multiplication tpB kernel.
+- Refactoring matrix multiplication tpA kernel.
