@@ -14,4 +14,6 @@ __global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, T* deltas,
 }
 
 // Explicit instanciation:
-template __global__ void InitLastDelta<double>(unsigned int nrows, unsigned int ncols, double* deltas, double* hx, double* yy);
+template __global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, double* deltas, double* hx, double* yy);
+
+template __global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, float* deltas, float* hx, float* yy);

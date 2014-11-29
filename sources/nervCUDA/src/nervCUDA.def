@@ -16,4 +16,5 @@ mix_vectors					@11
 compute_length2			@12
 compute_dot					@13
 matmult_f						@14
-gd_errfunc_d				@15
+gd_errfunc					@15
+gd_errfunc_f				@16

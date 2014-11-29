@@ -77,3 +77,6 @@ __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  un
 // Explicit instanciation:
 template __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
 	unsigned int nrows, unsigned int ncols, unsigned int niter, double* X, double* nn_params, double* inputs, double* deltas, double* grads, double lambda);
+
+template __global__ void ComputeGradient(unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int niter, float* X, float* nn_params, float* inputs, float* deltas, float* grads, float lambda);

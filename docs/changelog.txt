@@ -104,3 +104,4 @@
 - renamed reduction_cost to reduce_cost.
 - Refactored reduce_cost_reg kernel.
 - Renamed ConjugateGradientGPU.cu to ConjugateGradientGPU.cpp.
+- Added float implementation for most kernels.

@@ -27,22 +27,20 @@ void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int
   // CHECK_KERNEL()
 }
 
-
-extern "C" {
-
-void mix_vectors(double* res, double* vec1, double* vec2, double w1, double w2, unsigned int n)
+template <typename T>
+void _mix_vectors(T* res, T* vec1, T* vec2, T w1, T w2, unsigned int n)
 {
 	size_t size;
 
-	size = n * sizeof(double);
-	double* d_res = NULL;
+	size = n * sizeof(T);
+	T* d_res = NULL;
 	checkCudaErrors(cudaMalloc(&d_res, size));
 	// checkCudaErrors(cudaMemcpy(d_res, nn_params, size, cudaMemcpyHostToDevice));
-	double* d_vec1 = NULL;
+	T* d_vec1 = NULL;
 	checkCudaErrors(cudaMalloc(&d_vec1, size));
 	checkCudaErrors(cudaMemcpy(d_vec1, vec1, size, cudaMemcpyHostToDevice));
 
-	double* d_vec2 = NULL;
+	T* d_vec2 = NULL;
 	checkCudaErrors(cudaMalloc(&d_vec2, size));
 	checkCudaErrors(cudaMemcpy(d_vec2, vec2, size, cudaMemcpyHostToDevice));
 
@@ -53,6 +51,18 @@ void mix_vectors(double* res, double* vec1, double* vec2, double w1, double w2, 
 	checkCudaErrors(cudaFree(d_res));
 	checkCudaErrors(cudaFree(d_vec1));
 	checkCudaErrors(cudaFree(d_vec2));
+}
+
+extern "C" {
+
+void mix_vectors(double* res, double* vec1, double* vec2, double w1, double w2, unsigned int n)
+{
+	_mix_vectors(res,vec1,vec2,w1,w2,n);
+}
+
+void mix_vectors_f(float* res, float* vec1, float* vec2, float w1, float w2, unsigned int n)
+{
+	_mix_vectors(res,vec1,vec2,w1,w2,n);
 }
 
 }

@@ -44,17 +44,16 @@ void copy_vector_device(T* d_dest, T* d_src, unsigned int size, bool invert)
   //CHECK_KERNEL()
 }
 
-extern "C" {
-
-void copy_vector(double* dest, double* src, unsigned int n, bool invert)
+template <typename T>
+void _copy_vector(T* dest, T* src, unsigned int n, bool invert)
 {
 	size_t size;
 
-	size = n * sizeof(double);
-	double* d_dest = NULL;
+	size = n * sizeof(T);
+	T* d_dest = NULL;
 	checkCudaErrors(cudaMalloc(&d_dest, size));
 	// checkCudaErrors(cudaMemcpy(d_dest, nn_params, size, cudaMemcpyHostToDevice));
-	double* d_src = NULL;
+	T* d_src = NULL;
 	checkCudaErrors(cudaMalloc(&d_src, size));
 	checkCudaErrors(cudaMemcpy(d_src, src, size, cudaMemcpyHostToDevice));
 
@@ -64,6 +63,18 @@ void copy_vector(double* dest, double* src, unsigned int n, bool invert)
 
 	checkCudaErrors(cudaFree(d_dest));
 	checkCudaErrors(cudaFree(d_src));
+}
+
+extern "C" {
+
+void copy_vector(double* dest, double* src, unsigned int n, bool invert)
+{
+	_copy_vector(dest,src,n,invert);
+}
+
+void copy_vector_f(float* dest, float* src, unsigned int n, bool invert)
+{
+	_copy_vector(dest,src,n,invert);
 }
 
 }

@@ -57,3 +57,6 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 // Explicit instanciation:
 template __global__ void ComputeDelta<double>(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
 	unsigned int nrows, unsigned int ncols, unsigned int niter, double* nn_params, double* inputs, double* deltas);
+
+template __global__ void ComputeDelta<float>(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int niter, float* nn_params, float* inputs, float* deltas);

@@ -304,30 +304,41 @@ T compute_dot_device(T *d_vec1, T* d_vec2, T* d_odata, unsigned int n)
 // explicit instanciation:
 // template double compute_dot_device<double>(double *d_vec1, double* d_vec2, double* d_odata, unsigned int n);
 
-extern "C" {
-
-double compute_dot(double* vec1, double* vec2, unsigned int n)
+template <typename T>
+T _compute_dot(T* vec1, T* vec2, unsigned int n)
 {
   size_t size;
 
-  size = n * sizeof(double);
-  double* d_tmp = NULL;
+  size = n * sizeof(T);
+  T* d_tmp = NULL;
   checkCudaErrors(cudaMalloc(&d_tmp, size));
 
-  double* d_vec1 = NULL;
+  T* d_vec1 = NULL;
   checkCudaErrors(cudaMalloc(&d_vec1, size));
   checkCudaErrors(cudaMemcpy(d_vec1, vec1, size, cudaMemcpyHostToDevice));
 
-  double* d_vec2 = NULL;
+  T* d_vec2 = NULL;
   checkCudaErrors(cudaMalloc(&d_vec2, size));
   checkCudaErrors(cudaMemcpy(d_vec2, vec2, size, cudaMemcpyHostToDevice));
 
-  double res = compute_dot_device(d_vec1,d_vec2, d_tmp, n);
+  T res = compute_dot_device(d_vec1,d_vec2, d_tmp, n);
 
   checkCudaErrors(cudaFree(d_tmp));
   checkCudaErrors(cudaFree(d_vec1));
   checkCudaErrors(cudaFree(d_vec2));
   return res;
+}
+
+extern "C" {
+
+double compute_dot(double* vec1, double* vec2, unsigned int n)
+{
+  return _compute_dot(vec1, vec2, n);
+}
+
+float compute_dot_f(float* vec1, float* vec2, unsigned int n)
+{
+  return _compute_dot(vec1, vec2, n);
 }
 
 }

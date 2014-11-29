@@ -154,7 +154,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 
 
 template <typename T>
-void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	T* nn_params, T* X, T* yy, T lambda, T& J, T* gradients, T* deltas, T* inputs)
 {
 	// Allocate the device memory:
@@ -297,10 +297,16 @@ void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 extern "C" {
 
-void gd_errfunc_d(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs)
 {
-	gd_errfunc<double>(nl, lsizes, nsamples, nn_params, X, yy, lambda, J, gradients, deltas, inputs);
+		_gd_errfunc(nl, lsizes, nsamples, nn_params, X, yy, lambda, J, gradients, deltas, inputs);
+}
+
+void gd_errfunc_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+	float* nn_params, float* X, float* yy, float lambda, float& J, float* gradients, float* deltas, float* inputs)
+{
+		_gd_errfunc(nl, lsizes, nsamples, nn_params, X, yy, lambda, J, gradients, deltas, inputs);
 }
 
 }

@@ -76,3 +76,6 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 // Explicit specialization:
 template __global__ void ComputeActivation<double>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
 	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X);
+
+template __global__ void ComputeActivation<float>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, float* nn_params, float* inputs, float* X);

@@ -303,25 +303,36 @@ T compute_length2_device(T* d_vec, T* d_odata, unsigned int n)
   return gpu_result;
 }
 
-extern "C" {
-
-double compute_length2(double* vec, unsigned int n)
+template <typename T>
+T _compute_length2(T* vec, unsigned int n)
 {
   size_t size;
 
-  size = n * sizeof(double);
-  double* d_tmp = NULL;
+  size = n * sizeof(T);
+  T* d_tmp = NULL;
   checkCudaErrors(cudaMalloc(&d_tmp, size));
 
-  double* d_vec = NULL;
+  T* d_vec = NULL;
   checkCudaErrors(cudaMalloc(&d_vec, size));
   checkCudaErrors(cudaMemcpy(d_vec, vec, size, cudaMemcpyHostToDevice));
 
-  double res = compute_length2_device(d_vec, d_tmp, n);
+  T res = compute_length2_device(d_vec, d_tmp, n);
 
   checkCudaErrors(cudaFree(d_tmp));
   checkCudaErrors(cudaFree(d_vec));
   return res;
+}
+
+extern "C" {
+
+double compute_length2(double* vec, unsigned int n)
+{
+  return _compute_length2(vec,n);
+}
+
+float compute_length2_f(float* vec, unsigned int n)
+{
+  return _compute_length2(vec,n);
 }
 
 }
