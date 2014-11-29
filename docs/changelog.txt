@@ -102,3 +102,4 @@
 - Renamed reduction.cu to reduce_sum.cu
 - Renamed reduce_sum_device to reduce_sum_launcher.
 - renamed reduction_cost to reduce_cost.
+- Refactored reduce_cost_reg kernel.

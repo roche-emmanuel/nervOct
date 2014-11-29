@@ -1,12 +1,11 @@
 #include <nervCUDA.h>
-
 #include <nerv_kernels.h>
 
 /*
 	Method used to evaluate the cost function when starting from the hx and yy matrices.
 */
 template <class T, unsigned int blockSize, bool nIsPow2>
-__global__ void reduce_cost_reg(T *g_idata, T* g_regw, T *g_odata, unsigned int n)
+__global__ void ReduceCostReg(T *g_idata, T* g_regw, T *g_odata, unsigned int n)
 {
     T *sdata = SharedMemory<T>();
 
@@ -125,15 +124,16 @@ __global__ void reduce_cost_reg(T *g_idata, T* g_regw, T *g_odata, unsigned int 
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper function for kernel launch
 ////////////////////////////////////////////////////////////////////////////////
-void reduce_cost_reg(int size, int threads, int blocks,
-       int whichKernel, double *d_idata, double* d_regw, double *d_odata)
+template<typename T>
+void reduce_cost_reg_launcher(int size, int threads, int blocks,
+       int whichKernel, T *d_idata, T* d_regw, T *d_odata)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
 
   // when there is only one warp per block, we need to allocate two warps
   // worth of shared memory so that we don't index shared memory out of bounds
-  int smemSize = (threads <= 32) ? 2 * threads * sizeof(double) : threads * sizeof(double);
+  int smemSize = (threads <= 32) ? 2 * threads * sizeof(T) : threads * sizeof(T);
 
   // choose which of the optimized versions of reduction to launch
   if (isPow2(size))
@@ -141,43 +141,43 @@ void reduce_cost_reg(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              reduce_cost_reg<double, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 256:
-              reduce_cost_reg<double, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 128:
-              reduce_cost_reg<double, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 64:
-              reduce_cost_reg<double,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 32:
-              reduce_cost_reg<double,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 16:
-              reduce_cost_reg<double,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  8:
-              reduce_cost_reg<double,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  4:
-              reduce_cost_reg<double,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  2:
-              reduce_cost_reg<double,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  1:
-              reduce_cost_reg<double,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
       }
   }
@@ -186,69 +186,50 @@ void reduce_cost_reg(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              reduce_cost_reg<double, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 256:
-              reduce_cost_reg<double, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 128:
-              reduce_cost_reg<double, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 64:
-              reduce_cost_reg<double,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 32:
-              reduce_cost_reg<double,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 16:
-              reduce_cost_reg<double,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  8:
-              reduce_cost_reg<double,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  4:
-              reduce_cost_reg<double,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  2:
-              reduce_cost_reg<double,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  1:
-              reduce_cost_reg<double,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
               break;
       }
   }
 }
 
-extern "C" {
-
-void reduction_cost_reg(double* params, double* regweights, unsigned int n, double& output)
-{
-  // Allocate the params array:
-  size_t size = n * sizeof(double);
-  double* d_idata = NULL;
-  checkCudaErrors(cudaMalloc(&d_idata, size));
-  checkCudaErrors(cudaMemcpy(d_idata, params, size, cudaMemcpyHostToDevice));
-
-  double* d_regw = NULL;
-  checkCudaErrors(cudaMalloc(&d_regw, size));
-  checkCudaErrors(cudaMemcpy(d_regw, regweights, size, cudaMemcpyHostToDevice));
-
-  reduction_cost_reg_device(d_idata,d_regw,n,output);
-
-  checkCudaErrors(cudaFree(d_idata));
-  checkCudaErrors(cudaFree(d_regw));
-}
-
-void reduction_cost_reg_device(double* d_params, double* d_regw, unsigned int n, double& output)
+template<typename T>
+void reduce_cost_reg_device(T* d_params, T* d_regw, unsigned int n, T& output)
 {
   int maxThreads = 256;
   int maxBlocks = 64;
@@ -261,18 +242,18 @@ void reduction_cost_reg_device(double* d_params, double* d_regw, unsigned int n,
   getNumBlocksAndThreads(whichKernel, n, maxBlocks, maxThreads, numBlocks, numThreads);
 
   // Allocate output array:
-  size_t size = numBlocks*sizeof(double);
-  double* d_odata = NULL;
+  size_t size = numBlocks*sizeof(T);
+  T* d_odata = NULL;
   checkCudaErrors(cudaMalloc(&d_odata, size));
 
   // Allocate mem for the result on host side
-  double *h_odata = (double *) malloc(numBlocks*sizeof(double));
+  T *h_odata = (T *) malloc(numBlocks*sizeof(T));
 
-  double gpu_result = 0.0;
+  T gpu_result = 0.0;
   bool needReadBack = true;
 
   // execute the kernel
-  reduce_cost_reg(n, numThreads, numBlocks, whichKernel, d_params, d_regw, d_odata);
+  reduce_cost_reg_launcher(n, numThreads, numBlocks, whichKernel, d_params, d_regw, d_odata);
 
   // sum partial block sums on GPU
   int s=numBlocks;
@@ -298,7 +279,7 @@ void reduction_cost_reg_device(double* d_params, double* d_regw, unsigned int n,
   if (s > 1)
   {
       // copy result from device to host
-      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(double), cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(T), cudaMemcpyDeviceToHost));
 
       for (int i=0; i < s; i++)
       {
@@ -311,7 +292,7 @@ void reduction_cost_reg_device(double* d_params, double* d_regw, unsigned int n,
   if (needReadBack)
   {
       // copy final sum from device to host
-      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(double), cudaMemcpyDeviceToHost));
+      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost));
   }
 
   // store the result:
@@ -322,6 +303,38 @@ void reduction_cost_reg_device(double* d_params, double* d_regw, unsigned int n,
 
   // Free device memory
   checkCudaErrors(cudaFree(d_odata));
+}
+
+template<typename T>
+void _reduce_cost_reg(T* params, T* regweights, unsigned int n, T& output)
+{
+  // Allocate the params array:
+  size_t size = n * sizeof(T);
+  T* d_idata = NULL;
+  checkCudaErrors(cudaMalloc(&d_idata, size));
+  checkCudaErrors(cudaMemcpy(d_idata, params, size, cudaMemcpyHostToDevice));
+
+  T* d_regw = NULL;
+  checkCudaErrors(cudaMalloc(&d_regw, size));
+  checkCudaErrors(cudaMemcpy(d_regw, regweights, size, cudaMemcpyHostToDevice));
+
+  reduce_cost_reg_device(d_idata,d_regw,n,output);
+
+  checkCudaErrors(cudaFree(d_idata));
+  checkCudaErrors(cudaFree(d_regw));
+}
+
+
+extern "C" {
+
+void reduce_cost_reg(double* params, double* regweights, unsigned int n, double& output)
+{
+  _reduce_cost_reg(params, regweights, n, output);
+}
+
+void reduce_cost_reg_f(float* params, float* regweights, unsigned int n, float& output)
+{
+  _reduce_cost_reg(params, regweights, n, output);
 }
 
 }

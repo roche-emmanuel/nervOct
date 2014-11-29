@@ -94,8 +94,8 @@ void reduce_sum_f(float* inputs, unsigned int n, float& output);
 void reduce_cost(double* hx, double* yy, unsigned int n, double& output);
 void reduce_cost_f(float* hx, float* yy, unsigned int n, float& output);
 
-void reduction_cost_reg(double* params, double* regweights, unsigned int n, double& output);
-void reduction_cost_reg_device(double* d_params, double* regweights, unsigned int n, double& output);
+void reduce_cost_reg(double* params, double* regweights, unsigned int n, double& output);
+void reduce_cost_reg_f(float* params, float* regweights, unsigned int n, float& output);
 
 void cgtrainCPU(unsigned int nl, unsigned int nsamples, unsigned int nparams, 
     unsigned int* lsizes, double* X, double* yy, double* init_params, 
@@ -142,5 +142,8 @@ void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, 
 
 template<typename T>
 void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata);
+
+template<typename T>
+void reduce_cost_reg_device(T* d_params, T* d_regw, unsigned int n, T& output);
 
 #endif

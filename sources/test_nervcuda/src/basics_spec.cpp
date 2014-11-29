@@ -457,7 +457,7 @@ BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost )
   BOOST_CHECK(FreeLibrary(h));
 }
 
-BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost_reg )
+BOOST_AUTO_TEST_CASE( test_gpu_reduce_cost_reg )
 {
   HMODULE h = LoadLibrary("nervCUDA.dll");  
   BOOST_CHECK(h != nullptr);
@@ -465,7 +465,7 @@ BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost_reg )
   typedef void (*ReductionFunc)(double* params, double* regweights, unsigned int n, double& output);
 
   // We should be able to retrieve the train function:
-  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduction_cost_reg");
+  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduce_cost_reg");
   BOOST_CHECK(reducfunc != nullptr);
 
   unsigned int num = 10; // number of tests to perform.
@@ -492,7 +492,7 @@ BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost_reg )
     delete [] regw;
 
 
-    BOOST_CHECK_MESSAGE(abs(sum-res)<1e-10,"Mismatch for GPU reduction_cost_reg: "<<sum<<"!="<<res);
+    BOOST_CHECK_MESSAGE(abs(sum-res)<1e-10,"Mismatch for GPU reduce_cost_reg: "<<sum<<"!="<<res);
   }
 
   BOOST_CHECK(FreeLibrary(h));

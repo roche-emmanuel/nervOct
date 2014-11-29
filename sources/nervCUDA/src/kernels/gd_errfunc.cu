@@ -61,7 +61,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 	J /= (T)nsamples;
 
 	T Jreg = 0.0;
-	reduction_cost_reg_device(d_params, d_regw, np, Jreg);
+	reduce_cost_reg_device(d_params, d_regw, np, Jreg);
 	// CHECK_KERNEL()
 
 	J += (Jreg*lambda)/(2.0*nsamples);

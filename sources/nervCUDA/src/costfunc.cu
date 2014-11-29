@@ -63,7 +63,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 	J /= (double)nsamples;
 
 	double Jreg = 0.0;
-	reduction_cost_reg_device(d_params, d_regw, np, Jreg);
+	reduce_cost_reg_device(d_params, d_regw, np, Jreg);
 	// CHECK_KERNEL()
 
 	J += (Jreg*lambda)/(2.0*nsamples);
