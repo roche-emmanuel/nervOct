@@ -6,7 +6,7 @@
 	Method used to evaluate the cost function when starting from the hx and yy matrices.
 */
 template <class T, unsigned int blockSize, bool nIsPow2>
-__global__ void reduce_cost(T *g_hxdata, T *g_yydata, T *g_odata, unsigned int n)
+__global__ void ReduceCost(T *g_hxdata, T *g_yydata, T *g_odata, unsigned int n)
 {
     T *sdata = SharedMemory<T>();
 
@@ -127,7 +127,7 @@ __global__ void reduce_cost(T *g_hxdata, T *g_yydata, T *g_odata, unsigned int n
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper function for kernel launch
 ////////////////////////////////////////////////////////////////////////////////
-void reduce_cost(int size, int threads, int blocks,
+void reduce_cost_launcher(int size, int threads, int blocks,
        int whichKernel, double *d_hxdata, double *d_yydata, double *d_odata)
 {
   dim3 dimBlock(threads, 1, 1);
@@ -143,43 +143,43 @@ void reduce_cost(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              reduce_cost<double, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 256:
-              reduce_cost<double, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 128:
-              reduce_cost<double, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 64:
-              reduce_cost<double,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 32:
-              reduce_cost<double,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 16:
-              reduce_cost<double,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  8:
-              reduce_cost<double,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  4:
-              reduce_cost<double,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  2:
-              reduce_cost<double,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  1:
-              reduce_cost<double,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
       }
   }
@@ -188,68 +188,46 @@ void reduce_cost(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              reduce_cost<double, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 256:
-              reduce_cost<double, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 128:
-              reduce_cost<double, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 64:
-              reduce_cost<double,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 32:
-              reduce_cost<double,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case 16:
-              reduce_cost<double,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  8:
-              reduce_cost<double,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  4:
-              reduce_cost<double,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  2:
-              reduce_cost<double,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
 
           case  1:
-              reduce_cost<double,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
+              ReduceCost<double,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_hxdata, d_yydata, d_odata, size);
               break;
       }
   }
-}
-
-extern "C" {
-
-void reduction_cost(double* hx, double* yy, unsigned int n, double& output)
-{
-  // Allocate the hx array:
-  size_t size = n * sizeof(double);
-  double* d_hxdata = NULL;
-  checkCudaErrors(cudaMalloc(&d_hxdata, size));
-  checkCudaErrors(cudaMemcpy(d_hxdata, hx, size, cudaMemcpyHostToDevice));
-
-  // Allocate the yy array:
-  // size = n * sizeof(double);
-  double* d_yydata = NULL;
-  checkCudaErrors(cudaMalloc(&d_yydata, size));
-  checkCudaErrors(cudaMemcpy(d_yydata, yy, size, cudaMemcpyHostToDevice));
-
-  reduction_cost_device(d_hxdata,d_yydata,n,output);
-
-  checkCudaErrors(cudaFree(d_hxdata));
-  checkCudaErrors(cudaFree(d_yydata));
 }
 
 // with this version we consider that the input matrices are
@@ -278,7 +256,7 @@ void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& o
   bool needReadBack = true;
 
   // execute the kernel
-  reduce_cost(n, numThreads, numBlocks, whichKernel, d_hx, d_yy, d_odata);
+  reduce_cost_launcher(n, numThreads, numBlocks, whichKernel, d_hx, d_yy, d_odata);
 
   // sum partial block sums on GPU
   int s=numBlocks;
@@ -289,7 +267,7 @@ void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& o
       int threads = 0, blocks = 0;
       getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce_sum_device(s, threads, blocks, kernel, d_odata, d_odata);
+      reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata);
 
       if (kernel < 3)
       {
@@ -329,5 +307,29 @@ void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& o
   // Free device memory
   checkCudaErrors(cudaFree(d_odata));
 }
+
+extern "C" {
+
+void reduction_cost(double* hx, double* yy, unsigned int n, double& output)
+{
+  // Allocate the hx array:
+  size_t size = n * sizeof(double);
+  double* d_hxdata = NULL;
+  checkCudaErrors(cudaMalloc(&d_hxdata, size));
+  checkCudaErrors(cudaMemcpy(d_hxdata, hx, size, cudaMemcpyHostToDevice));
+
+  // Allocate the yy array:
+  // size = n * sizeof(double);
+  double* d_yydata = NULL;
+  checkCudaErrors(cudaMalloc(&d_yydata, size));
+  checkCudaErrors(cudaMemcpy(d_yydata, yy, size, cudaMemcpyHostToDevice));
+
+  reduction_cost_device(d_hxdata,d_yydata,n,output);
+
+  checkCudaErrors(cudaFree(d_hxdata));
+  checkCudaErrors(cudaFree(d_yydata));
+}
+
+
 
 }

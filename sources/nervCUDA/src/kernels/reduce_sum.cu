@@ -129,7 +129,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n)
 // Wrapper function for kernel launch
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
-void reduce_sum_device(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata)
+void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -267,7 +267,7 @@ void _reduce_sum(T* inputs, unsigned int n, T& output)
   bool needReadBack = true;
 
   // execute the kernel
-  reduce_sum_device(n, numThreads, numBlocks, whichKernel, d_idata, d_odata);
+  reduce_sum_launcher(n, numThreads, numBlocks, whichKernel, d_idata, d_odata);
 
   // sum partial block sums on GPU
   int s=numBlocks;
@@ -278,7 +278,7 @@ void _reduce_sum(T* inputs, unsigned int n, T& output)
       int threads = 0, blocks = 0;
       getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce_sum_device(s, threads, blocks, kernel, d_odata, d_odata);
+      reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata);
 
       if (kernel < 3)
       {

@@ -100,3 +100,4 @@
 - Removed helpers.cpp file.
 - Renamed reduction to reduce_sum.
 - Renamed reduction.cu to reduce_sum.cu
+- Renamed reduce_sum_device to reduce_sum_launcher.

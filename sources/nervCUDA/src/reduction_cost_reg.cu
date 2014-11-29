@@ -283,7 +283,7 @@ void reduction_cost_reg_device(double* d_params, double* d_regw, unsigned int n,
       int threads = 0, blocks = 0;
       getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce_sum_device(s, threads, blocks, kernel, d_odata, d_odata);
+      reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata);
 
       if (kernel < 3)
       {
