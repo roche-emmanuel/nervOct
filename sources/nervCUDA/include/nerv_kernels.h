@@ -55,11 +55,10 @@ unsigned int nextPow2(unsigned int x);
 void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void MatMult(unsigned int nrowA, unsigned int niter, unsigned int ncolB, const T* A, const T* B, T* C);
+__global__ void MatMult(unsigned int nrowC, unsigned int niter, unsigned int ncolC, const T* A, const T* B, T* C);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void MatMultTpB(unsigned int nrowA, unsigned int ncolA, const T* A,
-    unsigned int nrowB, unsigned int ncolB, const T* B, T* C);
+__global__ void MatMultTpB(unsigned int nrowC, unsigned int niter, unsigned int ncolC, const T* A, const T* B, T* C);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void MatMultTpA(unsigned int nrowA, unsigned int ncolA, const T* A,

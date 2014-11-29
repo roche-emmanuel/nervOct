@@ -92,3 +92,4 @@
 - Moved copy_vector method.
 - Moved mix_vector kernel.
 - Refactoring matrix multiplication kernels.
+- Refactoring matrix multiplication tpB kernel.

@@ -98,8 +98,10 @@ __global__ void MatMultTpA(unsigned int nrowA, unsigned int ncolA, const T* A,
 }
 
 template<typename T, unsigned int blockSize>
-__global__ void MatMultTpB(unsigned int nrowA, unsigned int ncolA, const T* A,
-    unsigned int nrowB, unsigned int ncolB, const T* B, T* C) {
+__global__ void MatMultTpB(unsigned int nrowC, unsigned int niter, unsigned int ncolC, const T* A, const T* B, T* C) 
+{
+	// unsigned int nrowA, unsigned int ncolA,
+ //    unsigned int nrowB, unsigned int ncolB,) {
 
 	// Note that we assume here that the matrix coefficient are stored in row major order:
 	// eg Aelem(i,jl) = A[j*nrowA+i]
@@ -113,21 +115,21 @@ __global__ void MatMultTpB(unsigned int nrowA, unsigned int ncolA, const T* A,
 
   int xx, yy;
 
-  for (int k = 0; k < (blockSize + ncolA - 1)/blockSize; k++) {
+  for (int k = 0; k < (blockSize + niter - 1)/blockSize; k++) {
 
   	xx = k*blockSize + threadIdx.y;
   	yy = blockIdx.y*blockSize + threadIdx.x;
 
-		if (xx < ncolA && yy < nrowA) 
-		 	As[threadIdx.x][threadIdx.y] = A[xx*nrowA + yy];
+		if (xx < niter && yy < nrowC) 
+		 	As[threadIdx.x][threadIdx.y] = A[xx*nrowC + yy];
 		else
 			As[threadIdx.x][threadIdx.y] = 0.0;
 
 		xx = col;
 		yy = k*blockSize + threadIdx.y;
 
-		if (xx < nrowB && yy < ncolB)
-			Bs[threadIdx.y][threadIdx.x] = B[yy*nrowB + xx];
+		if (xx < ncolC && yy < niter)
+			Bs[threadIdx.y][threadIdx.x] = B[yy*ncolC + xx];
 		else
 			Bs[threadIdx.y][threadIdx.x] = 0.0;
 
@@ -139,8 +141,8 @@ __global__ void MatMultTpB(unsigned int nrowA, unsigned int ncolA, const T* A,
 		__syncthreads();
   }
 
-  if (row < nrowA && col < nrowB)
-  	C[ (blockIdx.x*blockSize + threadIdx.x)*nrowA + blockIdx.y*blockSize+threadIdx.y] = CValue;
+  if (row < nrowC && col < ncolC)
+  	C[ (blockIdx.x*blockSize + threadIdx.x)*nrowC + blockIdx.y*blockSize+threadIdx.y] = CValue;
 }
 
 extern "C" {
@@ -176,7 +178,7 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 		MatMultTpA<<<dimGrid, dimBlock>>>(nrowA, ncolA, d_A, nrowB, ncolB, d_B, d_C);
 	}
 	else if(tpB) {
-		MatMultTpB<<<dimGrid, dimBlock>>>(nrowA, ncolA, d_A, nrowB, ncolB, d_B, d_C);
+		MatMultTpB<<<dimGrid, dimBlock>>>(nrowA, ncolA, nrowB, d_A, d_B, d_C);
 	}
 	else {
 		MatMult<<<dimGrid, dimBlock>>>(nrowA, ncolA, ncolB, d_A, d_B, d_C);
