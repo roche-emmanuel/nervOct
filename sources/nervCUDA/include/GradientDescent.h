@@ -5,6 +5,8 @@
 #include <nervcuda.h>
 #include <sgtcore.h>
 
+#include <nerv/TrainingSet.h>
+
 namespace nerv {
 
 // Basic implementation of gradient decsent on GPU.
@@ -15,6 +17,7 @@ public:
     class NERVCUDA_EXPORT Traits {
     public:
         Traits();
+        Traits(const TrainingSet<value_type>& tr);
         Traits(const Traits& rhs);
         Traits& operator=(const Traits& rhs);
 

@@ -106,3 +106,4 @@
 - Renamed ConjugateGradientGPU.cu to ConjugateGradientGPU.cpp.
 - Added float implementation for most kernels.
 - Performing initial tests on TrainingSet class.
+- Using trainingset in tests.

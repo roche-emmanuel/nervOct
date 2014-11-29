@@ -133,14 +133,43 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
 {
   _nl = rhs._nl;
   _nsamples = rhs._nsamples;
-  _nparams = rhs._nparams;
 
   _lsizes = rhs._lsizes;
+  
   _X_train = rhs._X_train;
+  _X_train_size = rhs._X_train_size;
+
   _y_train = rhs._y_train;
+  _y_train_size = rhs._y_train_size;
+
   _params = rhs._params;
+  _nparams = rhs._nparams;
+
+  _maxiter = rhs._maxiter;
+
+  _lambda = rhs._lambda;
 
 	return *this;
+}
+
+GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
+{
+	_nl = tr.nl();
+	_nsamples = tr.nsamples();
+
+	_lsizes = tr.lsizes();
+	
+	_X_train = tr.X_train();
+	_X_train_size = tr.X_train_size();
+
+	_y_train = tr.y_train();
+	_y_train_size = tr.y_train_size();
+
+	_params = tr.params();
+	_nparams = tr.np();
+
+	_maxiter = tr.maxiter();
+	_lambda = tr.lambda();
 }
 
 GradientDescentClass::GradientDescentClass(const Traits& traits)

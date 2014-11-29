@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <limits>
 
 #include <nervcuda.h>
 #include <nerv/TrainingSet.h>
@@ -131,8 +132,12 @@ BOOST_AUTO_TEST_CASE( test_training_set_build_random )
 {
   srand((unsigned int)time(nullptr));
 
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  logDEBUG("Epsilon value is: "<<epsilon)
+
   // by default the pointers should be null:
-  TrainingSet<double> tr(3,5,10,20,4,6);
+  TrainingSet<value_type> tr(3,5,10,20,4,6);
   BOOST_CHECK(3<=tr.nl() && tr.nl()<=5);
   BOOST_CHECK(tr.lsizes()!=nullptr);
   BOOST_CHECK(tr.X_train()!=nullptr);
@@ -144,19 +149,56 @@ BOOST_AUTO_TEST_CASE( test_training_set_build_random )
   // We should have build debug matrices so we can check the values:
   for(unsigned int i=0;i<100;++i) {
     unsigned int index = tr.random_uint(0,tr.X_train_size()-1);
-    double v1 = sin(index)*10.0;
-    double v2 = tr.X_train()[index];
-    BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at X element "<<index<<": "<<v1<<"!="<<v2);
+    value_type v1 = sin(index)*10.0;
+    value_type v2 = tr.X_train()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at X element "<<index<<": "<<v1<<"!="<<v2);
        
     index = tr.random_uint(0,tr.y_train_size()-1);
     v1 = abs(cos(index));
     v2 = tr.y_train()[index];
-    BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at y element "<<index<<": "<<v1<<"!="<<v2);
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at y element "<<index<<": "<<v1<<"!="<<v2);
 
     index = tr.random_uint(0,tr.np()-1);
     v1 = sin(index+0.5);
     v2 = tr.params()[index];
-    BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at params element "<<index<<": "<<v1<<"!="<<v2);
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at params element "<<index<<": "<<v1<<"!="<<v2);
+  }
+}
+
+BOOST_AUTO_TEST_CASE( test_training_set_build_random_float )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef float value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  logDEBUG("Epsilon value is: "<<epsilon)
+
+  // by default the pointers should be null:
+  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  BOOST_CHECK(3<=tr.nl() && tr.nl()<=5);
+  BOOST_CHECK(tr.lsizes()!=nullptr);
+  BOOST_CHECK(tr.X_train()!=nullptr);
+  BOOST_CHECK(tr.y_train()!=nullptr);
+  BOOST_CHECK(tr.params()!=nullptr);
+  BOOST_CHECK(tr.X_train_size()==tr.nsamples()*tr.lsizes()[0]);
+  BOOST_CHECK(tr.y_train_size()==tr.nsamples()*tr.lsizes()[tr.nt()]);
+
+  // We should have build debug matrices so we can check the values:
+  for(unsigned int i=0;i<100;++i) {
+    unsigned int index = tr.random_uint(0,tr.X_train_size()-1);
+    value_type v1 = (value_type)(sin(index)*10.0);
+    value_type v2 = tr.X_train()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at X element "<<index<<": "<<v1<<"!="<<v2);
+       
+    index = tr.random_uint(0,tr.y_train_size()-1);
+    v1 = (value_type)abs(cos(index));
+    v2 = tr.y_train()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at y element "<<index<<": "<<v1<<"!="<<v2);
+
+    index = tr.random_uint(0,tr.np()-1);
+    v1 = (value_type)sin(index+0.5);
+    v2 = tr.params()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at params element "<<index<<": "<<v1<<"!="<<v2);
   }
 }
 
@@ -167,7 +209,17 @@ BOOST_AUTO_TEST_CASE( test_run_gd )
   // number of tests to run:
   unsigned int num = 5;
   
+  value_t epsilon = std::numeric_limits<value_t>::epsilon();
+
   for(unsigned int i=0;i<num;++i) {
+
+#if 1
+    TrainingSet<value_t> tr(3,5,3,6,50,100);
+    tr.maxiter(10);
+
+    GradientDescentd::Traits traits(tr);
+
+#else
     // prepare number of samples:
     unsigned int nsamples = random_int(50,100);
 
@@ -230,6 +282,7 @@ BOOST_AUTO_TEST_CASE( test_run_gd )
     traits.y_train(y,ny);
     traits.maxiter(maxiter);
     traits.lambda(lambda);
+#endif
 
     // Check that we can build on stack:
     GradientDescentd gd(traits);
@@ -237,10 +290,12 @@ BOOST_AUTO_TEST_CASE( test_run_gd )
     // try to run the gradient descent:
     gd.run();
 
+#if 0
     delete [] y;
     delete [] X;
     delete [] params;
     delete [] lsizes;
+#endif
   }
 
 }
