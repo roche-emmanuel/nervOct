@@ -25,6 +25,16 @@
 #define DEVICE_RESET cudaDeviceReset();
 #endif
 
+#define CHECK_KERNEL() 
+// checkCudaErrors( cudaPeekAtLastError() ); \
+// checkCudaErrors( cudaDeviceSynchronize() );
+
+extern "C" bool isPow2(unsigned int x);
+
+unsigned int nextPow2(unsigned int x);
+
+void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
+
 const char *_cudaGetErrorEnum(cudaError_t error);
 
 template< typename T >

@@ -43,16 +43,6 @@ struct SharedMemory<double>
     }
 };
 
-#define CHECK_KERNEL() 
-
-// checkCudaErrors( cudaPeekAtLastError() ); \
-// checkCudaErrors( cudaDeviceSynchronize() );
-
-extern "C" bool isPow2(unsigned int x);
-
-unsigned int nextPow2(unsigned int x);
-
-void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void MatMult(unsigned int nrowC, unsigned int niter, unsigned int ncolC, const T* A, const T* B, T* C);

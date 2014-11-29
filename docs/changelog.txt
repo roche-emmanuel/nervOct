@@ -96,3 +96,4 @@
 - Refactoring matrix multiplication tpA kernel.
 - Rename multiplyMatrices to matmult
 - Renamed multipleMatricesf to matmult_f
+- Renamed some files to cpp instead of cu.

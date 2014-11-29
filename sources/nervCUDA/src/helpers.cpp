@@ -1,7 +1,5 @@
 #include <nervCUDA.h>
-
-#include <cuda_runtime.h>
-#include <nerv_kernels.h>
+#include <sgtcore.h>
 
 void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads)
 {
