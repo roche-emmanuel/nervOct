@@ -99,3 +99,4 @@
 - Renamed some files to cpp instead of cu.
 - Removed helpers.cpp file.
 - Renamed reduction to reduce_sum.
+- Renamed reduction.cu to reduce_sum.cu
