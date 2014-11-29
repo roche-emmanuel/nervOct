@@ -107,3 +107,4 @@
 - Added float implementation for most kernels.
 - Performing initial tests on TrainingSet class.
 - Using trainingset in tests.
+- Added test for gd_errfunc.

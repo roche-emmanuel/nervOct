@@ -7,7 +7,7 @@
 namespace nerv {
 
 template<typename T>
-class TrainingSet {
+class TrainingSet {    
 public:
     enum TrainMode {
         TRAIN_ZERO,
@@ -16,6 +16,7 @@ public:
     };
 
     typedef T value_type;
+    typedef std::vector<value_type*> ArrayList;
 
     TrainingSet();
     TrainingSet(unsigned int minL, unsigned int maxL, unsigned int minN, unsigned int maxN, 
@@ -53,6 +54,8 @@ public:
     void setupDebug();
     void setupRandom();
 
+    value_type* createArray(unsigned int size);
+
 protected:
     unsigned int _nl; // number of layers
     unsigned int _nt; // number of theta matrices
@@ -71,6 +74,8 @@ protected:
     value_type* _X_train;
     value_type* _y_train;
     value_type* _params;
+
+    ArrayList _arrays;
 };
 
 template <typename T>
@@ -98,6 +103,7 @@ TrainingSet<T>::TrainingSet(unsigned int minL, unsigned int maxL, unsigned int m
     unsigned int ns = random_uint(minS,maxS);
 
     init(lsizes,ns,mode);
+    lambda(random_real(0.0,1.0));
 }
 
 template<typename T>
@@ -124,16 +130,24 @@ TrainingSet<T>::~TrainingSet()
 }
 
 template<typename T>
+T* TrainingSet<T>::createArray(unsigned int size)
+{
+    value_type* arr = new value_type[size];
+    memset(arr,0,sizeof(value_type)*size);
+
+    // Add the newly created array to the monitoring list:
+    _arrays.push_back(arr);
+    return arr;
+}
+
+template<typename T>
 void TrainingSet<T>::uninit()
 {
-    delete [] _lsizes;
-    _lsizes = nullptr;
-    delete [] _X_train;
-    _X_train = nullptr;
-    delete [] _y_train;
-    _y_train = nullptr;
-    delete [] _params;
-    _params = nullptr;
+    // uninitialize all the registered arrays:
+    for(ArrayList::iterator it = _arrays.begin(); it!=_arrays.end(); ++it) {
+        delete [] (*it);
+    }
+    _arrays.clear();
 }
 
 template<typename T>
@@ -150,20 +164,17 @@ void TrainingSet<T>::init(std::vector<unsigned int> lsizes, unsigned int nsample
     }
 
     _nx = nsamples*lsizes[0];
-    _X_train = new value_type[_nx];
-
-    memset(_X_train,0,sizeof(value_type)*_nx);
+    _X_train = createArray(_nx);
 
     _ny = nsamples*lsizes[_nt];
-    _y_train = new value_type[_ny];
-    memset(_y_train,0,sizeof(value_type)*_ny);
+    _y_train = createArray(_ny);
 
     _np = 0;
     for(unsigned int i=0;i<_nt;++i) {
       _np += lsizes[i+1]*(lsizes[i]+1);
     }
 
-    _params = new value_type[_np];
+    _params = createArray(_np);
     memset(_params,0,sizeof(value_type)*_np);   
 
     if(mode==TRAIN_DEBUG)

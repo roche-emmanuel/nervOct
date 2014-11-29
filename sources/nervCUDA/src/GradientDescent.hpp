@@ -146,7 +146,6 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
   _nparams = rhs._nparams;
 
   _maxiter = rhs._maxiter;
-
   _lambda = rhs._lambda;
 
 	return *this;
