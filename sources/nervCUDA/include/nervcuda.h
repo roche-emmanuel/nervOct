@@ -91,9 +91,8 @@ void reductionCPU(double* inputs, unsigned int n, double& output);
 void reduce_sum(double* inputs, unsigned int n, double& output);
 void reduce_sum_f(float* inputs, unsigned int n, float& output);
 
-void reduction_cost(double* hx, double* yy, unsigned int n, double& output);
-
-void reduction_cost_device(double* d_hx, double* d_yy, unsigned int n, double& output);
+void reduce_cost(double* hx, double* yy, unsigned int n, double& output);
+void reduce_cost_f(float* hx, float* yy, unsigned int n, float& output);
 
 void reduction_cost_reg(double* params, double* regweights, unsigned int n, double& output);
 void reduction_cost_reg_device(double* d_params, double* regweights, unsigned int n, double& output);
@@ -118,6 +117,8 @@ void gd_errfunc_d(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 };
 
+template<typename T>
+void reduce_cost_device(T* d_hx, T* d_yy, unsigned int n, T& output);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,

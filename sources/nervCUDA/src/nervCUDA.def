@@ -7,7 +7,7 @@ costFunc						@2
 costFuncCPU					@3
 reduce_sum					@4
 reductionCPU				@5
-reduction_cost			@6
+reduce_cost					@6
 reduction_cost_reg	@7
 cgtrain							@8
 cgtrainCPU					@9

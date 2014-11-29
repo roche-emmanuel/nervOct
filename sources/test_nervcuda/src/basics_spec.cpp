@@ -424,7 +424,7 @@ BOOST_AUTO_TEST_CASE( test_gpu_reduction_cost )
   typedef void (*ReductionFunc)(double* hx, double* yy, unsigned int n, double& output);
 
   // We should be able to retrieve the train function:
-  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduction_cost");
+  ReductionFunc reducfunc = (ReductionFunc) GetProcAddress(h, "reduce_cost");
   BOOST_CHECK(reducfunc != nullptr);
 
   unsigned int num = 10; // number of tests to perform.

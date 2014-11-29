@@ -57,7 +57,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
   // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
 	J = 0.0;
 	unsigned int count = nsamples*lsizes[nt];
-	reduction_cost_device(d_hx, d_yy, count, J);
+	reduce_cost_device(d_hx, d_yy, count, J);
 	// CHECK_KERNEL()
 
 	J /= (double)nsamples;
