@@ -162,26 +162,25 @@ void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, 
 	}
 }
 
-extern "C" {
-
-void matmult(unsigned int nrowA, unsigned int ncolA, const double* A,
-    unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB)
+template<typename T>
+void _matmult(unsigned int nrowA, unsigned int ncolA, const T* A,
+    unsigned int nrowB, unsigned int ncolB, const T* B, T* C, bool tpA, bool tpB)
 {
 	// Allocate the device memory:
 	size_t size;
 
-	size = nrowA * ncolA * sizeof(double);
-	double* d_A = NULL;
+	size = nrowA * ncolA * sizeof(T);
+	T* d_A = NULL;
 	checkCudaErrors(cudaMalloc(&d_A, size));
 	checkCudaErrors(cudaMemcpy(d_A, A, size, cudaMemcpyHostToDevice));
 
-	size = nrowB * ncolB * sizeof(double);
-	double* d_B = NULL;
+	size = nrowB * ncolB * sizeof(T);
+	T* d_B = NULL;
 	checkCudaErrors(cudaMalloc(&d_B, size));
 	checkCudaErrors(cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice));
 
-	size = (tpA ? ncolA : nrowA) * (tpB ? nrowB : ncolB) * sizeof(double);
-	double* d_C = NULL;
+	size = (tpA ? ncolA : nrowA) * (tpB ? nrowB : ncolB) * sizeof(T);
+	T* d_C = NULL;
 	checkCudaErrors(cudaMalloc(&d_C, size));
 	// cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice); // no need to set this.
 
@@ -195,6 +194,21 @@ void matmult(unsigned int nrowA, unsigned int ncolA, const double* A,
 	checkCudaErrors(cudaFree(d_A));
 	checkCudaErrors(cudaFree(d_B));
 	checkCudaErrors(cudaFree(d_C));
+}
+
+extern "C" {
+
+
+void matmult(unsigned int nrowA, unsigned int ncolA, const double* A,
+    unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB)
+{
+	_matmult(nrowA,ncolA,A,nrowB,ncolB,B,C,tpA,tpB);
+}
+
+void matmult_f(unsigned int nrowA, unsigned int ncolA, const float* A,
+    unsigned int nrowB, unsigned int ncolB, const float* B, float* C, bool tpA, bool tpB)
+{
+	_matmult(nrowA,ncolA,A,nrowB,ncolB,B,C,tpA,tpB);
 }
 
 }

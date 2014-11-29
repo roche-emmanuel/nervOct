@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_float_perfs_gpu )
     unsigned int nrowB, unsigned int ncolB, const float* B, float* C, bool tpA, bool tpB);
 
   // We should be able to retrieve the train function:
-  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatricesf");
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "matmult_f");
   BOOST_CHECK(mult_mat != nullptr);
 
   unsigned int nrowA = 2000;

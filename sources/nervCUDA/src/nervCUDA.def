@@ -15,5 +15,5 @@ copy_vector					@10
 mix_vectors					@11
 compute_length2			@12
 compute_dot					@13
-multiplyMatricesf		@14
+matmult_f						@14
 gd_errfunc_d				@15

@@ -64,7 +64,7 @@ extern "C" {
 void matmult(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
-void multiplyMatricesf(unsigned int nrowA, unsigned int ncolA, const float* A,
+void matmult_f(unsigned int nrowA, unsigned int ncolA, const float* A,
     unsigned int nrowB, unsigned int ncolB, const float* B, float* C, bool tpA, bool tpB);
 
 void costFunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 

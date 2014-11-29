@@ -95,3 +95,4 @@
 - Refactoring matrix multiplication tpB kernel.
 - Refactoring matrix multiplication tpA kernel.
 - Rename multiplyMatrices to matmult
+- Renamed multipleMatricesf to matmult_f
