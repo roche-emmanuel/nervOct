@@ -31,9 +31,9 @@ public:
     }
 
     // Try loading the functions of interest:
-    _multMat = (MultMatFunc) GetProcAddress(_h, "multiplyMatrices");
+    _multMat = (MultMatFunc) GetProcAddress(_h, "matmult");
     if(!_multMat) {
-      error("ERROR: cannot find multiplyMatrices method! err=%d",GetLastError());
+      error("ERROR: cannot find matmult method! err=%d",GetLastError());
     }
 
     _costFuncCPU = (CostFuncCPU) GetProcAddress(_h, "costFuncCPU");

@@ -61,7 +61,7 @@ inline void __getLastCudaError(const char *errorMessage, const char *file, const
 
 extern "C" {
 
-void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
+void matmult(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
 void multiplyMatricesf(unsigned int nrowA, unsigned int ncolA, const float* A,
@@ -122,5 +122,9 @@ void copy_vector_device(T* d_s, T* d_df1, unsigned int size, bool invert = false
 
 template<typename T>
 void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int size);
+
+template<typename T>
+void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, unsigned int ncolB, 
+    const T* d_A, const T* d_B, T* d_C, bool tpA, bool tpB);
 
 #endif

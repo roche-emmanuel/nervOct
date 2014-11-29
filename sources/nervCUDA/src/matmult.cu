@@ -1,6 +1,4 @@
 #include <nervCUDA.h>
-
-#include <cuda_runtime.h>
 #include <nerv_kernels.h>
 
 template<typename T, unsigned int blockSize>
@@ -144,10 +142,29 @@ __global__ void MatMultTpB(unsigned int nrowC, unsigned int niter, unsigned int 
   	C[ (blockIdx.x*blockSize + threadIdx.x)*nrowC + blockIdx.y*blockSize+threadIdx.y] = CValue;
 }
 
+template<typename T>
+void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, unsigned int ncolB, 
+	const T* d_A, const T* d_B, T* d_C, bool tpA, bool tpB)
+{
+	// Call the kernel directly:
+	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+	dim3 dimGrid((BLOCK_SIZE + (tpB ? nrowB : ncolB)-1)/BLOCK_SIZE, (BLOCK_SIZE + (tpA ? ncolA : nrowA)-1)/BLOCK_SIZE);
+	
+	// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
+	if(tpA) {
+		MatMultTpA<<<dimGrid, dimBlock>>>(ncolA, nrowA, ncolB, d_A, d_B, d_C);
+	}
+	else if(tpB) {
+		MatMultTpB<<<dimGrid, dimBlock>>>(nrowA, ncolA, nrowB, d_A, d_B, d_C);
+	}
+	else {
+		MatMult<<<dimGrid, dimBlock>>>(nrowA, ncolA, ncolB, d_A, d_B, d_C);
+	}
+}
+
 extern "C" {
 
-
-void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
+void matmult(unsigned int nrowA, unsigned int ncolA, const double* A,
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB)
 {
 	// Allocate the device memory:
@@ -168,29 +185,16 @@ void multiplyMatrices(unsigned int nrowA, unsigned int ncolA, const double* A,
 	checkCudaErrors(cudaMalloc(&d_C, size));
 	// cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice); // no need to set this.
 
-	// Call the kernel directly:
-	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-	dim3 dimGrid((BLOCK_SIZE + (tpB ? nrowB : ncolB)-1)/BLOCK_SIZE, (BLOCK_SIZE + (tpA ? ncolA : nrowA)-1)/BLOCK_SIZE);
-	// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-
-	if(tpA) {
-		MatMultTpA<<<dimGrid, dimBlock>>>(ncolA, nrowA, ncolB, d_A, d_B, d_C);
-	}
-	else if(tpB) {
-		MatMultTpB<<<dimGrid, dimBlock>>>(nrowA, ncolA, nrowB, d_A, d_B, d_C);
-	}
-	else {
-		MatMult<<<dimGrid, dimBlock>>>(nrowA, ncolA, ncolB, d_A, d_B, d_C);
-	}
+	matmult_device(nrowA, ncolA, nrowB, ncolB, d_A, d_B, d_C, tpA, tpB);
 
 	// Read C from device memory
 	checkCudaErrors(cudaMemcpy(C, d_C, size, cudaMemcpyDeviceToHost));
 	// logDEBUG("Copy C off of device: "<<cudaGetErrorString(err));
 
 	// Free device memory
-	cudaFree(d_A);
-	cudaFree(d_B);
-	cudaFree(d_C);
+	checkCudaErrors(cudaFree(d_A));
+	checkCudaErrors(cudaFree(d_B));
+	checkCudaErrors(cudaFree(d_C));
 }
 
 }

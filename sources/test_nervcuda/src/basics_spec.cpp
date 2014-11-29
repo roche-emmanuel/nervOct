@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( test_retrieving_mult_mat )
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   // We should be able to retrieve the train function:
-  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatrices");
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "matmult");
   BOOST_CHECK(mult_mat != nullptr);
 
   BOOST_CHECK(FreeLibrary(h));
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE( test_mult_mat )
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   // We should be able to retrieve the train function:
-  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatrices");
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "matmult");
   BOOST_CHECK(mult_mat != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_tp_a )
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   // We should be able to retrieve the train function:
-  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatrices");
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "matmult");
   BOOST_CHECK(mult_mat != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
@@ -201,7 +201,7 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_tp_b )
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   // We should be able to retrieve the train function:
-  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatrices");
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "matmult");
   BOOST_CHECK(mult_mat != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
@@ -275,7 +275,7 @@ BOOST_AUTO_TEST_CASE( test_mult_mat_performances )
     unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
 
   // We should be able to retrieve the train function:
-  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "multiplyMatrices");
+  MultMatFunc mult_mat = (MultMatFunc) GetProcAddress(h, "matmult");
   BOOST_CHECK(mult_mat != nullptr);
 
   unsigned int nrowA = 500;
