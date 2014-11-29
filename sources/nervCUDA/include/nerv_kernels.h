@@ -54,14 +54,16 @@ unsigned int nextPow2(unsigned int x);
 
 void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
 
-__global__ void MatMulKernel(unsigned int nrowA, unsigned int ncolA, const double* A,
-    unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void MatMult(unsigned int nrowA, unsigned int niter, unsigned int ncolB, const T* A, const T* B, T* C);
 
-__global__ void MatMulKernelTpB(unsigned int nrowA, unsigned int ncolA, const double* A,
-    unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void MatMultTpB(unsigned int nrowA, unsigned int ncolA, const T* A,
+    unsigned int nrowB, unsigned int ncolB, const T* B, T* C);
 
-__global__ void MatMulKernelTpA(unsigned int nrowA, unsigned int ncolA, const double* A,
-    unsigned int nrowB, unsigned int ncolB, const double* B, double* C);
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void MatMultTpA(unsigned int nrowA, unsigned int ncolA, const T* A,
+    unsigned int nrowB, unsigned int ncolB, const T* B, T* C);
 
 __global__ void CostFuncKernel(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 		double* nn_params, double* X, double* yy, double lambda);
