@@ -1,8 +1,12 @@
 #include <boost/test/unit_test.hpp>
 
 #include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include <nervcuda.h>
+#include <nerv/TrainingSet.h>
 #include <GradientDescentd.h>
 #include <windows.h>
 
@@ -96,6 +100,64 @@ int random_int(int mini, int maxi) {
 template <typename T>
 T random_real(T mini, T maxi) {
   return mini + (maxi-mini)*(T)rand()/(T)RAND_MAX;
+}
+
+BOOST_AUTO_TEST_CASE( test_training_set_default )
+{
+  // by default the pointers should be null:
+  TrainingSet<double> tr;
+  BOOST_CHECK(tr.nl()==0);
+  BOOST_CHECK(tr.lsizes()==nullptr);
+  BOOST_CHECK(tr.X_train()==nullptr);
+  BOOST_CHECK(tr.y_train()==nullptr);
+  BOOST_CHECK(tr.params()==nullptr);
+}
+
+BOOST_AUTO_TEST_CASE( test_training_set_build_from_vector )
+{
+  // by default the pointers should be null:
+  TrainingSet<double> tr(std::vector<unsigned int>{3, 3, 1},10);
+  BOOST_CHECK(tr.nl()==3);
+  BOOST_CHECK(tr.lsizes()!=nullptr);
+  BOOST_CHECK(tr.X_train()!=nullptr);
+  BOOST_CHECK(tr.y_train()!=nullptr);
+  BOOST_CHECK(tr.params()!=nullptr);
+  BOOST_CHECK(tr.X_train_size()==30);
+  BOOST_CHECK(tr.y_train_size()==10);
+  BOOST_CHECK(tr.np()==16);
+}
+
+BOOST_AUTO_TEST_CASE( test_training_set_build_random )
+{
+  srand((unsigned int)time(nullptr));
+
+  // by default the pointers should be null:
+  TrainingSet<double> tr(3,5,10,20,4,6);
+  BOOST_CHECK(3<=tr.nl() && tr.nl()<=5);
+  BOOST_CHECK(tr.lsizes()!=nullptr);
+  BOOST_CHECK(tr.X_train()!=nullptr);
+  BOOST_CHECK(tr.y_train()!=nullptr);
+  BOOST_CHECK(tr.params()!=nullptr);
+  BOOST_CHECK(tr.X_train_size()==tr.nsamples()*tr.lsizes()[0]);
+  BOOST_CHECK(tr.y_train_size()==tr.nsamples()*tr.lsizes()[tr.nt()]);
+
+  // We should have build debug matrices so we can check the values:
+  for(unsigned int i=0;i<100;++i) {
+    unsigned int index = tr.random_uint(0,tr.X_train_size()-1);
+    double v1 = sin(index)*10.0;
+    double v2 = tr.X_train()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at X element "<<index<<": "<<v1<<"!="<<v2);
+       
+    index = tr.random_uint(0,tr.y_train_size()-1);
+    v1 = abs(cos(index));
+    v2 = tr.y_train()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at y element "<<index<<": "<<v1<<"!="<<v2);
+
+    index = tr.random_uint(0,tr.np()-1);
+    v1 = sin(index+0.5);
+    v2 = tr.params()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<1e-10,"Mismatch at params element "<<index<<": "<<v1<<"!="<<v2);
+  }
 }
 
 BOOST_AUTO_TEST_CASE( test_run_gd )
