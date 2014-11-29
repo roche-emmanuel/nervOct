@@ -1,5 +1,4 @@
 #include <nervCUDA.h>
-
 #include <nerv_kernels.h>
 
 /*
@@ -125,22 +124,6 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n)
     if (tid == 0) g_odata[blockIdx.x] = mySum;
 }
 
-extern "C"
-bool isPow2(unsigned int x)
-{
-    return ((x&(x-1))==0);
-}
-
-unsigned int nextPow2(unsigned int x)
-{
-    --x;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return ++x;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wrapper function for kernel launch
