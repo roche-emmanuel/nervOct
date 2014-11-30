@@ -3,7 +3,7 @@
 
 template<typename T, unsigned int blockSize>
 void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-	T* d_params, T* d_X, T* d_yy, T lambda, T& J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw)
+	T* d_params, T* d_X, T* d_yy, T lambda, T& J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, cudaStream_t stream)
 {
 	// getLastCudaError("Checkpoint1");
 
@@ -37,7 +37,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-		ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
+		ComputeActivation<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, next_input_offset,
 			nrows, ncols, ncolT, d_params, d_inputs, d_X);
 		// CHECK_KERNEL();
 
@@ -55,13 +55,13 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
   // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
 	J = 0.0;
 	unsigned int count = nsamples*lsizes[nt];
-	reduce_cost_device(d_hx, d_yy, count, J);
+	reduce_cost_device(d_hx, d_yy, count, J, stream);
 	// CHECK_KERNEL()
 
 	J /= (T)nsamples;
 
 	T Jreg = 0.0;
-	reduce_cost_reg_device(d_params, d_regw, np, Jreg);
+	reduce_cost_reg_device(d_params, d_regw, np, Jreg, stream);
 	// CHECK_KERNEL()
 
 	J += (T)((Jreg*lambda)/(2.0*nsamples));
@@ -101,14 +101,14 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 		if(i==nt) {
 			// we should just copy the difference of hx and yy into the z matrix.
 			// CHECK_KERNEL()
-			InitLastDelta<<<dimGrid, dimBlock>>>(nrows, ncols, d_deltas, d_hx, d_yy);
+			InitLastDelta<<<dimGrid, dimBlock, 0, stream>>>(nrows, ncols, d_deltas, d_hx, d_yy);
 			// CHECK_KERNEL()
 		}
 		else {
 			// We compute the delta from the previous delta:
 			// We start this computation for delta(nt-1). this matrix is build from theta(nt-1) and delta(nt).
 			// also in the process we use the input matrix z(nt-2)
-			ComputeDelta<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, next_delta_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas);
+			ComputeDelta<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, delta_offset, next_delta_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas);
 			// CHECK_KERNEL()
 
 			// once the computation is done for that layer we move to the previous layer:
@@ -135,7 +135,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
     input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
 		// logDEBUG("GPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset<<", nsamples="<<nsamples);
 
-		ComputeGradient<<<dimGrid, dimBlock>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_X, d_params, d_inputs, d_deltas, d_grads, lambda);
+		ComputeGradient<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_X, d_params, d_inputs, d_deltas, d_grads, lambda);
 		// CHECK_KERNEL()
 
 		// update the gradient offset by removing the size of the next gradient matrix to be computed:

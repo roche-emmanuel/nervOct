@@ -129,7 +129,7 @@ __global__ void reduce6(T *g_idata, T *g_odata, unsigned int n)
 // Wrapper function for kernel launch
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
-void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata)
+void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata, cudaStream_t stream)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -144,43 +144,43 @@ void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *
       switch (threads)
       {
           case 512:
-              reduce6<T, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 512, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 256:
-              reduce6<T, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 256, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 128:
-              reduce6<T, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 128, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 64:
-              reduce6<T,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  64, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 32:
-              reduce6<T,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  32, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 16:
-              reduce6<T,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  16, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  8:
-              reduce6<T,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   8, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  4:
-              reduce6<T,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   4, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  2:
-              reduce6<T,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   2, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  1:
-              reduce6<T,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   1, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
       }
   }
@@ -189,43 +189,43 @@ void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *
       switch (threads)
       {
           case 512:
-              reduce6<T, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 512, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 256:
-              reduce6<T, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 256, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 128:
-              reduce6<T, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T, 128, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 64:
-              reduce6<T,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  64, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 32:
-              reduce6<T,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  32, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case 16:
-              reduce6<T,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,  16, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  8:
-              reduce6<T,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   8, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  4:
-              reduce6<T,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   4, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  2:
-              reduce6<T,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   2, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
 
           case  1:
-              reduce6<T,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+              reduce6<T,   1, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_odata, size);
               break;
       }
   }

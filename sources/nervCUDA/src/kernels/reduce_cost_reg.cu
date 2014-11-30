@@ -126,7 +126,7 @@ __global__ void ReduceCostReg(T *g_idata, T* g_regw, T *g_odata, unsigned int n)
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 void reduce_cost_reg_launcher(int size, int threads, int blocks,
-       int whichKernel, T *d_idata, T* d_regw, T *d_odata)
+       int whichKernel, T *d_idata, T* d_regw, T *d_odata, cudaStream_t stream)
 {
   dim3 dimBlock(threads, 1, 1);
   dim3 dimGrid(blocks, 1, 1);
@@ -141,43 +141,43 @@ void reduce_cost_reg_launcher(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              ReduceCostReg<T, 512, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 512, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 256:
-              ReduceCostReg<T, 256, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 256, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 128:
-              ReduceCostReg<T, 128, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 128, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 64:
-              ReduceCostReg<T,  64, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  64, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 32:
-              ReduceCostReg<T,  32, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  32, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 16:
-              ReduceCostReg<T,  16, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  16, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  8:
-              ReduceCostReg<T,   8, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   8, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  4:
-              ReduceCostReg<T,   4, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   4, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  2:
-              ReduceCostReg<T,   2, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   2, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  1:
-              ReduceCostReg<T,   1, true><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   1, true><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
       }
   }
@@ -186,50 +186,50 @@ void reduce_cost_reg_launcher(int size, int threads, int blocks,
       switch (threads)
       {
           case 512:
-              ReduceCostReg<T, 512, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 512, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 256:
-              ReduceCostReg<T, 256, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 256, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 128:
-              ReduceCostReg<T, 128, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T, 128, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 64:
-              ReduceCostReg<T,  64, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  64, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 32:
-              ReduceCostReg<T,  32, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  32, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case 16:
-              ReduceCostReg<T,  16, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,  16, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  8:
-              ReduceCostReg<T,   8, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   8, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  4:
-              ReduceCostReg<T,   4, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   4, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  2:
-              ReduceCostReg<T,   2, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   2, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
 
           case  1:
-              ReduceCostReg<T,   1, false><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_regw, d_odata, size);
+              ReduceCostReg<T,   1, false><<< dimGrid, dimBlock, smemSize, stream >>>(d_idata, d_regw, d_odata, size);
               break;
       }
   }
 }
 
 template<typename T>
-void reduce_cost_reg_device(T* d_params, T* d_regw, unsigned int n, T& output)
+void reduce_cost_reg_device(T* d_params, T* d_regw, unsigned int n, T& output, cudaStream_t stream)
 {
   int maxThreads = 256;
   int maxBlocks = 64;
@@ -253,7 +253,7 @@ void reduce_cost_reg_device(T* d_params, T* d_regw, unsigned int n, T& output)
   bool needReadBack = true;
 
   // execute the kernel
-  reduce_cost_reg_launcher(n, numThreads, numBlocks, whichKernel, d_params, d_regw, d_odata);
+  reduce_cost_reg_launcher(n, numThreads, numBlocks, whichKernel, d_params, d_regw, d_odata, stream);
 
   // sum partial block sums on GPU
   int s=numBlocks;
@@ -264,7 +264,7 @@ void reduce_cost_reg_device(T* d_params, T* d_regw, unsigned int n, T& output)
       int threads = 0, blocks = 0;
       getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata);
+      reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata, stream);
 
       if (kernel < 3)
       {

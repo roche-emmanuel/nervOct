@@ -213,7 +213,7 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 
 	_mu = 0.0;
 	_epsilon = 0.0;
-	_miniBatchSize = 0.0;
+	_miniBatchSize = 0;
 }
 
 GradientDescentClass::GradientDescentClass(const Traits& traits)
@@ -421,7 +421,7 @@ void GradientDescentClass::run()
 
 		// 3. Once we have the parameter vector, we compute the gradient at that location:
 		gd_errfunc_device(_nl, _np, _lsizes, ns, d_params, 
-			X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
+			X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _stream1);
 
 		// 4. With the gradient we update the velocity vector:
 		mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _stream1);
