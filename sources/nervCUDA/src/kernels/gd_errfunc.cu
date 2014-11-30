@@ -3,7 +3,7 @@
 
 template<typename T, unsigned int blockSize>
 void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-	T* d_params, T* d_X, T* d_yy, T lambda, T& J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, cudaStream_t stream)
+	T* d_params, T* d_X, T* d_yy, T lambda, T* J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, cudaStream_t stream)
 {
 	// getLastCudaError("Checkpoint1");
 
@@ -50,21 +50,24 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
   T* d_hx = d_inputs + input_offset;
 
   // Here we can compute the cost now:
-  // The hx matrix is mapped to the last z matrix. eg at i=nt-1
-  // So its dimensions are lsizes[nt-1+1] * nsamples = lsizes[nl-1] * nsamples
-  // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
-	J = 0.0;
-	unsigned int count = nsamples*lsizes[nt];
-	reduce_cost_device(d_hx, d_yy, count, J, stream);
-	// CHECK_KERNEL()
+  // but only if requested:
+  if(J) {
+	  // The hx matrix is mapped to the last z matrix. eg at i=nt-1
+	  // So its dimensions are lsizes[nt-1+1] * nsamples = lsizes[nl-1] * nsamples
+	  // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
+		*J = 0.0;
+		unsigned int count = nsamples*lsizes[nt];
+		reduce_cost_device(d_hx, d_yy, count, *J, stream);
+		// CHECK_KERNEL()
 
-	J /= (T)nsamples;
+		*J /= (T)nsamples;
 
-	T Jreg = 0.0;
-	reduce_cost_reg_device(d_params, d_regw, np, Jreg, stream);
-	// CHECK_KERNEL()
+		T Jreg = 0.0;
+		reduce_cost_reg_device(d_params, d_regw, np, Jreg, stream);
+		// CHECK_KERNEL()
 
-	J += (T)((Jreg*lambda)/(2.0*nsamples));
+		*J += (T)((Jreg*lambda)/(2.0*nsamples));
+  }
 
 	// Prepare the computation of the delta matrices in reverse order:
 
@@ -261,7 +264,7 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 	// Call the actual method to perform the computations:
 	// costFunc_device(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs, d_regw);
-	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs, d_regw);
+	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, &J, d_grads, d_deltas, d_inputs, d_regw);
 
 	// Here we should also read back the gradient values:
 	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(T)*np, cudaMemcpyDeviceToHost));

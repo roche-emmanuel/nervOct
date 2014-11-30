@@ -385,7 +385,7 @@ GradientDescentClass::~GradientDescentClass()
 void GradientDescentClass::run()
 {
 	int iter=0;
-	value_type current_cost;
+	value_type* current_cost = NULL;
 
 	value_type* X_train_ptr = d_X_train;
 	value_type* y_train_ptr = d_y_train;
