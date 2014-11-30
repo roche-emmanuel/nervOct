@@ -11,12 +11,12 @@
 using namespace nerv;
 
 GradientDescentClass::Traits::Traits() 
-	: _nsamples(0), _maxiter(-1), _lambda(0.0),
+	: _nsamples(0), _maxiter(0), _lambda(0.0),
 	_lsizes(nullptr), _nl(0),
 	_X_train(nullptr), _X_train_size(0),
 	_y_train(nullptr), _y_train_size(0), 
 	_params(nullptr), _nparams(0),
-	_mu(0.0)
+	_mu(0.0), _epsilon(0.0)
 {
 }
 
@@ -137,6 +137,28 @@ GradientDescentClass::value_type GradientDescentClass::Traits::momentum() const
 	return _mu;
 }
 
+GradientDescentClass::Traits& GradientDescentClass::Traits::learningRate(value_type lr)
+{
+	_epsilon = lr;
+	return *this;
+}
+
+GradientDescentClass::value_type GradientDescentClass::Traits::learningRate() const
+{
+	return _epsilon;
+}
+
+GradientDescentClass::Traits& GradientDescentClass::Traits::miniBatchSize(unsigned int size)
+{
+	_miniBatchSize = size;
+	return *this;
+}
+
+unsigned int GradientDescentClass::Traits::miniBatchSize() const
+{
+	return _miniBatchSize;
+}
+
 
 GradientDescentClass::Traits::Traits(const GradientDescentClass::Traits& rhs)
 {
@@ -163,6 +185,7 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
   _lambda = rhs._lambda;
 
   _mu = rhs._mu;
+  _epsilon = rhs._epsilon;
 
 	return *this;
 }
@@ -197,6 +220,10 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 
 	_mumax = traits.momentum();
 	_mu = 0.0; // will be initialized later.
+
+	_epsilon = traits.learningRate();
+
+	_miniBatchSize = traits.miniBatchSize();
 
 	// ensure that the traits are usable:
 	THROW_IF(traits.nl()<3,"Invalid nl value: "<<traits.nl())
@@ -374,12 +401,17 @@ void GradientDescentClass::run()
 		// 2. prepare the parameter vector:
 		mix_vectors_device(d_params, d_theta, d_vel, 1.0, _mu, _np, _stream1);
 
-		// We start with the computation of the gradient from the current parameters.
+		// 3. Once we have the parameter vector, we compute the gradient at that location:
 		gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_params, 
 			d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
 
-		// Once we computed the gradient we need to apply the actual gradient descent rule:
+		// 4. With the gradient we update the velocity vector:
+		mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _stream1);
 
+		// 5. Now that we have the new velocity, we can compute the new value for the theta vector:
+		mix_vectors_device(d_theta, d_theta, d_vel, 1.0, 1.0, _np, _stream1);
+
+		// Finally move to the next cycle:
 		iter++;
 	}
 

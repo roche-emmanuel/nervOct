@@ -34,8 +34,10 @@ BOOST_AUTO_TEST_CASE( test_create_gd_traits )
   BOOST_CHECK(traits.y_train()==nullptr);
   BOOST_CHECK(traits.y_train_size()==0);
   BOOST_CHECK(traits.params()==nullptr);
-  BOOST_CHECK(traits.maxiter()==-1);
+  BOOST_CHECK(traits.maxiter()==0);
   BOOST_CHECK(traits.lambda()==0.0);
+  BOOST_CHECK(traits.momentum()==0.0);
+  BOOST_CHECK(traits.learningRate()==0.0);
 }
 
 BOOST_AUTO_TEST_CASE( test_create_gd )

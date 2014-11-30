@@ -83,6 +83,18 @@ public:
         /** Retrieve momentum value.*/
         value_type momentum() const;
 
+        /** Set the initial learning rate value.*/
+        Traits& learningRate(value_type lr);
+
+        /** Retrieve learning rate value.*/
+        value_type learningRate() const;
+
+        /** Set the minibatch size, 0 to use full batch.*/
+        Traits& miniBatchSize(unsigned int size);
+
+        /** Retrieve the mini batch size.*/
+        unsigned int miniBatchSize() const;
+
     protected:
         unsigned int _nl;
         unsigned int _nsamples;
@@ -101,6 +113,9 @@ public:
 
         value_type _lambda;
         value_type _mu;
+
+        value_type _epsilon;
+        unsigned int _miniBatchSize;
     };
 
 
@@ -128,6 +143,7 @@ protected:
 
     value_type _mumax; // maximum value of the momentum.
     value_type _mu; // current value of the momentum.
+    value_type _epsilon; // Learning rate value.
 
     value_type _lambda; // regularization parameter.
     value_type* _regw; // host regularization buffer.
@@ -146,6 +162,8 @@ protected:
     value_type* d_regw;
 
     cudaStream_t _stream1; // main processing stream. 
+
+    unsigned int _miniBatchSize; // size of the mini batch or 0 if full batch.
 };
 
 };
