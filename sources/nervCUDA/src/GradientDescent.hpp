@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <limits>
 
+#define LOG2 0.6931471805599453
+
 using namespace nerv;
 
 GradientDescentClass::Traits::Traits() 
@@ -13,7 +15,8 @@ GradientDescentClass::Traits::Traits()
 	_lsizes(nullptr), _nl(0),
 	_X_train(nullptr), _X_train_size(0),
 	_y_train(nullptr), _y_train_size(0), 
-	_params(nullptr), _nparams(0)
+	_params(nullptr), _nparams(0),
+	_mu(0.0)
 {
 }
 
@@ -107,6 +110,11 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::maxiter(int num)
 	return *this;
 }
 
+int GradientDescentClass::Traits::maxiter() const
+{
+	return _maxiter;
+}
+
 GradientDescentClass::Traits& GradientDescentClass::Traits::lambda(value_type val)
 {
 	_lambda = val;
@@ -118,9 +126,15 @@ GradientDescentClass::value_type GradientDescentClass::Traits::lambda() const
 	return _lambda;
 }
 
-int GradientDescentClass::Traits::maxiter() const
+GradientDescentClass::Traits& GradientDescentClass::Traits::momentum(value_type mu)
 {
-	return _maxiter;
+	_mu = mu;
+	return *this;
+}
+
+GradientDescentClass::value_type GradientDescentClass::Traits::momentum() const
+{
+	return _mu;
 }
 
 
@@ -147,6 +161,8 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
 
   _maxiter = rhs._maxiter;
   _lambda = rhs._lambda;
+
+  _mu = rhs._mu;
 
 	return *this;
 }
@@ -178,6 +194,9 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 
 	// Assign regularization parameter:
 	_lambda = traits.lambda();
+
+	_mumax = traits.momentum();
+	_mu = 0.0; // will be initialized later.
 
 	// ensure that the traits are usable:
 	THROW_IF(traits.nl()<3,"Invalid nl value: "<<traits.nl())
@@ -234,11 +253,22 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.y_train(), size, cudaMemcpyHostToDevice,_stream1));
 
 	// Load the parameters (weights) on the GPU:
+	// params is the vector used for the evaluation of the cost function.
 	size = sizeof(value_type) * np;
 	d_params = NULL;
-	checkCudaErrors(cudaHostRegister(traits.params(), size,cudaHostRegisterDefault)); // register the memory as pinned memory.
 	checkCudaErrors(cudaMalloc(&d_params, size));
-	checkCudaErrors(cudaMemcpyAsync(d_params, traits.params(), size, cudaMemcpyHostToDevice,_stream1));
+	checkCudaErrors(cudaMemsetAsync(d_params,0,size,_stream1));
+
+	// velocity vector used to store the NAG velocity for each cycle:
+	d_vel = NULL;
+	checkCudaErrors(cudaMalloc(&d_vel, size));
+	checkCudaErrors(cudaMemsetAsync(d_vel,0,size,_stream1));
+
+	// Theta is the array containing the computed network weights at each cycle:
+	d_theta = NULL;
+	checkCudaErrors(cudaHostRegister(traits.params(), size,cudaHostRegisterDefault)); // register the memory as pinned memory.
+	checkCudaErrors(cudaMalloc(&d_theta, size));
+	checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params(), size, cudaMemcpyHostToDevice,_stream1));
 
 	// prepare regularization weigths:
 	_regw = new value_type[size];
@@ -308,6 +338,8 @@ GradientDescentClass::~GradientDescentClass()
 	checkCudaErrors(cudaFree(d_X_train));	
 	checkCudaErrors(cudaFree(d_y_train));	
 	checkCudaErrors(cudaFree(d_params));	
+	checkCudaErrors(cudaFree(d_theta));	
+	checkCudaErrors(cudaFree(d_vel));	
 	checkCudaErrors(cudaFree(d_regw));	
 	checkCudaErrors(cudaFree(d_grads));	
 	checkCudaErrors(cudaFree(d_deltas));	
@@ -324,13 +356,29 @@ void GradientDescentClass::run()
 
 	// Run the iteration loop:
 	while(_maxiter<0 || iter<_maxiter) {
-		logDEBUG("Performing iteration "<<iter<<"...");
+		// logDEBUG("Performing iteration "<<iter<<"...");
+
+		// Here we apply the Nesterov Accelerated gradient (NAG) method described in 
+		// "On the importance of initialization and momentum in deep learning.pdf" [1]
+		// so we compute the speed:
+		// v(t+1) = mu * v(t) - epsilon * DeltaF(theta(t) + mu * v(t))
+		// then theta(t+1) = theta(t)+v(t+1)
+		// Where t is the current iteration number (or current optimization time).
+		// fist we need to do the partial theta update:
+		// d_params = d_theta + mu * v(t);
+
+		// 1. We need to compute the desired value of mu for this cycle:
+		// formula from [1]
+		_mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter/250.0)+1)/LOG2), _mumax);
+
+		// 2. prepare the parameter vector:
+		mix_vectors_device(d_params, d_theta, d_vel, 1.0, _mu, _np, _stream1);
 
 		// We start with the computation of the gradient from the current parameters.
-		// costFunc_device(_nl, _np, _lsizes, _nsamples, d_params, 
-		//   d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
 		gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_params, 
 			d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
+
+		// Once we computed the gradient we need to apply the actual gradient descent rule:
 
 		iter++;
 	}

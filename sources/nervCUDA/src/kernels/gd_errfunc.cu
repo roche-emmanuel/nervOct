@@ -64,7 +64,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 	reduce_cost_reg_device(d_params, d_regw, np, Jreg);
 	// CHECK_KERNEL()
 
-	J += (Jreg*lambda)/(2.0*nsamples);
+	J += (T)((Jreg*lambda)/(2.0*nsamples));
 
 	// Prepare the computation of the delta matrices in reverse order:
 

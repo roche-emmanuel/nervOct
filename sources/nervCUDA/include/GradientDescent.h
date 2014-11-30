@@ -77,6 +77,12 @@ public:
         /** Retrieve regularization parameter.*/
         value_type lambda() const;
 
+        /** Set the maximum momentum value.*/
+        Traits& momentum(value_type mu);
+
+        /** Retrieve momentum value.*/
+        value_type momentum() const;
+
     protected:
         unsigned int _nl;
         unsigned int _nsamples;
@@ -94,6 +100,7 @@ public:
         unsigned int _nparams;
 
         value_type _lambda;
+        value_type _mu;
     };
 
 
@@ -119,6 +126,9 @@ protected:
     unsigned int* _lsizes;
     int _maxiter; // max number of iterations.
 
+    value_type _mumax; // maximum value of the momentum.
+    value_type _mu; // current value of the momentum.
+
     value_type _lambda; // regularization parameter.
     value_type* _regw; // host regularization buffer.
 
@@ -126,6 +136,8 @@ protected:
     value_type* d_X_train;
     value_type* d_y_train;
     value_type* d_params; // weights buffer.
+    value_type* d_theta; // weights buffer.
+    value_type* d_vel; // weights evolution velocity buffer.
     value_type* d_grads;
     value_type* d_deltas;
     value_type* d_inputs;

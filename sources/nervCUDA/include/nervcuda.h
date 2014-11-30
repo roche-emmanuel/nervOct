@@ -141,7 +141,7 @@ template<typename T>
 void copy_vector_device(T* d_s, T* d_df1, unsigned int size, bool invert = false);
 
 template<typename T>
-void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int size);
+void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int size, cudaStream_t stream = 0);
 
 template<typename T>
 void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, unsigned int ncolB, 

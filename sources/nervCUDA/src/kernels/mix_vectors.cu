@@ -18,12 +18,12 @@ __global__ void MixVectors(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned 
 }
 
 template<typename T>
-void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int size)
+void mix_vectors_device(T* d_res, T* d_vec1, T* d_vec2, T w1, T w2, unsigned int size, cudaStream_t stream)
 {
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
   dim3 dimGrid((BLOCK_SIZE + size-1)/BLOCK_SIZE, 1, 1);	
 
-	MixVectors<<<dimGrid, dimBlock>>>(d_res, d_vec1, d_vec2, w1, w2, size);
+	MixVectors<<<dimGrid, dimBlock, 0, stream>>>(d_res, d_vec1, d_vec2, w1, w2, size);
   // CHECK_KERNEL()
 }
 

@@ -108,3 +108,4 @@
 - Performing initial tests on TrainingSet class.
 - Using trainingset in tests.
 - Added test for gd_errfunc.
+- Starting computation of NAG in gradient descent.
