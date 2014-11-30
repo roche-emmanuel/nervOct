@@ -16,7 +16,7 @@ GradientDescentClass::Traits::Traits()
 	_X_train(nullptr), _X_train_size(0),
 	_y_train(nullptr), _y_train_size(0), 
 	_params(nullptr), _nparams(0),
-	_mu(0.0), _epsilon(0.0)
+	_mu(0.0), _epsilon(0.0), _miniBatchSize(0)
 {
 }
 
@@ -187,6 +187,8 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
   _mu = rhs._mu;
   _epsilon = rhs._epsilon;
 
+  _miniBatchSize = rhs._miniBatchSize;
+
 	return *this;
 }
 
@@ -208,6 +210,10 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 
 	_maxiter = tr.maxiter();
 	_lambda = tr.lambda();
+
+	_mu = 0.0;
+	_epsilon = 0.0;
+	_miniBatchSize = 0.0;
 }
 
 GradientDescentClass::GradientDescentClass(const Traits& traits)
@@ -381,6 +387,18 @@ void GradientDescentClass::run()
 	int iter=0;
 	value_type current_cost;
 
+	value_type* X_train_ptr = d_X_train;
+	value_type* y_train_ptr = d_y_train;
+
+	unsigned int mbOffset = 0;
+
+	// Check if we should use all samples or not:
+	unsigned int ns = _nsamples;
+	if(_miniBatchSize>0) {
+		ns = _miniBatchSize;
+		logDEBUG("Using mini batch size: "<<_miniBatchSize);
+	}
+
 	// Run the iteration loop:
 	while(_maxiter<0 || iter<_maxiter) {
 		// logDEBUG("Performing iteration "<<iter<<"...");
@@ -402,8 +420,8 @@ void GradientDescentClass::run()
 		mix_vectors_device(d_params, d_theta, d_vel, 1.0, _mu, _np, _stream1);
 
 		// 3. Once we have the parameter vector, we compute the gradient at that location:
-		gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_params, 
-			d_X_train, d_y_train, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
+		gd_errfunc_device(_nl, _np, _lsizes, ns, d_params, 
+			X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw);
 
 		// 4. With the gradient we update the velocity vector:
 		mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _stream1);
@@ -411,11 +429,20 @@ void GradientDescentClass::run()
 		// 5. Now that we have the new velocity, we can compute the new value for the theta vector:
 		mix_vectors_device(d_theta, d_theta, d_vel, 1.0, 1.0, _np, _stream1);
 
+		if(_miniBatchSize>0) {
+			// we should move to the next mini batch lot.
+			mbOffset += _miniBatchSize;
+
+			// check if we have enough samples left or if we should reset to the beginning:
+			if((mbOffset+_miniBatchSize)>_nsamples)
+				mbOffset = 0;
+
+			// update the pointers:
+			X_train_ptr = d_X_train + _lsizes[0]*mbOffset;
+			y_train_ptr = d_y_train + _lsizes[_nt]*mbOffset;
+		}
+
 		// Finally move to the next cycle:
 		iter++;
 	}
-
-	// then compute the gradient.
-	// update the weights with a learning rate.
-	
 }

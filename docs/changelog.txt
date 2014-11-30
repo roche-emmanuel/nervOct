@@ -110,3 +110,4 @@
 - Added test for gd_errfunc.
 - Starting computation of NAG in gradient descent.
 - Adding mini batch support in gradient descent class.
+- Added support for mini batch in gradient descent.
