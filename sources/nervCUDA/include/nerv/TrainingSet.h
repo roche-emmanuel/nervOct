@@ -39,6 +39,12 @@ public:
     inline value_type* y_train() const { return _y_train; }
     inline unsigned int y_train_size() const { return _ny; }
 
+    inline value_type* X_cv() const { return _X_cv; }
+    inline unsigned int X_cv_size() const { return _nx_cv; }
+    
+    inline value_type* y_cv() const { return _y_cv; }
+    inline unsigned int y_cv_size() const { return _ny_cv; }
+
     inline value_type* params() const { return _params; }
     inline unsigned int np() const { return _np; }
 
@@ -62,6 +68,8 @@ protected:
     unsigned int _np; // number of parameters
     unsigned int _nx; // number of element in X
     unsigned int _ny; // number of element in y
+    unsigned int _nx_cv; // number of element in X_cv
+    unsigned int _ny_cv; // number of element in y_cv
 
     unsigned int _nsamples; // number of samples.
 
@@ -73,6 +81,8 @@ protected:
     
     value_type* _X_train;
     value_type* _y_train;
+    value_type* _X_cv;
+    value_type* _y_cv;
     value_type* _params;
 
     ArrayList _arrays;
@@ -166,8 +176,14 @@ void TrainingSet<T>::init(std::vector<unsigned int> lsizes, unsigned int nsample
     _nx = nsamples*lsizes[0];
     _X_train = createArray(_nx);
 
+    _nx_cv = (unsigned int)ceil(_nx*0.25);
+    _X_cv = createArray(_nx_cv);
+
     _ny = nsamples*lsizes[_nt];
     _y_train = createArray(_ny);
+
+    _ny_cv = (unsigned int)ceil(_ny*0.25);
+    _y_cv = createArray(_ny_cv);
 
     _np = 0;
     for(unsigned int i=0;i<_nt;++i) {
@@ -207,6 +223,16 @@ void TrainingSet<T>::setupDebug()
         (*ptr++) = (value_type)(abs(cos(i)));
     }
 
+    ptr = _X_cv;
+    for(unsigned int i=0;i<_nx_cv;++i) {
+        (*ptr++) = (value_type)(sin(i+0.5)*10.0);
+    }
+   
+    ptr = _y_cv;
+    for(unsigned int i=0;i<_ny_cv;++i) {
+        (*ptr++) = (value_type)(abs(cos(i+0.5)));
+    }
+
     ptr = _params;
     for(unsigned int i=0;i<_np;++i) {
         (*ptr++) = (value_type)(sin(i+0.5));
@@ -223,6 +249,16 @@ void TrainingSet<T>::setupRandom()
    
     ptr = _y_train;
     for(unsigned int i=0;i<_ny;++i) {
+        (*ptr++) = random_real(0.0,1.0);
+    }
+
+    ptr = _X_cv;
+    for(unsigned int i=0;i<_nx_cv;++i) {
+        (*ptr++) = random_real(-10.0,10.0);
+    }
+   
+    ptr = _y_cv;
+    for(unsigned int i=0;i<_ny_cv;++i) {
         (*ptr++) = random_real(0.0,1.0);
     }
 

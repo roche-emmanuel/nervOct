@@ -113,3 +113,4 @@
 - Added support for mini batch in gradient descent.
 - Added support for streamin gradient descent.
 - Made computation of J optional in gd_errfunc.
+- Added support for cross validation sets generation in training set.

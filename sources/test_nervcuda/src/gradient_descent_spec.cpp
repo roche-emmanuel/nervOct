@@ -400,4 +400,43 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
   BOOST_CHECK(FreeLibrary(h));
 }
 
+BOOST_AUTO_TEST_CASE( test_training_set_cv_data )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  TrainingSet<value_type> tr0;
+  BOOST_CHECK(tr0.X_cv()==nullptr);
+  BOOST_CHECK(tr0.y_cv()==nullptr);
+  BOOST_CHECK(tr0.X_cv_size()==0);
+  BOOST_CHECK(tr0.y_cv_size()==0);
+
+
+  // by default the pointers should be null:
+  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  unsigned int nx = tr.X_train_size();
+  unsigned int ny = tr.y_train_size();
+
+  BOOST_CHECK(tr.X_cv()!=nullptr);
+  BOOST_CHECK(tr.y_cv()!=nullptr);
+  BOOST_CHECK(tr.X_cv_size()==(unsigned int)ceil(nx*0.25));
+  BOOST_CHECK(tr.y_cv_size()==(unsigned int)ceil(ny*0.25));
+
+  // We should have build debug matrices so we can check the values:
+  for(unsigned int i=0;i<100;++i) {
+    unsigned int index = tr.random_uint(0,tr.X_cv_size()-1);
+    value_type v1 = (value_type)(sin(index+0.5)*10.0);
+    value_type v2 = tr.X_cv()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at X_cv element "<<index<<": "<<v1<<"!="<<v2);
+       
+    index = tr.random_uint(0,tr.y_cv_size()-1);
+    v1 = (value_type)abs(cos(index+0.5));
+    v2 = tr.y_cv()[index];
+    BOOST_CHECK_MESSAGE(abs(v1-v2)<=epsilon,"Mismatch at y_cv element "<<index<<": "<<v1<<"!="<<v2);
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

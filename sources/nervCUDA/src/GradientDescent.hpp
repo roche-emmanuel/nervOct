@@ -15,8 +15,11 @@ GradientDescentClass::Traits::Traits()
 	_lsizes(nullptr), _nl(0),
 	_X_train(nullptr), _X_train_size(0),
 	_y_train(nullptr), _y_train_size(0), 
+	_X_cv(nullptr), _X_cv_size(0),
+	_y_cv(nullptr), _y_cv_size(0), 
 	_params(nullptr), _nparams(0),
-	_mu(0.0), _epsilon(0.0), _miniBatchSize(0)
+	_mu(0.0), _epsilon(0.0), _miniBatchSize(0),
+	_validationWindowSize(0)
 {
 }
 
@@ -159,6 +162,51 @@ unsigned int GradientDescentClass::Traits::miniBatchSize() const
 	return _miniBatchSize;
 }
 
+GradientDescentClass::Traits& GradientDescentClass::Traits::validationWindowSize(unsigned int size)
+{
+	_validationWindowSize = size;
+	return *this;
+}
+
+unsigned int GradientDescentClass::Traits::validationWindowSize() const
+{
+	return _validationWindowSize;
+}
+
+GradientDescentClass::Traits& GradientDescentClass::Traits::X_cv(GradientDescentClass::value_type* X, unsigned int size)
+{
+	_X_cv_size = size;
+	_X_cv = X;
+	return *this;
+}
+
+GradientDescentClass::value_type* GradientDescentClass::Traits::X_cv() const
+{
+	return _X_cv;
+}
+
+unsigned int GradientDescentClass::Traits::X_cv_size() const
+{
+	return _X_cv_size;
+}
+
+GradientDescentClass::Traits& GradientDescentClass::Traits::y_cv(GradientDescentClass::value_type* y, unsigned int size)
+{
+	_y_cv_size = size;
+	_y_cv = y;
+	return *this;
+}
+
+GradientDescentClass::value_type* GradientDescentClass::Traits::y_cv() const
+{
+	return _y_cv;
+}
+
+unsigned int GradientDescentClass::Traits::y_cv_size() const
+{
+	return _y_cv_size;
+}
+
 
 GradientDescentClass::Traits::Traits(const GradientDescentClass::Traits& rhs)
 {
@@ -189,6 +237,14 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
 
   _miniBatchSize = rhs._miniBatchSize;
 
+  _validationWindowSize = rhs._validationWindowSize;
+
+  _X_cv = rhs._X_cv;
+  _X_cv_size = rhs._X_cv_size;
+
+  _y_cv = rhs._y_cv;
+  _y_cv_size = rhs._y_cv_size;
+
 	return *this;
 }
 
@@ -205,6 +261,12 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 	_y_train = tr.y_train();
 	_y_train_size = tr.y_train_size();
 
+	_X_cv = tr.X_cv();
+	_X_cv_size = tr.X_cv_size();
+
+	_y_cv = tr.y_cv();
+	_y_cv_size = tr.y_cv_size();
+
 	_params = tr.params();
 	_nparams = tr.np();
 
@@ -214,6 +276,7 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 	_mu = 0.0;
 	_epsilon = 0.0;
 	_miniBatchSize = 0;
+	_validationWindowSize = 0;
 }
 
 GradientDescentClass::GradientDescentClass(const Traits& traits)
@@ -231,6 +294,8 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 
 	_miniBatchSize = traits.miniBatchSize();
 
+	_validationWindowSize = traits.validationWindowSize();
+	
 	// ensure that the traits are usable:
 	THROW_IF(traits.nl()<3,"Invalid nl value: "<<traits.nl())
 	_nl = traits.nl();

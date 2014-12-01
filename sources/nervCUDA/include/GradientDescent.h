@@ -13,6 +13,7 @@ namespace nerv {
 class NERVCUDA_EXPORT GradientDescentClass {
 public:
     typedef GradientDescentValueType value_type;
+    typedef std::vector<value_type> ValueList;
 
     class NERVCUDA_EXPORT Traits {
     public:
@@ -95,6 +96,30 @@ public:
         /** Retrieve the mini batch size.*/
         unsigned int miniBatchSize() const;
 
+        /** Set validation window mean size when using early stopping.*/
+        Traits& validationWindowSize(unsigned int size);
+
+        /** Retrieve the mini batch size.*/
+        unsigned int validationWindowSize() const;
+
+        /** Set the cross validation dataset.*/
+        Traits& X_cv(value_type* X, unsigned int size);
+
+        /** Retrieve the cross validation dataset.*/
+        value_type* X_cv() const;
+
+        /** Retrieve the size of the cross validation dataset.*/
+        unsigned int X_cv_size() const;
+
+        /** Set the cross validation labels.*/
+        Traits& y_cv(value_type* y, unsigned int size);
+
+        /** Retrieve the cross validation labels.*/
+        value_type* y_cv() const;
+
+        /** Retrieve the size of the cross validation labels.*/
+        unsigned int y_cv_size() const;
+
     protected:
         unsigned int _nl;
         unsigned int _nsamples;
@@ -116,6 +141,14 @@ public:
 
         value_type _epsilon;
         unsigned int _miniBatchSize;
+
+        unsigned int _validationWindowSize;
+
+        value_type* _X_cv;
+        unsigned int _X_cv_size;
+
+        value_type* _y_cv;
+        unsigned int _y_cv_size;
     };
 
 
@@ -164,6 +197,9 @@ protected:
     cudaStream_t _stream1; // main processing stream. 
 
     unsigned int _miniBatchSize; // size of the mini batch or 0 if full batch.
+
+    unsigned int _validationWindowSize; // size of the windowed mean for the cross validation cost vector.
+    ValueList _cvCosts;
 };
 
 };
