@@ -176,13 +176,13 @@ void TrainingSet<T>::init(std::vector<unsigned int> lsizes, unsigned int nsample
     _nx = nsamples*lsizes[0];
     _X_train = createArray(_nx);
 
-    _nx_cv = (unsigned int)ceil(_nx*0.25);
+    _nx_cv = (unsigned int)ceil(nsamples*0.25)*lsizes[0];
     _X_cv = createArray(_nx_cv);
 
     _ny = nsamples*lsizes[_nt];
     _y_train = createArray(_ny);
 
-    _ny_cv = (unsigned int)ceil(_ny*0.25);
+    _ny_cv = (unsigned int)ceil(nsamples*0.25)*lsizes[_nt];
     _y_cv = createArray(_ny_cv);
 
     _np = 0;

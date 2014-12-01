@@ -13,7 +13,7 @@ namespace nerv {
 class NERVCUDA_EXPORT GradientDescentClass {
 public:
     typedef GradientDescentValueType value_type;
-    typedef std::vector<value_type> ValueList;
+    typedef std::deque<value_type> ValueList;
 
     class NERVCUDA_EXPORT Traits {
     public:
@@ -164,6 +164,14 @@ public:
 
     void run();
 
+    value_type computeTrainCost();
+    value_type computeCvCost();
+
+    void downloadParameters();
+
+    void saveState(unsigned int iter);
+    unsigned int restoreState();
+
 protected:
     Traits _traits;
 
@@ -171,8 +179,11 @@ protected:
     unsigned int _nt; // number of theta matrices
     unsigned int _np; // number of parameters
     unsigned int _nsamples; // number of samples.
+    unsigned int _nsamples_cv; // number of samples in cv datasets.
     unsigned int* _lsizes;
     int _maxiter; // max number of iterations.
+
+    unsigned int _bestIter; // backup for the best iteration number so far when using early stopping.
 
     value_type _mumax; // maximum value of the momentum.
     value_type _mu; // current value of the momentum.
@@ -184,9 +195,13 @@ protected:
     // GPU buffers:
     value_type* d_X_train;
     value_type* d_y_train;
+    value_type* d_X_cv;
+    value_type* d_y_cv;
     value_type* d_params; // weights buffer.
     value_type* d_theta; // weights buffer.
+    value_type* d_theta_bak; // weights buffer.
     value_type* d_vel; // weights evolution velocity buffer.
+    value_type* d_vel_bak; // weights evolution velocity buffer.
     value_type* d_grads;
     value_type* d_deltas;
     value_type* d_inputs;
@@ -199,7 +214,6 @@ protected:
     unsigned int _miniBatchSize; // size of the mini batch or 0 if full batch.
 
     unsigned int _validationWindowSize; // size of the windowed mean for the cross validation cost vector.
-    ValueList _cvCosts;
 };
 
 };

@@ -281,6 +281,8 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 
 GradientDescentClass::GradientDescentClass(const Traits& traits)
 {
+	_bestIter = 0;
+
 	// Assign the max number of iteration:
 	_maxiter = traits.maxiter();
 
@@ -327,6 +329,10 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	THROW_IF(traits.y_train_size()!=ny,"Invalid size for y: "<<traits.y_train_size()<<"!="<<ny)
 	THROW_IF(!traits.y_train(),"Invalid y_train value.")
 	
+	_nsamples_cv = traits.X_cv_size()/_lsizes[0];
+	unsigned int ns_cv = traits.y_cv_size()/_lsizes[_nt];
+	THROW_IF(_nsamples_cv!=ns_cv,"Mismatch in computation of _nsamples_cv"<<_nsamples_cv<<"!="<<ns_cv)
+
 	// keep a copy of the traits:
 	_traits = traits;
 
@@ -343,12 +349,32 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	checkCudaErrors(cudaMalloc(&d_X_train, size));
 	checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X_train(), size, cudaMemcpyHostToDevice,_stream1));
 
+
 	// load the yy matrix on the GPU:
 	size = sizeof(value_type) * ny;
 	d_y_train = NULL;
 	checkCudaErrors(cudaHostRegister(traits.y_train(), size,cudaHostRegisterDefault)); // register the memory as pinned memory.
 	checkCudaErrors(cudaMalloc(&d_y_train, size));
 	checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.y_train(), size, cudaMemcpyHostToDevice,_stream1));
+
+	// Prepare the cv datasets if applicable:
+	THROW_IF(traits.validationWindowSize()>0 && (!traits.X_cv() || !traits.y_cv()), "Invalid cv datasets.");
+	d_X_cv = NULL;
+	d_y_cv = NULL;
+	
+	if(traits.validationWindowSize()>0) {
+		// Load the Xcv matrix on the GPU directly:
+		size = sizeof(value_type) * traits.X_cv_size();
+		checkCudaErrors(cudaHostRegister(traits.X_cv(), size,cudaHostRegisterDefault)); // register the memory as pinned memory.
+		checkCudaErrors(cudaMalloc(&d_X_cv, size));
+		checkCudaErrors(cudaMemcpyAsync(d_X_cv, traits.X_cv(), size, cudaMemcpyHostToDevice,_stream1));
+
+		// load the ycv matrix on the GPU:
+		size = sizeof(value_type) * traits.y_cv_size();
+		checkCudaErrors(cudaHostRegister(traits.y_cv(), size,cudaHostRegisterDefault)); // register the memory as pinned memory.
+		checkCudaErrors(cudaMalloc(&d_y_cv, size));
+		checkCudaErrors(cudaMemcpyAsync(d_y_cv, traits.y_cv(), size, cudaMemcpyHostToDevice,_stream1));
+	}
 
 	// Load the parameters (weights) on the GPU:
 	// params is the vector used for the evaluation of the cost function.
@@ -362,11 +388,18 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	checkCudaErrors(cudaMalloc(&d_vel, size));
 	checkCudaErrors(cudaMemsetAsync(d_vel,0,size,_stream1));
 
+	d_vel_bak = NULL;
+	checkCudaErrors(cudaMalloc(&d_vel_bak, size));
+
 	// Theta is the array containing the computed network weights at each cycle:
 	d_theta = NULL;
 	checkCudaErrors(cudaHostRegister(traits.params(), size,cudaHostRegisterDefault)); // register the memory as pinned memory.
 	checkCudaErrors(cudaMalloc(&d_theta, size));
 	checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params(), size, cudaMemcpyHostToDevice,_stream1));
+
+	d_theta_bak = NULL;
+	checkCudaErrors(cudaMalloc(&d_theta_bak, size));
+
 
 	// prepare regularization weigths:
 	_regw = new value_type[size];
@@ -432,6 +465,16 @@ GradientDescentClass::~GradientDescentClass()
 	checkCudaErrors(cudaHostUnregister(_regw)); 
 	delete [] _regw;
 
+	if(d_X_cv) {
+		checkCudaErrors(cudaHostUnregister(_traits.X_cv())); 
+		checkCudaErrors(cudaFree(d_X_cv));	
+	}
+
+	if(d_y_cv) {
+		checkCudaErrors(cudaHostUnregister(_traits.y_cv())); 
+		checkCudaErrors(cudaFree(d_y_cv));
+	}
+
 	// free GPU buffers:
 	checkCudaErrors(cudaFree(d_X_train));	
 	checkCudaErrors(cudaFree(d_y_train));	
@@ -446,6 +489,37 @@ GradientDescentClass::~GradientDescentClass()
 	// destroy the processing stream:
 	checkCudaErrors(cudaStreamDestroy(_stream1));
 }
+
+template<typename T>
+class WindowedMean {
+public: 
+   WindowedMean(unsigned int maxSize) : _maxSize(maxSize), _totalValue(0.0) {};
+
+   inline unsigned int size() { return (unsigned int)_stack.size(); }
+   inline T getMean() { return _stack.size()==0.0 ? 0.0 : _totalValue/_stack.size(); }
+   T push(T val);
+
+protected:
+   T _totalValue;
+   std::deque<T> _stack;
+   unsigned int _maxSize;
+};
+
+template<typename T>
+T WindowedMean<T>::push(T val) {
+	_stack.push_back(val);
+	_totalValue += val;
+
+	if(_stack.size() > _maxSize) {
+		// remove the initial value
+		T pval = _stack.front();
+		_stack.pop_front();
+		_totalValue -= pval;
+	}
+
+	return _totalValue/_stack.size();
+}
+
 
 void GradientDescentClass::run()
 {
@@ -463,6 +537,25 @@ void GradientDescentClass::run()
 		ns = _miniBatchSize;
 		logDEBUG("Using mini batch size: "<<_miniBatchSize);
 	}
+
+	bool earlyStopping = false;
+	if(_validationWindowSize>0) {
+		logDEBUG("Using early stopping with window size: "<<_validationWindowSize)
+		earlyStopping = true;
+	}
+	WindowedMean<value_type> mean(_validationWindowSize);
+	value_type cur_mean = 0.0;
+	value_type bestCvCost = std::numeric_limits<value_type>::max();
+
+
+	// number of cycles after which to evaluation is performed on the cross validation set
+	// when using early stopping:
+	unsigned int evalFrequency = 64;
+	
+	// current number of invalid value for Jcv when using early stopping:
+	unsigned int invalid_count = 0;
+	unsigned int max_invalid_count = 10;
+
 
 	// Run the iteration loop:
 	while(_maxiter<0 || iter<_maxiter) {
@@ -488,6 +581,8 @@ void GradientDescentClass::run()
 		gd_errfunc_device(_nl, _np, _lsizes, ns, d_params, 
 			X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _stream1);
 
+		// logDEBUG("Performing iteration "<<iter<<", Jtrain="<<current_cost);
+
 		// 4. With the gradient we update the velocity vector:
 		mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _stream1);
 
@@ -507,7 +602,99 @@ void GradientDescentClass::run()
 			y_train_ptr = d_y_train + _lsizes[_nt]*mbOffset;
 		}
 
+		if(earlyStopping && (iter%evalFrequency == 0)) {
+			// perform evaluation of the current theta value:
+			logDEBUG("Performing cv evaluation at iteration "<<iter<<"...");
+			value_type J = computeCvCost();
+			if(J<bestCvCost) {
+				logDEBUG("Updating best Cv cost to "<<J<<" at iteration "<<iter);
+				// Here we need to save the best cv cost achieved so far and also
+				// save all the relevant parameters in case we need to restart from this point:
+				bestCvCost = J;
+				saveState(iter);
+			}
+			else {
+				logDEBUG("Discarding worst cv cost: "<<J)
+			}
+
+			// push the new cost on the window mean:
+			value_type new_mean = mean.push(J);
+			logDEBUG("New mean value is: "<<new_mean);
+
+			// if we have enough cycles already then check if something is going wrong
+			// with the cv cost:
+			if(mean.size()==_validationWindowSize) {
+				value_type dec = (cur_mean-new_mean)/cur_mean;
+				if(dec<0.0001) {
+					logDEBUG("Detected invalid mean cv cost decrease ratio of: "<<dec); //new_mean<<">"<<cur_mean);
+					// We count this as an error:
+					invalid_count++;
+					if(invalid_count>max_invalid_count) {
+						iter = restoreState();
+						logDEBUG("Max number of invalid Jcv count reached. Resetting the latest best state from iteration "<<iter);
+						
+						if(evalFrequency>1) {
+							// we reduce the evaluation frequency (assuming it is a power of 2)
+							evalFrequency /= 2;
+							invalid_count = 0;
+							logDEBUG("Continuing with eval frequency of "<<evalFrequency)
+						}
+						else {
+							logDEBUG("Early stopping training with cv cost "<< bestCvCost << " from iteration "<<iter);
+							break;
+						}
+					}
+				}
+				else {
+					// Reset the invalid count otherwise:
+					logDEBUG("Resetting invalid count.");
+					invalid_count = 0;
+				}
+			}
+
+			cur_mean = new_mean;
+		}
+
 		// Finally move to the next cycle:
 		iter++;
 	}
+
+	downloadParameters();
 }
+
+void GradientDescentClass::downloadParameters()
+{
+	// Download the parameters from the theta buffer on the GPU:
+	checkCudaErrors(cudaMemcpy(_traits.params(), d_theta, _np*sizeof(value_type), cudaMemcpyDeviceToHost));
+}
+
+GradientDescentClass::value_type GradientDescentClass::computeTrainCost()
+{
+	value_type J = 0.0;
+	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, 0.0, &J, d_grads, d_deltas, d_inputs, d_regw, _stream1);
+	return J;
+}
+
+GradientDescentClass::value_type GradientDescentClass::computeCvCost()
+{
+	value_type J = 0.0;
+	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, 0.0, &J, d_grads, d_deltas, d_inputs, d_regw, _stream1);
+	return J;
+}
+
+void GradientDescentClass::saveState(unsigned int iter)
+{
+	_bestIter = iter;
+	copy_vector_device(d_theta_bak, d_theta, _np);
+	copy_vector_device(d_vel_bak, d_vel, _np);
+}
+
+unsigned int GradientDescentClass::restoreState()
+{
+	copy_vector_device(d_theta, d_theta_bak, _np);
+	copy_vector_device(d_vel, d_vel_bak, _np);
+	return _bestIter;
+}
+
