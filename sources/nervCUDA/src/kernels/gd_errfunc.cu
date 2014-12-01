@@ -69,6 +69,11 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 		*J += (T)((Jreg*lambda)/(2.0*nsamples));
   }
 
+  if(!d_grads) {
+  	// we don't need to compute the gradients.
+  	return;
+  }
+  
 	// Prepare the computation of the delta matrices in reverse order:
 
 	// Offset to use when reading the delta matrix in the current iteration

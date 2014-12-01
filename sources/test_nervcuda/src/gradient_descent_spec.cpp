@@ -544,5 +544,75 @@ BOOST_AUTO_TEST_CASE( test_early_stopping_minibatch )
   BOOST_CHECK_MESSAGE(Jcv1<=Jcv0,"No improvement in cv cost:"<<Jcv1<<">="<<Jcv0);
 }
 
+BOOST_AUTO_TEST_CASE( test_zero_param )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3,5,4,8,500,600);
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // set a parameter to zero and check its evolution:
+  tr.params()[0] = 0.0;
+
+  // Create traits from that trainingset:
+  GradientDescentd::Traits traits(tr);
+  traits.learningRate(0.001);
+  traits.momentum(0.995);
+
+  // enabled early stopping:
+  traits.validationWindowSize(10);
+  traits.miniBatchSize(10);
+
+  // create gradient descent and run:
+  GradientDescentd gd(traits);
+
+  // try to run the gradient descent:
+  gd.run();
+
+  // Actually a value of zero will evolve just like other values
+  // So we should not expect it to be still zero.
+  BOOST_CHECK_MESSAGE(tr.params()[0]!=0.0,"Invalid value for parameter 0:"<<tr.params()[0]);
+}
+
+BOOST_AUTO_TEST_CASE( test_same_params )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3,5,4,8,500,600);
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // set a parameter to zero and check its evolution:
+  tr.params()[0] = 0.0;
+  tr.params()[1] = 0.0;
+
+  // Create traits from that trainingset:
+  GradientDescentd::Traits traits(tr);
+  traits.learningRate(0.001);
+  traits.momentum(0.995);
+
+  // enabled early stopping:
+  traits.validationWindowSize(10);
+  traits.miniBatchSize(10);
+
+  // create gradient descent and run:
+  GradientDescentd gd(traits);
+
+  // try to run the gradient descent:
+  gd.run();
+
+  // Even here we cannot expect the parameter values to always be the same:
+  BOOST_CHECK_MESSAGE(tr.params()[0]!=tr.params()[1],"Match in parameter 0 and 1 values:"<<tr.params()[0]<<"=="<<tr.params()[1]);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

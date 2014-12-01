@@ -582,7 +582,7 @@ void GradientDescentClass::run()
 			// we should move to the next mini batch lot.
 			mbOffset += _miniBatchSize;
 			// logDEBUG("Using mini-batch offset: "<<mbOffset);
-			
+
 			// check if we have enough samples left or if we should reset to the beginning:
 			if((mbOffset+_miniBatchSize)>_nsamples)
 				mbOffset = 0;
@@ -663,16 +663,20 @@ void GradientDescentClass::downloadParameters()
 GradientDescentClass::value_type GradientDescentClass::computeTrainCost()
 {
 	value_type J = 0.0;
+	value_type* grads = nullptr;
+
 	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, 0.0, &J, d_grads, d_deltas, d_inputs, d_regw, _stream1);
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _stream1);
 	return J;
 }
 
 GradientDescentClass::value_type GradientDescentClass::computeCvCost()
 {
 	value_type J = 0.0;
+	value_type* grads = nullptr;
+
 	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, 0.0, &J, d_grads, d_deltas, d_inputs, d_regw, _stream1);
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _stream1);
 	return J;
 }
 
