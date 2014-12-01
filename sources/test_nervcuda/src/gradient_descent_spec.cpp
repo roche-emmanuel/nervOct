@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE( test_training_set_build_random )
   logDEBUG("Epsilon value is: "<<epsilon)
 
   // by default the pointers should be null:
-  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  TrainingSet<value_type> tr(3,5,4,6,10,20);
   BOOST_CHECK(3<=tr.nl() && tr.nl()<=5);
   BOOST_CHECK(tr.lsizes()!=nullptr);
   BOOST_CHECK(tr.X_train()!=nullptr);
@@ -176,7 +176,7 @@ BOOST_AUTO_TEST_CASE( test_training_set_build_random_float )
   logDEBUG("Epsilon value is: "<<epsilon)
 
   // by default the pointers should be null:
-  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  TrainingSet<value_type> tr(3,5,4,6,10,20);
   BOOST_CHECK(3<=tr.nl() && tr.nl()<=5);
   BOOST_CHECK(tr.lsizes()!=nullptr);
   BOOST_CHECK(tr.X_train()!=nullptr);
@@ -416,7 +416,7 @@ BOOST_AUTO_TEST_CASE( test_training_set_cv_data )
 
 
   // by default the pointers should be null:
-  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  TrainingSet<value_type> tr(3,5,4,6,10,20);
   unsigned int nx = (unsigned int)ceil(tr.nsamples()*0.25)*tr.lsizes()[0];
   unsigned int ny = (unsigned int)ceil(tr.nsamples()*0.25)*tr.lsizes()[tr.nt()];
 
@@ -448,7 +448,7 @@ BOOST_AUTO_TEST_CASE( test_train_cost_reduction )
   // logDEBUG("Epsilon value is: "<<epsilon)
 
   // prepare a dataset:
-  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  TrainingSet<value_type> tr(3,5,4,6,10,20);
   tr.maxiter(20);
 
   // Create traits from that trainingset:
@@ -482,7 +482,7 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
   // logDEBUG("Epsilon value is: "<<epsilon)
 
   // prepare a dataset:
-  TrainingSet<value_type> tr(3,5,500,600,4,8);
+  TrainingSet<value_type> tr(3,5,4,8,500,600);
   tr.maxiter(-1); // no limit on maximum number of iterations.
 
   // Create traits from that trainingset:
@@ -492,6 +492,42 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
 
   // enabled early stopping:
   traits.validationWindowSize(10);
+
+  // create gradient descent and run:
+  GradientDescentd gd(traits);
+
+  // compute initial train cost:
+  value_type Jcv0 = gd.computeCvCost();
+
+  // try to run the gradient descent:
+  gd.run();
+
+  // compute the cost on train and cv datasets:
+  value_type Jcv1 = gd.computeCvCost();
+  logDEBUG("Final cv cost is "<<Jcv1);
+  BOOST_CHECK_MESSAGE(Jcv1<=Jcv0,"No improvement in cv cost:"<<Jcv1<<">="<<Jcv0);
+}
+
+BOOST_AUTO_TEST_CASE( test_early_stopping_minibatch )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3,5,4,8,500,600);
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // Create traits from that trainingset:
+  GradientDescentd::Traits traits(tr);
+  traits.learningRate(0.001);
+  traits.momentum(0.995);
+
+  // enabled early stopping:
+  traits.validationWindowSize(10);
+  traits.miniBatchSize(10);
 
   // create gradient descent and run:
   GradientDescentd gd(traits);

@@ -116,3 +116,4 @@
 - Added support for cross validation sets generation in training set.
 - Added implementation of early stopping for gradient descent.
 - Updated early stopping support in gradient descent.
+- Added test for early stopping with mini-batch.

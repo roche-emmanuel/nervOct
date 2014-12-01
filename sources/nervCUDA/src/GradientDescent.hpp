@@ -335,6 +335,8 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	unsigned int ns_cv = traits.y_cv_size()/_lsizes[_nt];
 	THROW_IF(_nsamples_cv!=ns_cv,"Mismatch in computation of _nsamples_cv"<<_nsamples_cv<<"!="<<ns_cv)
 
+	THROW_IF(_miniBatchSize>_nsamples/2,"mini-batch size is too big: "<<_miniBatchSize<<">"<<(_nsamples/2));
+
 	// keep a copy of the traits:
 	_traits = traits;
 
@@ -579,7 +581,8 @@ void GradientDescentClass::run()
 		if(_miniBatchSize>0) {
 			// we should move to the next mini batch lot.
 			mbOffset += _miniBatchSize;
-
+			// logDEBUG("Using mini-batch offset: "<<mbOffset);
+			
 			// check if we have enough samples left or if we should reset to the beginning:
 			if((mbOffset+_miniBatchSize)>_nsamples)
 				mbOffset = 0;
