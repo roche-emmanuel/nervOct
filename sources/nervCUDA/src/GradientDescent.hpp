@@ -298,6 +298,8 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 
 	_validationWindowSize = traits.validationWindowSize();
 	
+	_minCvCostDec = 0.00001;
+
 	// ensure that the traits are usable:
 	THROW_IF(traits.nl()<3,"Invalid nl value: "<<traits.nl())
 	_nl = traits.nl();
@@ -491,21 +493,6 @@ GradientDescentClass::~GradientDescentClass()
 }
 
 template<typename T>
-class WindowedMean {
-public: 
-   WindowedMean(unsigned int maxSize) : _maxSize(maxSize), _totalValue(0.0) {};
-
-   inline unsigned int size() { return (unsigned int)_stack.size(); }
-   inline T getMean() { return _stack.size()==0.0 ? 0.0 : _totalValue/_stack.size(); }
-   T push(T val);
-
-protected:
-   T _totalValue;
-   std::deque<T> _stack;
-   unsigned int _maxSize;
-};
-
-template<typename T>
 T WindowedMean<T>::push(T val) {
 	_stack.push_back(val);
 	_totalValue += val;
@@ -550,11 +537,11 @@ void GradientDescentClass::run()
 
 	// number of cycles after which to evaluation is performed on the cross validation set
 	// when using early stopping:
-	unsigned int evalFrequency = 64;
+	unsigned int evalFrequency = 128;
 	
 	// current number of invalid value for Jcv when using early stopping:
 	unsigned int invalid_count = 0;
-	unsigned int max_invalid_count = 10;
+	unsigned int max_invalid_count = 5;
 
 
 	// Run the iteration loop:
@@ -604,40 +591,40 @@ void GradientDescentClass::run()
 
 		if(earlyStopping && (iter%evalFrequency == 0)) {
 			// perform evaluation of the current theta value:
-			logDEBUG("Performing cv evaluation at iteration "<<iter<<"...");
+			// logDEBUG("Performing cv evaluation at iteration "<<iter<<"...");
 			value_type J = computeCvCost();
 			if(J<bestCvCost) {
 				logDEBUG("Updating best Cv cost to "<<J<<" at iteration "<<iter);
 				// Here we need to save the best cv cost achieved so far and also
 				// save all the relevant parameters in case we need to restart from this point:
 				bestCvCost = J;
-				saveState(iter);
+				saveState(iter,mean);
 			}
-			else {
-				logDEBUG("Discarding worst cv cost: "<<J)
-			}
+			// else {
+			// 	logDEBUG("Discarding worst cv cost: "<<J)
+			// }
 
 			// push the new cost on the window mean:
 			value_type new_mean = mean.push(J);
-			logDEBUG("New mean value is: "<<new_mean);
+			// logDEBUG("New mean value is: "<<new_mean);
 
 			// if we have enough cycles already then check if something is going wrong
 			// with the cv cost:
 			if(mean.size()==_validationWindowSize) {
 				value_type dec = (cur_mean-new_mean)/cur_mean;
-				if(dec<0.0001) {
-					logDEBUG("Detected invalid mean cv cost decrease ratio of: "<<dec); //new_mean<<">"<<cur_mean);
+				if(dec<_minCvCostDec) {
+					logDEBUG("Invalid mean cv cost decrease ratio of: "<<dec); //new_mean<<">"<<cur_mean);
 					// We count this as an error:
 					invalid_count++;
 					if(invalid_count>max_invalid_count) {
-						iter = restoreState();
-						logDEBUG("Max number of invalid Jcv count reached. Resetting the latest best state from iteration "<<iter);
+						iter = restoreState(mean);
+						// logDEBUG("Max number of invalid Jcv count reached. Resetting the latest best state from iteration "<<iter);
 						
 						if(evalFrequency>1) {
 							// we reduce the evaluation frequency (assuming it is a power of 2)
 							evalFrequency /= 2;
 							invalid_count = 0;
-							logDEBUG("Continuing with eval frequency of "<<evalFrequency)
+							logDEBUG("Resetting from iteration "<<iter<<" with eval frequency of "<<evalFrequency)
 						}
 						else {
 							logDEBUG("Early stopping training with cv cost "<< bestCvCost << " from iteration "<<iter);
@@ -646,13 +633,15 @@ void GradientDescentClass::run()
 					}
 				}
 				else {
+					// logDEBUG("Current cv cost is: "<<J);
+
 					// Reset the invalid count otherwise:
-					logDEBUG("Resetting invalid count.");
+					// logDEBUG("Resetting invalid count.");
 					invalid_count = 0;
 				}
 			}
 
-			cur_mean = new_mean;
+			cur_mean = mean.getMean();
 		}
 
 		// Finally move to the next cycle:
@@ -684,17 +673,21 @@ GradientDescentClass::value_type GradientDescentClass::computeCvCost()
 	return J;
 }
 
-void GradientDescentClass::saveState(unsigned int iter)
+void GradientDescentClass::saveState(unsigned int iter, const WindowedMean<value_type>& mean)
 {
 	_bestIter = iter;
+	_bestMean = mean;
+	// logDEBUG("Saved mean is: "<<_bestMean.getMean());
 	copy_vector_device(d_theta_bak, d_theta, _np);
 	copy_vector_device(d_vel_bak, d_vel, _np);
 }
 
-unsigned int GradientDescentClass::restoreState()
+unsigned int GradientDescentClass::restoreState(WindowedMean<value_type>& mean)
 {
 	copy_vector_device(d_theta, d_theta_bak, _np);
 	copy_vector_device(d_vel, d_vel_bak, _np);
+	mean = _bestMean;
+	// logDEBUG("Restored mean is: "<<mean.getMean());
 	return _bestIter;
 }
 

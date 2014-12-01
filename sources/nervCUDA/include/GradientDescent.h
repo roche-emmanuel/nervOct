@@ -9,6 +9,34 @@
 
 namespace nerv {
 
+template<typename T>
+class WindowedMean {
+public: 
+  WindowedMean(unsigned int maxSize = 0) : _maxSize(maxSize), _totalValue(0.0) {};
+
+  WindowedMean(const WindowedMean& rhs) {
+    _totalValue = rhs._totalValue;
+    _stack = rhs._stack;
+    _maxSize = rhs._maxSize;
+    }
+
+    WindowedMean& operator=(const WindowedMean& rhs) {
+    _totalValue = rhs._totalValue;
+    _stack = rhs._stack;
+    _maxSize = rhs._maxSize;
+    return *this;
+    }
+
+    inline unsigned int size() { return (unsigned int)_stack.size(); }
+    inline T getMean() { return _stack.size()==0.0 ? 0.0 : _totalValue/_stack.size(); }
+    T push(T val);
+
+protected:
+   T _totalValue;
+   std::deque<T> _stack;
+   unsigned int _maxSize;
+};
+
 // Basic implementation of gradient decsent on GPU.
 class NERVCUDA_EXPORT GradientDescentClass {
 public:
@@ -169,8 +197,8 @@ public:
 
     void downloadParameters();
 
-    void saveState(unsigned int iter);
-    unsigned int restoreState();
+    void saveState(unsigned int iter, const WindowedMean<value_type>& mean);
+    unsigned int restoreState(WindowedMean<value_type>& mean);
 
 protected:
     Traits _traits;
@@ -184,10 +212,12 @@ protected:
     int _maxiter; // max number of iterations.
 
     unsigned int _bestIter; // backup for the best iteration number so far when using early stopping.
+    WindowedMean<value_type> _bestMean; // best windowed mean stack
 
     value_type _mumax; // maximum value of the momentum.
     value_type _mu; // current value of the momentum.
     value_type _epsilon; // Learning rate value.
+    value_type _minCvCostDec; // minimal valid mean cv cost decrease
 
     value_type _lambda; // regularization parameter.
     value_type* _regw; // host regularization buffer.

@@ -115,3 +115,4 @@
 - Made computation of J optional in gd_errfunc.
 - Added support for cross validation sets generation in training set.
 - Added implementation of early stopping for gradient descent.
+- Updated early stopping support in gradient descent.

@@ -482,14 +482,14 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
   // logDEBUG("Epsilon value is: "<<epsilon)
 
   // prepare a dataset:
-  TrainingSet<value_type> tr(3,5,10,20,4,6);
+  TrainingSet<value_type> tr(3,5,500,600,4,8);
   tr.maxiter(-1); // no limit on maximum number of iterations.
 
   // Create traits from that trainingset:
   GradientDescentd::Traits traits(tr);
   traits.learningRate(0.001);
   traits.momentum(0.995);
-  
+
   // enabled early stopping:
   traits.validationWindowSize(10);
 
@@ -504,6 +504,7 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
 
   // compute the cost on train and cv datasets:
   value_type Jcv1 = gd.computeCvCost();
+  logDEBUG("Final cv cost is "<<Jcv1);
   BOOST_CHECK_MESSAGE(Jcv1<=Jcv0,"No improvement in cv cost:"<<Jcv1<<">="<<Jcv0);
 }
 
