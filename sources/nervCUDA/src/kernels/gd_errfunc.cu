@@ -3,7 +3,7 @@
 
 template<typename T, unsigned int blockSize>
 void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-	T* d_params, T* d_X, T* d_yy, T lambda, T* J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, cudaStream_t stream)
+	T* d_params, T* d_X, T* d_yy, T lambda, T* J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, T bias, cudaStream_t stream)
 {
 	// getLastCudaError("Checkpoint1");
 
@@ -38,7 +38,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 		ComputeActivation<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, next_input_offset,
-			nrows, ncols, ncolT, d_params, d_inputs, d_X);
+			nrows, ncols, ncolT, d_params, d_inputs, d_X, bias);
 		// CHECK_KERNEL();
 
 		// update the offsets:
@@ -143,7 +143,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
     input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
 		// logDEBUG("GPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset<<", nsamples="<<nsamples);
 
-		ComputeGradient<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_X, d_params, d_inputs, d_deltas, d_grads, lambda);
+		ComputeGradient<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_X, d_params, d_inputs, d_deltas, d_grads, lambda, bias);
 		// CHECK_KERNEL()
 
 		// update the gradient offset by removing the size of the next gradient matrix to be computed:

@@ -3,7 +3,7 @@
 
 template <typename T, unsigned int blockSize>
 __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X) 
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X, T bias) 
 {
 
 	// Note that we assume here that the matrix coefficient are stored in row major order:
@@ -17,7 +17,8 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
   int xx, yy;
 
   // we can already add the element on the first row of theta_i to this element value:
-  T zval = nn_params[theta_offset + row];
+  // but note that this element should be multiplied with the desired bias:
+  T zval = nn_params[theta_offset + row]*bias;
 
   // Here we compute the product theta_i * a_i^T
   for (int k = 0; k < (blockSize + ncolT - 1)/blockSize; k++) {
@@ -75,7 +76,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 
 // Explicit specialization:
 template __global__ void ComputeActivation<double>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X);
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X, double bias);
 
 template __global__ void ComputeActivation<float>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, float* nn_params, float* inputs, float* X);
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, float* nn_params, float* inputs, float* X, float bias);

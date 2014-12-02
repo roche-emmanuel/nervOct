@@ -19,7 +19,7 @@ GradientDescentClass::Traits::Traits()
 	_y_cv(nullptr), _y_cv_size(0), 
 	_params(nullptr), _nparams(0),
 	_mu(0.0), _epsilon(0.0), _miniBatchSize(0),
-	_validationWindowSize(0)
+	_validationWindowSize(0), _bias(1.0)
 {
 }
 
@@ -151,6 +151,18 @@ GradientDescentClass::value_type GradientDescentClass::Traits::learningRate() co
 	return _epsilon;
 }
 
+GradientDescentClass::Traits& GradientDescentClass::Traits::bias(value_type b)
+{
+	_bias = b;
+	return *this;
+}
+
+GradientDescentClass::value_type GradientDescentClass::Traits::bias() const
+{
+	return _bias;
+}
+
+
 GradientDescentClass::Traits& GradientDescentClass::Traits::miniBatchSize(unsigned int size)
 {
 	_miniBatchSize = size;
@@ -245,6 +257,8 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
   _y_cv = rhs._y_cv;
   _y_cv_size = rhs._y_cv_size;
 
+  _bias = rhs._bias;
+
 	return *this;
 }
 
@@ -277,6 +291,7 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 	_epsilon = 0.0;
 	_miniBatchSize = 0;
 	_validationWindowSize = 0;
+	_bias = 1.0;
 }
 
 GradientDescentClass::GradientDescentClass(const Traits& traits)
@@ -299,6 +314,9 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	_validationWindowSize = traits.validationWindowSize();
 	
 	_minCvCostDec = 0.00001;
+
+	// Retrieve the bias value:
+	_bias = traits.bias();
 
 	// ensure that the traits are usable:
 	THROW_IF(traits.nl()<3,"Invalid nl value: "<<traits.nl())
@@ -568,7 +586,7 @@ void GradientDescentClass::run()
 
 		// 3. Once we have the parameter vector, we compute the gradient at that location:
 		gd_errfunc_device(_nl, _np, _lsizes, ns, d_params, 
-			X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _stream1);
+			X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
 
 		// logDEBUG("Performing iteration "<<iter<<", Jtrain="<<current_cost);
 
@@ -666,7 +684,7 @@ GradientDescentClass::value_type GradientDescentClass::computeTrainCost()
 	value_type* grads = nullptr;
 
 	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _stream1);
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
 	return J;
 }
 
@@ -676,7 +694,7 @@ GradientDescentClass::value_type GradientDescentClass::computeCvCost()
 	value_type* grads = nullptr;
 
 	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _stream1);
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
 	return J;
 }
 

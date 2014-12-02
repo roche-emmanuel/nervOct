@@ -118,3 +118,4 @@
 - Updated early stopping support in gradient descent.
 - Added test for early stopping with mini-batch.
 - Avoiding gradient computation in cv cost evaluation.
+- Added specification of the bias in gradient descent.

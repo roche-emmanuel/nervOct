@@ -148,6 +148,12 @@ public:
         /** Retrieve the size of the cross validation labels.*/
         unsigned int y_cv_size() const;
 
+        /** Set the bias value used in the network.*/
+        Traits& bias(value_type b);
+
+        /** Retrieve the bias value.*/
+        value_type bias() const;
+
     protected:
         unsigned int _nl;
         unsigned int _nsamples;
@@ -177,6 +183,8 @@ public:
 
         value_type* _y_cv;
         unsigned int _y_cv_size;
+
+        value_type _bias;
     };
 
 
@@ -218,7 +226,8 @@ protected:
     value_type _mu; // current value of the momentum.
     value_type _epsilon; // Learning rate value.
     value_type _minCvCostDec; // minimal valid mean cv cost decrease
-
+    value_type _bias; // Bias value used for the neurons in the network.
+    
     value_type _lambda; // regularization parameter.
     value_type* _regw; // host regularization buffer.
 

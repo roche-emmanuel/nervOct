@@ -614,5 +614,42 @@ BOOST_AUTO_TEST_CASE( test_same_params )
   BOOST_CHECK_MESSAGE(tr.params()[0]!=tr.params()[1],"Match in parameter 0 and 1 values:"<<tr.params()[0]<<"=="<<tr.params()[1]);
 }
 
+BOOST_AUTO_TEST_CASE( test_specify_bias )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3,5,3,6,200,300);
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // set a parameter to zero and check its evolution:
+  tr.params()[0] = 0.0;
+  tr.params()[1] = 1.0;
+
+  // Create traits from that trainingset:
+  GradientDescentd::Traits traits(tr);
+  traits.learningRate(0.001);
+  traits.momentum(0.995);
+  traits.bias(0.0);
+
+  // enabled early stopping:
+  traits.validationWindowSize(10);
+  traits.miniBatchSize(100);
+
+  // create gradient descent and run:
+  GradientDescentd gd(traits);
+
+  // try to run the gradient descent:
+  gd.run();
+
+  // Here we expect the weights to never be updated because the bias is used as input for
+  // those 2 parameters and it was set to 0.0
+  BOOST_CHECK_MESSAGE(tr.params()[0]==0.0,"Invalid value for parameter 0:"<<tr.params()[0]);
+  BOOST_CHECK_MESSAGE(tr.params()[1]==1.0,"Invalid value for parameter 1:"<<tr.params()[1]);
+}
 
 BOOST_AUTO_TEST_SUITE_END()

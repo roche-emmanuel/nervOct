@@ -1,3 +1,8 @@
+*** TODOs:
+- Specify the bias value in errfunc.
+- Implement float test for gradient descent.
+
+
 *** CUDA infos:
 
 Showing CUDA info...

@@ -58,7 +58,7 @@ __global__ void CostFuncKernel(unsigned int nl, unsigned int* lsizes, unsigned i
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X);
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X, T bias = 1.0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void InitLastDelta(unsigned int nrows, unsigned int ncols, T* deltas, T* hx, T* yy);
@@ -69,6 +69,6 @@ __global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offse
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeGradient(unsigned int theta_offset, int input_offset, unsigned int delta_offset, unsigned int grad_offset,
-    unsigned int nrows, unsigned int ncols, unsigned int niter, T* X, T* nn_params, T* inputs, T* deltas, T* grads, T lambda); 
+    unsigned int nrows, unsigned int ncols, unsigned int niter, T* X, T* nn_params, T* inputs, T* deltas, T* grads, T lambda, T bias = 1.0); 
 
 #endif
