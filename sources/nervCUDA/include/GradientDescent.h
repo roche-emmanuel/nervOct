@@ -1,41 +1,14 @@
 
-#ifndef NERV_GRADIENTDESCENT_H_
-#define NERV_GRADIENTDESCENT_H_
+// #ifndef NERV_GRADIENTDESCENT_H_
+// #define NERV_GRADIENTDESCENT_H_
 
 #include <nervcuda.h>
 #include <sgtcore.h>
 
 #include <nerv/TrainingSet.h>
+#include <nerv/WindowedMean.h>
 
 namespace nerv {
-
-template<typename T>
-class WindowedMean {
-public: 
-  WindowedMean(unsigned int maxSize = 0) : _maxSize(maxSize), _totalValue(0.0) {};
-
-  WindowedMean(const WindowedMean& rhs) {
-    _totalValue = rhs._totalValue;
-    _stack = rhs._stack;
-    _maxSize = rhs._maxSize;
-    }
-
-    WindowedMean& operator=(const WindowedMean& rhs) {
-    _totalValue = rhs._totalValue;
-    _stack = rhs._stack;
-    _maxSize = rhs._maxSize;
-    return *this;
-    }
-
-    inline unsigned int size() { return (unsigned int)_stack.size(); }
-    inline T getMean() { return _stack.size()==0.0 ? 0.0 : _totalValue/_stack.size(); }
-    T push(T val);
-
-protected:
-   T _totalValue;
-   std::deque<T> _stack;
-   unsigned int _maxSize;
-};
 
 // Basic implementation of gradient decsent on GPU.
 class NERVCUDA_EXPORT GradientDescentClass {
@@ -227,7 +200,7 @@ protected:
     value_type _epsilon; // Learning rate value.
     value_type _minCvCostDec; // minimal valid mean cv cost decrease
     value_type _bias; // Bias value used for the neurons in the network.
-    
+
     value_type _lambda; // regularization parameter.
     value_type* _regw; // host regularization buffer.
 
@@ -257,4 +230,4 @@ protected:
 
 };
 
-#endif
+// #endif

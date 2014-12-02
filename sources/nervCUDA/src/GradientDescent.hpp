@@ -313,7 +313,7 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 
 	_validationWindowSize = traits.validationWindowSize();
 	
-	_minCvCostDec = 0.00001;
+	_minCvCostDec = (value_type)0.00001;
 
 	// Retrieve the bias value:
 	_bias = traits.bias();
@@ -512,22 +512,6 @@ GradientDescentClass::~GradientDescentClass()
 	checkCudaErrors(cudaStreamDestroy(_stream1));
 }
 
-template<typename T>
-T WindowedMean<T>::push(T val) {
-	_stack.push_back(val);
-	_totalValue += val;
-
-	if(_stack.size() > _maxSize) {
-		// remove the initial value
-		T pval = _stack.front();
-		_stack.pop_front();
-		_totalValue -= pval;
-	}
-
-	return _totalValue/_stack.size();
-}
-
-
 void GradientDescentClass::run()
 {
 	int iter=0;
@@ -579,10 +563,10 @@ void GradientDescentClass::run()
 
 		// 1. We need to compute the desired value of mu for this cycle:
 		// formula from [1]
-		_mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter/250.0)+1)/LOG2), _mumax);
+		_mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter/250.0)+1)/LOG2), (double)_mumax);
 
 		// 2. prepare the parameter vector:
-		mix_vectors_device(d_params, d_theta, d_vel, 1.0, _mu, _np, _stream1);
+		mix_vectors_device(d_params, d_theta, d_vel, (value_type)1.0, _mu, _np, _stream1);
 
 		// 3. Once we have the parameter vector, we compute the gradient at that location:
 		gd_errfunc_device(_nl, _np, _lsizes, ns, d_params, 
@@ -594,7 +578,7 @@ void GradientDescentClass::run()
 		mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _stream1);
 
 		// 5. Now that we have the new velocity, we can compute the new value for the theta vector:
-		mix_vectors_device(d_theta, d_theta, d_vel, 1.0, 1.0, _np, _stream1);
+		mix_vectors_device(d_theta, d_theta, d_vel, (value_type)1.0, (value_type)1.0, _np, _stream1);
 
 		if(_miniBatchSize>0) {
 			// we should move to the next mini batch lot.
@@ -684,7 +668,7 @@ GradientDescentClass::value_type GradientDescentClass::computeTrainCost()
 	value_type* grads = nullptr;
 
 	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
 	return J;
 }
 
@@ -694,7 +678,7 @@ GradientDescentClass::value_type GradientDescentClass::computeCvCost()
 	value_type* grads = nullptr;
 
 	// compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, 0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
+	gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
 	return J;
 }
 

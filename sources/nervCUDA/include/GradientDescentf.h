@@ -1,6 +1,6 @@
 
-#ifndef NERV_GRADIENTDESCENTD_H_
-#define NERV_GRADIENTDESCENTD_H_
+#ifndef NERV_GRADIENTDESCENTF_H_
+#define NERV_GRADIENTDESCENTF_H_
 
 #ifdef GradientDescentClass
 #undef GradientDescentClass
@@ -10,8 +10,8 @@
 #undef GradientDescentValueType
 #endif
 
-#define GradientDescentClass GradientDescentd
-#define GradientDescentValueType double
+#define GradientDescentClass GradientDescentf
+#define GradientDescentValueType float
 
 #include "GradientDescent.h"
 

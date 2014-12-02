@@ -9,6 +9,7 @@
 #include <nervcuda.h>
 #include <nerv/TrainingSet.h>
 #include <GradientDescentd.h>
+#include <GradientDescentf.h>
 #include <windows.h>
 
 #include <cuda_runtime.h>
@@ -651,5 +652,42 @@ BOOST_AUTO_TEST_CASE( test_specify_bias )
   BOOST_CHECK_MESSAGE(tr.params()[0]==0.0,"Invalid value for parameter 0:"<<tr.params()[0]);
   BOOST_CHECK_MESSAGE(tr.params()[1]==1.0,"Invalid value for parameter 1:"<<tr.params()[1]);
 }
+
+BOOST_AUTO_TEST_CASE( test_early_stopping_minibatch_float )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef float value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3,5,4,8,500,600);
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // Create traits from that trainingset:
+  GradientDescentf::Traits traits(tr);
+  traits.learningRate(0.001f);
+  traits.momentum(0.995f);
+
+  // enabled early stopping:
+  traits.validationWindowSize(10);
+  traits.miniBatchSize(32);
+
+  // create gradient descent and run:
+  GradientDescentf gd(traits);
+
+  // compute initial train cost:
+  value_type Jcv0 = gd.computeCvCost();
+
+  // try to run the gradient descent:
+  gd.run();
+
+  // compute the cost on train and cv datasets:
+  value_type Jcv1 = gd.computeCvCost();
+  logDEBUG("Final cv cost is "<<Jcv1);
+  BOOST_CHECK_MESSAGE(Jcv1<=Jcv0,"No improvement in cv cost:"<<Jcv1<<">="<<Jcv0);
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
