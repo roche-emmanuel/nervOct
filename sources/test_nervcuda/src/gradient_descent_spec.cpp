@@ -8,8 +8,7 @@
 
 #include <nervcuda.h>
 #include <nerv/TrainingSet.h>
-#include <GradientDescentd.h>
-#include <GradientDescentf.h>
+#include <GradientDescent.h>
 #include <windows.h>
 
 #include <cuda_runtime.h>
@@ -18,6 +17,7 @@
 #include <boost/chrono.hpp>
 
 using namespace nerv;
+
 
 BOOST_AUTO_TEST_SUITE( gradient_descent_suite )
 

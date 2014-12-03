@@ -121,3 +121,4 @@
 - Added specification of the bias in gradient descent.
 - Added implementation and test for gradientDescentf.
 - Preparing for update of gradient descent classes.
+- Working implementation for templated gradient descent version.
