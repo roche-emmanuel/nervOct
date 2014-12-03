@@ -1,4 +1,5 @@
 *** TODOs:
+- build real classes for GradientDescentd and GradientDescentf => GDd and GDf
 - Implement Sparse Initialization.
 
 *** CUDA infos:
