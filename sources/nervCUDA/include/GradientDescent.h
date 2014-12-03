@@ -296,6 +296,7 @@ class GradientDescent
 {
 public:
   typedef T value_type;
+  typedef GDTraits<value_type> Traits;
 
   // Constructor taking all the parameters needed for computation:
   GradientDescent(const GDTraits<value_type> &traits);
@@ -368,46 +369,8 @@ template class NERVCUDA_EXPORT GDTraits<double>;
 template class NERVCUDA_EXPORT GradientDescent<float>;
 template class NERVCUDA_EXPORT GDTraits<float>;
 
-// typedef GradientDescent<double> GradientDescentd;
-// typedef GradientDescent<float> GradientDescentf;
-
-#if 1
-class NERVCUDA_EXPORT GradientDescentd : public GradientDescent<double>
-{
-  typedef GradientDescent<double> base_class;
-  typedef GDTraits<double> base_traits;
-
-public:
-
-  class NERVCUDA_EXPORT Traits : public base_traits
-  {
-  public:
-    Traits() : base_traits() {};
-    Traits(const TrainingSet<base_class::value_type> &tr) : base_traits(tr) {};
-    Traits(const Traits &rhs) : base_traits(rhs) {};
-  };
-
-  GradientDescentd(const Traits &traits) : base_class(traits) {};
-};
-
-class NERVCUDA_EXPORT GradientDescentf : public GradientDescent<float>
-{
-  typedef GradientDescent<float> base_class;
-  typedef GDTraits<float> base_traits;
-
-public:
-
-  class NERVCUDA_EXPORT Traits : public base_traits
-  {
-  public:
-    Traits() : base_traits() {};
-    Traits(const TrainingSet<base_class::value_type> &tr) : base_traits(tr) {};
-    Traits(const Traits &rhs) : base_traits(rhs) {};
-  };
-
-  GradientDescentf(const Traits &traits) : base_class(traits) {};
-};
-#endif
+typedef GradientDescent<double> GDd;
+typedef GradientDescent<float> GDf;
 
 };
 

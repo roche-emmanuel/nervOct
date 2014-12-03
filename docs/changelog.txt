@@ -122,3 +122,4 @@
 - Added implementation and test for gradientDescentf.
 - Preparing for update of gradient descent classes.
 - Working implementation for templated gradient descent version.
+- Built real classes GDd and GDf for GradientDescent double and float versions.

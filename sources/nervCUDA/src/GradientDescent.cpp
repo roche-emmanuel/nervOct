@@ -551,14 +551,3 @@ unsigned int GradientDescent<T>::restoreState(WindowedMean<T> &mean)
   // logDEBUG("Restored mean is: "<<mean.getMean());
   return _bestIter;
 }
-
-// template class GradientDescent<double>;
-// template class GradientDescent<double>::GDTraits;
-// template class GradientDescent<float>;
-// template class GradientDescent<float>::GDTraits;
-
-// template NERVCUDA_EXPORT class GradientDescent<double>;
-// template NERVCUDA_EXPORT class GradientDescent<double>::GDTraits;
-// template NERVCUDA_EXPORT class GradientDescent<float>;
-// template NERVCUDA_EXPORT class GradientDescent<float>::GDTraits;
-
