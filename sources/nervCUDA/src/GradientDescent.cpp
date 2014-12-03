@@ -6,11 +6,13 @@
 #include <algorithm>
 #include <limits>
 
+#include <GradientDescent.h>
+
 #define LOG2 0.6931471805599453
 
 using namespace nerv;
 
-GradientDescentClass::Traits::Traits() 
+GradientDescent::Traits::Traits() 
 	: _nsamples(0), _maxiter(0), _lambda(0.0),
 	_lsizes(nullptr), _nl(0),
 	_X_train(nullptr), _X_train_size(0),
@@ -23,209 +25,209 @@ GradientDescentClass::Traits::Traits()
 {
 }
 
-GradientDescentClass::Traits::~Traits()
+GradientDescent::Traits::~Traits()
 {
 }
 
 
-unsigned int GradientDescentClass::Traits::nl() const
+unsigned int GradientDescent::Traits::nl() const
 {
 	return _nl;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::lsizes(unsigned int* layer_sizes, unsigned int nl)
+GradientDescent::Traits& GradientDescent::Traits::lsizes(unsigned int* layer_sizes, unsigned int nl)
 {
 	_nl = nl;
 	_lsizes = layer_sizes;
 	return *this;
 }
 
-unsigned int* GradientDescentClass::Traits::lsizes() const
+unsigned int* GradientDescent::Traits::lsizes() const
 {
 	return _lsizes;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::nsamples(unsigned int num_samples)
+GradientDescent::Traits& GradientDescent::Traits::nsamples(unsigned int num_samples)
 {
 	_nsamples = num_samples;
 	return *this;
 }
 
-unsigned int GradientDescentClass::Traits::nsamples() const
+unsigned int GradientDescent::Traits::nsamples() const
 {
 	return _nsamples;
 }
 
-unsigned int GradientDescentClass::Traits::nparams() const
+unsigned int GradientDescent::Traits::nparams() const
 {
 	return _nparams;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::X_train(GradientDescentClass::value_type* X, unsigned int size)
+GradientDescent::Traits& GradientDescent::Traits::X_train(GradientDescent::value_type* X, unsigned int size)
 {
 	_X_train_size = size;
 	_X_train = X;
 	return *this;
 }
 
-GradientDescentClass::value_type* GradientDescentClass::Traits::X_train() const
+GradientDescent::value_type* GradientDescent::Traits::X_train() const
 {
 	return _X_train;
 }
 
-unsigned int GradientDescentClass::Traits::X_train_size() const
+unsigned int GradientDescent::Traits::X_train_size() const
 {
 	return _X_train_size;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::y_train(GradientDescentClass::value_type* y, unsigned int size)
+GradientDescent::Traits& GradientDescent::Traits::y_train(GradientDescent::value_type* y, unsigned int size)
 {
 	_y_train_size = size;
 	_y_train = y;
 	return *this;
 }
 
-GradientDescentClass::value_type* GradientDescentClass::Traits::y_train() const
+GradientDescent::value_type* GradientDescent::Traits::y_train() const
 {
 	return _y_train;
 }
 
-unsigned int GradientDescentClass::Traits::y_train_size() const
+unsigned int GradientDescent::Traits::y_train_size() const
 {
 	return _y_train_size;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::params(GradientDescentClass::value_type* p, unsigned int nparams)
+GradientDescent::Traits& GradientDescent::Traits::params(GradientDescent::value_type* p, unsigned int nparams)
 {
 	_nparams = nparams;
 	_params = p;
 	return *this;
 }
 
-GradientDescentClass::value_type* GradientDescentClass::Traits::params() const
+GradientDescent::value_type* GradientDescent::Traits::params() const
 {
 	return _params;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::maxiter(int num)
+GradientDescent::Traits& GradientDescent::Traits::maxiter(int num)
 {
 	_maxiter = num;
 	return *this;
 }
 
-int GradientDescentClass::Traits::maxiter() const
+int GradientDescent::Traits::maxiter() const
 {
 	return _maxiter;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::lambda(value_type val)
+GradientDescent::Traits& GradientDescent::Traits::lambda(value_type val)
 {
 	_lambda = val;
 	return *this;
 }
 
-GradientDescentClass::value_type GradientDescentClass::Traits::lambda() const
+GradientDescent::value_type GradientDescent::Traits::lambda() const
 {
 	return _lambda;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::momentum(value_type mu)
+GradientDescent::Traits& GradientDescent::Traits::momentum(value_type mu)
 {
 	_mu = mu;
 	return *this;
 }
 
-GradientDescentClass::value_type GradientDescentClass::Traits::momentum() const
+GradientDescent::value_type GradientDescent::Traits::momentum() const
 {
 	return _mu;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::learningRate(value_type lr)
+GradientDescent::Traits& GradientDescent::Traits::learningRate(value_type lr)
 {
 	_epsilon = lr;
 	return *this;
 }
 
-GradientDescentClass::value_type GradientDescentClass::Traits::learningRate() const
+GradientDescent::value_type GradientDescent::Traits::learningRate() const
 {
 	return _epsilon;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::bias(value_type b)
+GradientDescent::Traits& GradientDescent::Traits::bias(value_type b)
 {
 	_bias = b;
 	return *this;
 }
 
-GradientDescentClass::value_type GradientDescentClass::Traits::bias() const
+GradientDescent::value_type GradientDescent::Traits::bias() const
 {
 	return _bias;
 }
 
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::miniBatchSize(unsigned int size)
+GradientDescent::Traits& GradientDescent::Traits::miniBatchSize(unsigned int size)
 {
 	_miniBatchSize = size;
 	return *this;
 }
 
-unsigned int GradientDescentClass::Traits::miniBatchSize() const
+unsigned int GradientDescent::Traits::miniBatchSize() const
 {
 	return _miniBatchSize;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::validationWindowSize(unsigned int size)
+GradientDescent::Traits& GradientDescent::Traits::validationWindowSize(unsigned int size)
 {
 	_validationWindowSize = size;
 	return *this;
 }
 
-unsigned int GradientDescentClass::Traits::validationWindowSize() const
+unsigned int GradientDescent::Traits::validationWindowSize() const
 {
 	return _validationWindowSize;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::X_cv(GradientDescentClass::value_type* X, unsigned int size)
+GradientDescent::Traits& GradientDescent::Traits::X_cv(GradientDescent::value_type* X, unsigned int size)
 {
 	_X_cv_size = size;
 	_X_cv = X;
 	return *this;
 }
 
-GradientDescentClass::value_type* GradientDescentClass::Traits::X_cv() const
+GradientDescent::value_type* GradientDescent::Traits::X_cv() const
 {
 	return _X_cv;
 }
 
-unsigned int GradientDescentClass::Traits::X_cv_size() const
+unsigned int GradientDescent::Traits::X_cv_size() const
 {
 	return _X_cv_size;
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::y_cv(GradientDescentClass::value_type* y, unsigned int size)
+GradientDescent::Traits& GradientDescent::Traits::y_cv(GradientDescent::value_type* y, unsigned int size)
 {
 	_y_cv_size = size;
 	_y_cv = y;
 	return *this;
 }
 
-GradientDescentClass::value_type* GradientDescentClass::Traits::y_cv() const
+GradientDescent::value_type* GradientDescent::Traits::y_cv() const
 {
 	return _y_cv;
 }
 
-unsigned int GradientDescentClass::Traits::y_cv_size() const
+unsigned int GradientDescent::Traits::y_cv_size() const
 {
 	return _y_cv_size;
 }
 
 
-GradientDescentClass::Traits::Traits(const GradientDescentClass::Traits& rhs)
+GradientDescent::Traits::Traits(const GradientDescent::Traits& rhs)
 {
 	this->operator=(rhs);
 }
 
-GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const GradientDescentClass::Traits& rhs)
+GradientDescent::Traits& GradientDescent::Traits::operator=(const GradientDescent::Traits& rhs)
 {
   _nl = rhs._nl;
   _nsamples = rhs._nsamples;
@@ -262,7 +264,7 @@ GradientDescentClass::Traits& GradientDescentClass::Traits::operator=(const Grad
 	return *this;
 }
 
-GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
+GradientDescent::Traits::Traits(const TrainingSet<value_type>& tr)
 {
 	_nl = tr.nl();
 	_nsamples = tr.nsamples();
@@ -294,7 +296,7 @@ GradientDescentClass::Traits::Traits(const TrainingSet<value_type>& tr)
 	_bias = 1.0;
 }
 
-GradientDescentClass::GradientDescentClass(const Traits& traits)
+GradientDescent::GradientDescent(const Traits& traits)
 {
 	_bestIter = 0;
 
@@ -478,7 +480,7 @@ GradientDescentClass::GradientDescentClass(const Traits& traits)
 	checkCudaErrors(cudaMemsetAsync(d_inputs,0,size,_stream1));
 }
 
-GradientDescentClass::~GradientDescentClass()
+GradientDescent::~GradientDescent()
 {
 	// unregister the pinned memory:
 	checkCudaErrors(cudaHostUnregister(_traits.X_train())); 
@@ -512,7 +514,7 @@ GradientDescentClass::~GradientDescentClass()
 	checkCudaErrors(cudaStreamDestroy(_stream1));
 }
 
-void GradientDescentClass::run()
+void GradientDescent::run()
 {
 	int iter=0;
 	value_type* current_cost = NULL;
@@ -656,13 +658,13 @@ void GradientDescentClass::run()
 	downloadParameters();
 }
 
-void GradientDescentClass::downloadParameters()
+void GradientDescent::downloadParameters()
 {
 	// Download the parameters from the theta buffer on the GPU:
 	checkCudaErrors(cudaMemcpy(_traits.params(), d_theta, _np*sizeof(value_type), cudaMemcpyDeviceToHost));
 }
 
-GradientDescentClass::value_type GradientDescentClass::computeTrainCost()
+GradientDescent::value_type GradientDescent::computeTrainCost()
 {
 	value_type J = 0.0;
 	value_type* grads = nullptr;
@@ -672,7 +674,7 @@ GradientDescentClass::value_type GradientDescentClass::computeTrainCost()
 	return J;
 }
 
-GradientDescentClass::value_type GradientDescentClass::computeCvCost()
+GradientDescent::value_type GradientDescent::computeCvCost()
 {
 	value_type J = 0.0;
 	value_type* grads = nullptr;
@@ -682,7 +684,7 @@ GradientDescentClass::value_type GradientDescentClass::computeCvCost()
 	return J;
 }
 
-void GradientDescentClass::saveState(unsigned int iter, const WindowedMean<value_type>& mean)
+void GradientDescent::saveState(unsigned int iter, const WindowedMean<value_type>& mean)
 {
 	_bestIter = iter;
 	_bestMean = mean;
@@ -691,7 +693,7 @@ void GradientDescentClass::saveState(unsigned int iter, const WindowedMean<value
 	copy_vector_device(d_vel_bak, d_vel, _np);
 }
 
-unsigned int GradientDescentClass::restoreState(WindowedMean<value_type>& mean)
+unsigned int GradientDescent::restoreState(WindowedMean<value_type>& mean)
 {
 	copy_vector_device(d_theta, d_theta_bak, _np);
 	copy_vector_device(d_vel, d_vel_bak, _np);
@@ -699,4 +701,9 @@ unsigned int GradientDescentClass::restoreState(WindowedMean<value_type>& mean)
 	// logDEBUG("Restored mean is: "<<mean.getMean());
 	return _bestIter;
 }
+
+template NERVCUDA_EXPORT class GradientDescent<double>;
+template NERVCUDA_EXPORT class GradientDescent<double>::Traits;
+template NERVCUDA_EXPORT class GradientDescent<float>;
+template NERVCUDA_EXPORT class GradientDescent<float>::Traits;
 

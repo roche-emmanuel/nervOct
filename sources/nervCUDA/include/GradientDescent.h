@@ -1,6 +1,6 @@
 
-// #ifndef NERV_GRADIENTDESCENT_H_
-// #define NERV_GRADIENTDESCENT_H_
+#ifndef NERV_GRADIENTDESCENT_H_
+#define NERV_GRADIENTDESCENT_H_
 
 #include <nervcuda.h>
 #include <sgtcore.h>
@@ -11,12 +11,13 @@
 namespace nerv {
 
 // Basic implementation of gradient decsent on GPU.
-class NERVCUDA_EXPORT GradientDescentClass {
-public:
-    typedef GradientDescentValueType value_type;
-    typedef std::deque<value_type> ValueList;
 
-    class NERVCUDA_EXPORT Traits {
+template<typename T>
+class GradientDescent {
+public:
+    typedef T value_type;
+
+    class Traits {
     public:
         Traits();
         Traits(const TrainingSet<value_type>& tr);
@@ -163,13 +164,13 @@ public:
 
 public:
     // Constructor taking all the parameters needed for computation:
-    GradientDescentClass(const Traits& traits);
+    GradientDescent(const Traits& traits);
 
 // unsigned int nl, unsigned int nsamples, unsigned int nparams, 
 //         unsigned int* lsizes, double* X, double* yy, double* init_params,
 //          double lambda, unsigned int maxiter, double* params
 
-    ~GradientDescentClass();
+    ~GradientDescent();
 
     void run();
 
@@ -228,6 +229,11 @@ protected:
     unsigned int _validationWindowSize; // size of the windowed mean for the cross validation cost vector.
 };
 
+template NERVCUDA_EXPORT class GradientDescent<double>;
+template NERVCUDA_EXPORT class GradientDescent<double>::Traits;
+template NERVCUDA_EXPORT class GradientDescent<float>;
+template NERVCUDA_EXPORT class GradientDescent<float>::Traits;
+
 };
 
-// #endif
+#endif
