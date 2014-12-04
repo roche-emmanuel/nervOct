@@ -1,5 +1,6 @@
 *** TODOs:
-- Implement Sparse Initialization.
+- Implement dropout/apply weight multiplier for test time.
+
 
 *** CUDA infos:
 

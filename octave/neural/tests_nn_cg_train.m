@@ -130,7 +130,7 @@
 %test
 %	cfg = config();
 %	tr = nnPrepareTraining(1:1,cfg);
-%	nn = nnInitNetwork([tr.num_features 10 3]);
+%	nn = nnInitNetwork([tr.num_features 10 3],cfg);
 %	X = tr.X_train;
 %	y = tr.y_train;
 %	

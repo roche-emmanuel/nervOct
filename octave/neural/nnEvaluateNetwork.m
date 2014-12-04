@@ -77,7 +77,7 @@ end
 %!	cfg = config();
 %!	cfg.default_max_training_iterations = 10;
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([tr.num_features 10 3]);
+%!	nn = nnInitNetwork([tr.num_features 10 3],cfg);
 %!	% tr.deep_training = true;
 %!	nn = nnTrainNetwork(tr,nn,cfg);
 %!	ev = nnEvaluateNetwork(tr,nn,cfg);

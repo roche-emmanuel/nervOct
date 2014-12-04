@@ -60,7 +60,7 @@ cfg = config();
 %	load training set:
 fname = [cfg.datapath '/training_weeks_1_4_pca.mat'];
 load(fname);
-nn = nnInitNetwork([tr.num_features 100 3]);
+nn = nnInitNetwork([tr.num_features 100 3],cfg);
 tic();
 nn = nnTrainNetworkCUDA(tr,nn,cfg);
 toc();

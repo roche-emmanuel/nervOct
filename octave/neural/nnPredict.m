@@ -81,7 +81,7 @@ end
 %!	num_labels = 3;
 %!	num_samples = 30;
 %!	tr = nnPrepareDebugTraining(num_samples,num_features,num_labels,cfg);
-%!	nn = nnInitNetwork([num_features 6 num_labels]);
+%!	nn = nnInitNetwork([num_features 6 num_labels],cfg);
 %!	% tr.deep_training = true;
 %!	%for i=1:10,
 %!		nn = nnTrainNetwork(tr,nn,cfg);

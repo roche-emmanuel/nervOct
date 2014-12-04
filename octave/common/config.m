@@ -85,4 +85,10 @@ cfg.PCA_variance = 99.9;
 % Apply early stopping when training the networks:
 cfg.use_early_stopping = false;
 
+% Use sparse initialization:
+cfg.use_sparse_init = false;
+
+% Number of neurons with active weights when using sparse initialization:
+cfg.sparse_init_lot_size = 15;
+
 end

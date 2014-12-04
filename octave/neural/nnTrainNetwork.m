@@ -64,7 +64,7 @@ end
 % prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([cfg.num_features 10 3]);
+%!	nn = nnInitNetwork([cfg.num_features 10 3],cfg);
 %!	% tr.deep_training = true;
 %!  tic();
 %!	nn = nnTrainNetwork(tr,nn,cfg);

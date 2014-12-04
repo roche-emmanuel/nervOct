@@ -8,7 +8,7 @@ m_vals = zeros(num,1);
 
 m = size(training.X_train,1);
 
-nn = nnInitNetwork(lsizes);
+nn = nnInitNetwork(lsizes,cfg);
 
 for i=1:num,
 	training.train_ratio = ratios(i);

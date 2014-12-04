@@ -41,6 +41,9 @@ addpath([pname '/neural']);
 % fprintf('Testing nnDebugInitializeWeights...\n')
 % test nnDebugInitializeWeights
 
+fprintf('Testing nnSparseInitializeWeights...\n')
+test nnSparseInitializeWeights
+
 % fprintf('Testing nnCostFunction...\n')
 % test nnCostFunction
 
@@ -65,8 +68,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nnPrepareDebugTraining...\n')
 % test nnPrepareDebugTraining
 
-% fprintf('Testing nnInitNetwork...\n')
-% test nnInitNetwork
+fprintf('Testing nnInitNetwork...\n')
+test nnInitNetwork
 
 % fprintf('Testing nnBuildLabelMatrix...\n')
 % test nnBuildLabelMatrix
@@ -77,8 +80,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nn_cg_train_cpu...\n')
 % test tests_nn_cg_train_cpu;
 
-fprintf('Testing nn_cg_train...\n')
-test tests_nn_cg_train;
+% fprintf('Testing nn_cg_train...\n')
+% test tests_nn_cg_train;
 
 % fprintf('Testing nnTrainNetworkCUDA...\n')
 % test nnTrainNetworkCUDA

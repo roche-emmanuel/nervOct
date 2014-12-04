@@ -111,7 +111,7 @@ end
 %! 	%	prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([tr.num_features 10 3]);
+%!	nn = nnInitNetwork([tr.num_features 10 3],cfg);
 %!	% tr.deep_training = true;
 %!	tic();
 %!	nn = nnTrainNetworkCUDA(tr,nn,cfg);
@@ -122,7 +122,7 @@ end
 %! 	% prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([tr.num_features 10 3]);
+%!	nn = nnInitNetwork([tr.num_features 10 3],cfg);
 %!	tr.max_iterations = 100;
 %!	tic();
 %!	nn = nnTrainNetworkCUDA(tr,nn,cfg);
@@ -133,7 +133,7 @@ end
 % prepare the training set:
 %!	cfg = config();
 %!	tr = nnPrepareTraining(1:1,cfg);
-%!	nn = nnInitNetwork([tr.num_features 20 3]);
+%!	nn = nnInitNetwork([tr.num_features 20 3],cfg);
 %!	tr.max_iterations = 1000;
 %!	tr.train_ratio = 0.1;
 %!	tr.rms_stop = 0.002;
