@@ -124,3 +124,4 @@
 - Working implementation for templated gradient descent version.
 - Built real classes GDd and GDf for GradientDescent double and float versions.
 - Added implementation for sparse initialization.
+- Implemented nn_predict method and using it in gd_errfunc. Now need testing.

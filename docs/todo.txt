@@ -1,5 +1,9 @@
 *** TODOs:
-- Implement dropout/apply weight multiplier for test time.
+- Implement dropout
+- Apply weight multiplier dropout for test time.
+- Implement input feature lost + weight multiplier.
+- implement octave plugin to access gradient descent.
+- Implement prediction computation in gd_errfunc.
 
 
 *** CUDA infos:
