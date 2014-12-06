@@ -18,3 +18,7 @@ compute_dot					@13
 matmult_f						@14
 gd_errfunc					@15
 gd_errfunc_f				@16
+nn_predict					@17
+nn_predict_f				@18
+nn_predict_cpu			@19
+nn_predict_cpu_f		@20

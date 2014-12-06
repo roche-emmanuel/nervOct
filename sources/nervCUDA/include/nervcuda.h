@@ -125,6 +125,9 @@ void gd_errfunc_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 void nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias);
 void nn_predict_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias);
 
+void nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias);
+void nn_predict_cpu_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias);
+
 };
 
 template<typename T>
