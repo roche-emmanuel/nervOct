@@ -4,22 +4,18 @@
 namespace nerv
 {
 
-template<typename T>
-struct BPTraits
+template <typename T>
+struct BPTraitsBase
 {
-  BPTraits()
-    : bias(1.0), wmults(nullptr), lambda(0.0),
-      nsamples(0), nl(0), lsizes(nullptr),
+  BPTraitsBase()
+    : bias(1.0), lambda(0.0),
       X(nullptr), yy(nullptr), params(nullptr),
-      inputs(nullptr), deltas(nullptr), grads(nullptr) {};
+      inputs(nullptr), deltas(nullptr), grads(nullptr) {}
 
-  unsigned int nsamples;
-  unsigned int nl;
-  unsigned int *lsizes;
-
+  virtual ~BPTraitsBase() {}
+  
   T bias;
   T lambda;
-  T cost;
 
   T *X;
   T *yy;
@@ -27,12 +23,25 @@ struct BPTraits
   T *inputs;
   T *deltas;
   T *grads;
-  
+};
+
+template<typename T>
+struct BPTraits : public BPTraitsBase<T>
+{
+  BPTraits()
+    :  wmults(nullptr), cost(0.0),
+       nsamples(0), nl(0), lsizes(nullptr) {};
+
+  unsigned int nsamples;
+  unsigned int nl;
+  unsigned int *lsizes;
+
+  T cost;
   T *wmults;
 };
 
 template<typename T>
-struct BPComputeTraits
+struct BPComputeTraits : public BPTraitsBase<T>
 {
   BPComputeTraits()
     : theta_offset(0),
@@ -40,9 +49,7 @@ struct BPComputeTraits
       delta_offset(0), next_delta_offset(0),
       grad_offset(0),
       nrows(0), ncols(0), niter(0),
-      bias(1.0), wmult(1.0), lambda(0.0),
-      X(nullptr), yy(nullptr), params(nullptr),
-      inputs(nullptr), deltas(nullptr), grads(nullptr) {};
+      wmult(1.0) {};
 
   unsigned int theta_offset;
 
@@ -58,16 +65,7 @@ struct BPComputeTraits
   unsigned int ncols;
   unsigned int niter;
 
-  T bias;
   T wmult;
-  T lambda;
-
-  T *X;
-  T *yy;
-  T *params;
-  T *inputs;
-  T *deltas;
-  T *grads;
 };
 
 };
