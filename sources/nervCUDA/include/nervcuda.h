@@ -120,8 +120,11 @@ float compute_length2_f(float* vec, unsigned int size);
 double compute_dot(double* vec1, double* vec2, unsigned int size);
 float compute_dot_f(float* vec1, float* vec2, unsigned int size);
 
-void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
+// void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+//     double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
+
+void gd_errfunc(BPTraits<double>& traits);
+
 void gd_errfunc_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     float* nn_params, float* X, float* yy, float lambda, float& J, float* gradients, float* deltas, float* inputs);
 

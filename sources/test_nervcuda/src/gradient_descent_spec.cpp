@@ -318,8 +318,9 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*CostFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
-                           double * nn_params, double * X, double * yy, double lambda, double & J, double * gradients, double * deltas, double * inputs);
+  // typedef void (*CostFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+  //                          double * nn_params, double * X, double * yy, double lambda, double & J, double * gradients, double * deltas, double * inputs);
+  typedef void (*CostFunc)(BPTraits<double>& traits);
 
   typedef void (*CostFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
                               double * nn_params, double * X, double * yy, double lambda, double * activation, unsigned int ninputs, double * inputs, double & J, double * gradients, double * deltas);
@@ -381,7 +382,21 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
 
     // Now we call the cost function method:
     double J = 0.0;
-    costfunc(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, J, grads, deltas, inputs);
+    BPTraits<double> traits;
+    traits.nl = nl;
+    traits.lsizes = lsizes;
+    traits.nsamples = nsamples;
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.yy = tr.y_train();
+    traits.lambda = lambda;
+    traits.grads = grads;
+    traits.deltas = deltas;
+    traits.inputs = inputs;
+
+    // costfunc(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, J, grads, deltas, inputs);
+    costfunc(traits);
+    J = traits.cost;
 
     // And we call the same on the CPU:
     double pred_J = 0.0;

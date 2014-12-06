@@ -134,3 +134,4 @@
 - Cleaning after using traits for compute kernels.
 - Preparing BPTraits.
 - Done preparing BPTraits.
+- refactoring gd_errfunc to use traits.
