@@ -103,7 +103,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 		if(i==nt) {
 			// we should just copy the difference of hx and yy into the z matrix.
 			// CHECK_KERNEL()
-			InitLastDelta<<<dimGrid, dimBlock>>>(nrows, ncols, d_deltas, d_hx, d_yy);
+			InitLastDelta<<<dimGrid, dimBlock>>>(input_offset, nrows, ncols, d_deltas, d_inputs, d_yy);
 			// CHECK_KERNEL()
 		}
 		else {

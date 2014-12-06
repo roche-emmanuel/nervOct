@@ -74,7 +74,7 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 		if(i==nt) {
 			// we should just copy the difference of hx and yy into the z matrix.
 			// CHECK_KERNEL()
-			InitLastDelta<<<dimGrid, dimBlock, 0, stream>>>(nrows, ncols, d_deltas, d_hx, d_yy);
+			InitLastDelta<<<dimGrid, dimBlock, 0, stream>>>(input_offset, nrows, ncols, d_deltas, d_inputs, d_yy);
 			// CHECK_KERNEL()
 		}
 		else {
