@@ -1,8 +1,9 @@
 *** TODOs:
 - Implement dropout
 - Apply weight multiplier dropout for test time.
-- Implement input feature lost + weight multiplier.
+- Implement input feature lost
 - implement octave plugin to access gradient descent.
+- Added weight multiplier per layer in activation computation.
 
 
 *** CUDA infos:

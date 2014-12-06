@@ -126,3 +126,4 @@
 - Added implementation for sparse initialization.
 - Implemented nn_predict method and using it in gd_errfunc. Now need testing.
 - Added dedicated prediction computation method and tests.
+- Added random bias in nn_predict tests.

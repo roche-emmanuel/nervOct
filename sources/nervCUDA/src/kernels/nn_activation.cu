@@ -50,11 +50,11 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 
 
 // Explicit instanciation:
-template int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	double* d_params, double* d_X, double* d_inputs, double bias, cudaStream_t stream);
+// template int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+// 	double* d_params, double* d_X, double* d_inputs, double bias, cudaStream_t stream);
 
-template int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	float* d_params, float* d_X, float* d_inputs, float bias, cudaStream_t stream);
+// template int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+// 	float* d_params, float* d_X, float* d_inputs, float bias, cudaStream_t stream);
 
 
 template <typename T>
