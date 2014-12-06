@@ -16,6 +16,9 @@
 
 #include <cuda_runtime.h>
 #include <iostream>
+#include <nerv/BPTraits.h>
+
+using namespace nerv;
 
 #define BLOCK_SIZE 32
 

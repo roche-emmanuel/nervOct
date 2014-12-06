@@ -132,3 +132,4 @@
 - Replacing ComputeActivation with traits argument version.
 - Refactored compute kernels to use traits.
 - Cleaning after using traits for compute kernels.
+- Preparing BPTraits.

@@ -235,7 +235,7 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
             }
             else {
               int index = input_offset + (ncols-1)*n + c-1;
-              if(index>=ninputs || index < 0) {
+              if(index>=(int)ninputs || index < 0) {
                 logDEBUG("ERROR: out of range input access: "<<index<<">="<<ninputs);
                 // return;
               }
