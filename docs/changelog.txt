@@ -135,3 +135,4 @@
 - Preparing BPTraits.
 - Done preparing BPTraits.
 - refactoring gd_errfunc to use traits.
+- Refactoring errfunc to use traits.

@@ -126,24 +126,20 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 }
 
 template <typename T>
-void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	T* nn_params, T* X, T* yy, T lambda, T& J, T* gradients, T* deltas, T* inputs)
+void _gd_errfunc(BPTraits<T>& traits)
+  // unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
+	// T* nn_params, T* X, T* yy, T lambda, T& J, T* gradients, T* deltas, T* inputs)
 {
 	// Allocate the device memory:
 	size_t size;
-	cudaError_t err;
-
-	// cudaDeviceSynchronize();
-
-	// size = nl * sizeof(unsigned int);
-	// T* d_lsizes = NULL;
-	// checkCudaErrors(cudaMalloc(&d_lsizes, size));
-	// checkCudaErrors(cudaMemcpy(d_lsizes, lsizes, size, cudaMemcpyHostToDevice));
 
 	// Compute the total number of parameters in this network:
 	unsigned int np = 0;
-	unsigned int nt = nl-1; // number of matrices evolved.
-
+	unsigned int nl = traits.nl;
+	unsigned int nt = traits.nl-1; // number of matrices evolved.
+	unsigned int* lsizes = traits.lsizes;
+	unsigned int nsamples = traits.nsamples;
+	
 	for(unsigned int i=0;i<nt;++i) {
 		np += lsizes[i+1]*(lsizes[i]+1);
 	}
@@ -151,7 +147,7 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	size = np * sizeof(T);
 	T* d_params = NULL;
 	checkCudaErrors(cudaMalloc(&d_params, size));
-	checkCudaErrors(cudaMemcpy(d_params, nn_params, size, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(d_params, traits.params, size, cudaMemcpyHostToDevice));
 
 	// prepare regularization weigths:
 	T* h_regw = new T[size];
@@ -176,7 +172,6 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	// Prepare the reg weights for this network:
 	T* d_regw = NULL;
 	checkCudaErrors(cudaMalloc(&d_regw, size));
-
 	checkCudaErrors(cudaMemcpy(d_regw, h_regw, size, cudaMemcpyHostToDevice));
 
 	// Also allocation the gradient array, with the same number of elements:
@@ -198,11 +193,8 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	// Prepare the X matrix:
 	size = sizeof(T) * nsamples * lsizes[0];
 	T* d_X = NULL;
-	err = cudaMalloc(&d_X, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc X: "<<cudaGetErrorString(err));
-	}
-	cudaMemcpy(d_X, X, size, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMalloc(&d_X, size));
+	checkCudaErrors(cudaMemcpy(d_X, traits.X, size, cudaMemcpyHostToDevice));
 
 	// Prepare the input data:
 	// the size of each input matrix is lsize[i+1]*nsamples;
@@ -216,36 +208,30 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	size = nsamples * count * sizeof(T);
 	size_t input_size = size;
 	T* d_inputs = NULL;
-	err = cudaMalloc(&d_inputs, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc inputs: "<<cudaGetErrorString(err));
-	}
-	cudaMemset(d_inputs,0,size); // This is needed for debugging only.
+	checkCudaErrors(cudaMalloc(&d_inputs, size));
+	checkCudaErrors(cudaMemset(d_inputs,0,size)); // This is needed for debugging only.
 
 	// Copy the label matrix:	
 	size = nsamples * lsizes[nt] * sizeof(T);
 	T* d_yy = NULL;
-	err = cudaMalloc(&d_yy, size);
-	if(err!=cudaSuccess) {
-		logDEBUG("CUDA malloc yy: "<<cudaGetErrorString(err));
-	}
-	cudaMemcpy(d_yy, yy, size, cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMalloc(&d_yy, size));
+	checkCudaErrors(cudaMemcpy(d_yy, traits.yy, size, cudaMemcpyHostToDevice));
 
 	// Call the actual method to perform the computations:
 	// costFunc_device(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs, d_regw);
-	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, &J, d_grads, d_deltas, d_inputs, d_regw);
+	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_params, d_X, d_yy, traits.lambda, &traits.cost, d_grads, d_deltas, d_inputs, d_regw);
 
 	// Here we should also read back the gradient values:
-	checkCudaErrors(cudaMemcpy(gradients, d_grads, sizeof(T)*np, cudaMemcpyDeviceToHost));
+	checkCudaErrors(cudaMemcpy(traits.grads, d_grads, sizeof(T)*np, cudaMemcpyDeviceToHost));
 	// memset(gradients,0,sizeof(T)*np);
 	
 	// Read inputs from device memory
-	if(inputs) {
-		checkCudaErrors(cudaMemcpy(inputs, d_inputs, input_size, cudaMemcpyDeviceToHost));
+	if(traits.inputs) {
+		checkCudaErrors(cudaMemcpy(traits.inputs, d_inputs, input_size, cudaMemcpyDeviceToHost));
 	}
 
-	if(deltas) {
-		checkCudaErrors(cudaMemcpy(deltas, d_deltas, sizeof(T)*nd, cudaMemcpyDeviceToHost)); // only retrieve the deltas if requested.
+	if(traits.deltas) {
+		checkCudaErrors(cudaMemcpy(traits.deltas, d_deltas, sizeof(T)*nd, cudaMemcpyDeviceToHost)); // only retrieve the deltas if requested.
 	}
 
 	// cudaDeviceSynchronize();
@@ -264,18 +250,14 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 extern "C" {
 
-// void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-// 	double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs)
 void gd_errfunc(BPTraits<double>& traits)
 {
-		_gd_errfunc(traits.nl, traits.lsizes, traits.nsamples, traits.params, traits.X, 
-			traits.yy, traits.lambda, traits.cost, traits.grads, traits.deltas, traits.inputs);
+		_gd_errfunc(traits);
 }
 
-void gd_errfunc_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	float* nn_params, float* X, float* yy, float lambda, float& J, float* gradients, float* deltas, float* inputs)
+void gd_errfunc_f(BPTraits<float>& traits)
 {
-		_gd_errfunc(nl, lsizes, nsamples, nn_params, X, yy, lambda, J, gradients, deltas, inputs);
+		_gd_errfunc(traits);
 }
 
 }
