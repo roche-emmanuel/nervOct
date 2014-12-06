@@ -7,7 +7,9 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 {
 	unsigned int nt = nl-1; // number of matrices evolved.
 
-  int input_offset = nn_activation_device(nl, lsizes, nsamples, d_params, d_X, d_inputs, bias, stream);
+	T* wmults = nullptr;
+
+  int input_offset = nn_activation_device(nl, lsizes, nsamples, d_params, d_X, d_inputs, bias, wmults, stream);
 
   T* d_hx = d_inputs + input_offset;
 

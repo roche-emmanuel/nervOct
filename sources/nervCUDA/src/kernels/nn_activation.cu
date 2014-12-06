@@ -3,7 +3,7 @@
 
 template<typename T, unsigned int blockSize>
 int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	T* d_params, T* d_X, T* d_inputs, T bias, cudaStream_t stream)
+	T* d_params, T* d_X, T* d_inputs, T bias, T* wmults, cudaStream_t stream)
 {
 	unsigned int nt = nl-1; // number of matrices evolved.
 
@@ -14,6 +14,8 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 	int input_offset = 0;
 
 	int next_input_offset = 0; //nsamples*lsizes[1];
+
+	T wmult = 1.0;
 
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:
@@ -32,11 +34,14 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 		dim3 dimBlock(blockSize, blockSize);
 		dim3 dimGrid((blockSize + ncols-1)/blockSize, (blockSize + nrows-1)/blockSize);
 
+		if(wmults)
+			wmult = wmults[i];
+
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 		ComputeActivation<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, next_input_offset,
-			nrows, ncols, ncolT, d_params, d_inputs, d_X, bias);
+			nrows, ncols, ncolT, d_params, d_inputs, d_X, bias, wmult);
 		// CHECK_KERNEL();
 
 		// update the offsets:
@@ -59,7 +64,7 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 
 template <typename T>
 void _nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	T* params, T* X, T* hx, T bias)
+	T* params, T* X, T* hx, T bias, T* wmults)
 {
 	size_t size;
 	unsigned int nt = nl -1;
@@ -87,7 +92,8 @@ void _nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	T* d_inputs = NULL;
 	checkCudaErrors(cudaMalloc(&d_inputs, size));
 
- 	int input_offset = nn_activation_device(nl,lsizes,nsamples,d_params,d_X,d_inputs,bias);
+
+ 	int input_offset = nn_activation_device(nl,lsizes,nsamples,d_params,d_X,d_inputs,bias,wmults);
 
  	size = lsizes[nt]*nsamples * sizeof(T);
 	checkCudaErrors(cudaMemcpy(hx, d_inputs+input_offset, size, cudaMemcpyDeviceToHost));
@@ -99,7 +105,7 @@ void _nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 
 template <typename T>
 void _nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	T* params, T* X, T* hx, T bias)
+	T* params, T* X, T* hx, T bias, T* wmults)
 {
 	// method used to compute the activation on the CPU.
 	unsigned int nt = nl -1;
@@ -123,6 +129,7 @@ void _nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsample
 	int input_offset = 0;
 
 	int next_input_offset = 0; //nsamples*lsizes[1];
+	T mult = 1.0; // default weight multiplier value.
 
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:
@@ -130,6 +137,10 @@ void _nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsample
 		unsigned int nrows = lsizes[i+1];
 		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
 		unsigned int ncols = nsamples;
+
+		// Check if a weight multiplier is provided for this layer:
+		if(wmults)
+			mult = wmults[i];
 
 		for(unsigned int r=0;r<nrows;++r) {
 			for(unsigned int c=0;c<ncols;++c) {
@@ -150,7 +161,7 @@ void _nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsample
 
 				// Now assign the computed value to the input array:
 				// The compute value is a(r,c)
-				inputs[next_input_offset + nrows*c + r] = (T)(1.0/(1.0+exp(-val)));
+				inputs[next_input_offset + nrows*c + r] = (T)(1.0/(1.0+exp(-val*mult)));
 			}
 		}
 
@@ -169,24 +180,24 @@ void _nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsample
 
 extern "C" {
 
-void nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias)
+void nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias, double* wmults)
 {
-	_nn_predict(nl, lsizes, nsamples, params, X, hx, bias);
+	_nn_predict(nl, lsizes, nsamples, params, X, hx, bias, wmults);
 }
 
-void nn_predict_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias)
+void nn_predict_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias, float* wmults)
 {
-	_nn_predict(nl, lsizes, nsamples, params, X, hx, bias);
+	_nn_predict(nl, lsizes, nsamples, params, X, hx, bias, wmults);
 }
 
-void nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias)
+void nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias, double* wmults)
 {
-	_nn_predict_cpu(nl, lsizes, nsamples, params, X, hx, bias);
+	_nn_predict_cpu(nl, lsizes, nsamples, params, X, hx, bias, wmults);
 }
 
-void nn_predict_cpu_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias)
+void nn_predict_cpu_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias, float* wmults)
 {
-	_nn_predict_cpu(nl, lsizes, nsamples, params, X, hx, bias);
+	_nn_predict_cpu(nl, lsizes, nsamples, params, X, hx, bias, wmults);
 }
 
 }

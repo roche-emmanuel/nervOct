@@ -3,7 +3,7 @@
 
 template <typename T, unsigned int blockSize>
 __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X, T bias) 
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, T* nn_params, T* inputs, T* X, T bias, T wmult) 
 {
 
 	// Note that we assume here that the matrix coefficient are stored in row major order:
@@ -66,7 +66,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 
   if (row < nrows && col < ncols) {
   	// compute the sigmoid of the value:
-  	zval = 1.0 / (1.0 + exp(-zval));
+  	zval = 1.0 / (1.0 + exp(-zval*wmult));
 
   	// we just computed the value z_i(row,col), now we store it:
   	inputs[next_input_offset + nrows*col + row] = zval;
@@ -76,7 +76,7 @@ __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_
 
 // Explicit specialization:
 template __global__ void ComputeActivation<double>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X, double bias);
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, double* nn_params, double* inputs, double* X, double bias, double wmult);
 
 template __global__ void ComputeActivation<float>(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-	unsigned int nrows, unsigned int ncols, unsigned int ncolT, float* nn_params, float* inputs, float* X, float bias);
+	unsigned int nrows, unsigned int ncols, unsigned int ncolT, float* nn_params, float* inputs, float* X, float bias, float wmult);

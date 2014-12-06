@@ -127,3 +127,4 @@
 - Implemented nn_predict method and using it in gd_errfunc. Now need testing.
 - Added dedicated prediction computation method and tests.
 - Added random bias in nn_predict tests.
+- Added support for weight multiplier in nn activation computation.

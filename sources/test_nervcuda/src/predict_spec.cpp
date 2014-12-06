@@ -29,7 +29,8 @@ BOOST_AUTO_TEST_CASE( test_nn_predict )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, value_type* params, value_type* X, value_type* hx, value_type bias);
+  typedef void (*PredictFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+                              value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
   // We should be able to retrieve the train function:
   PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict");
@@ -45,23 +46,29 @@ BOOST_AUTO_TEST_CASE( test_nn_predict )
     // Prepare a random training set:
     TrainingSet<value_type> tr(3, 5, 3, 6, 500, 1000);
 
-    value_type bias = tr.random_real(0.0,1.0);
+    value_type bias = tr.random_real(0.0, 1.0);
+
+    // Prepare the weight multipliers:
+    value_type* wmults = tr.createArray(tr.nt());
+    for(unsigned int j=0;j<tr.nt();++j) {
+      wmults[j] = tr.random_real(0.0,1.0);
+    }
 
     // Prepare the matrices for hx and pred_hx:
     unsigned int ny = tr.y_train_size();
-    value_type* hx = tr.createArray(ny);
-    value_type* pred_hx = tr.createArray(ny);
+    value_type *hx = tr.createArray(ny);
+    value_type *pred_hx = tr.createArray(ny);
 
     // Now compute the predictions:
-    nn_predict(tr.nl(),tr.lsizes(),tr.nsamples(),tr.params(),tr.X_train(),hx,bias);
-    nn_predict_cpu(tr.nl(),tr.lsizes(),tr.nsamples(),tr.params(),tr.X_train(),pred_hx,bias);
+    nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
+    nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
 
     // Now compate the hx arrays:
     for (unsigned int j = 0; j < ny; ++j)
     {
       value_type v1 = hx[j];
       value_type v2 = pred_hx[j];
-      BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2*epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2 * epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
     }
   }
 
@@ -76,7 +83,8 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, value_type* params, value_type* X, value_type* hx, value_type bias);
+  typedef void (*PredictFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+                              value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
   // We should be able to retrieve the train function:
   PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict_f");
@@ -92,23 +100,29 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
     // Prepare a random training set:
     TrainingSet<value_type> tr(3, 5, 3, 6, 500, 1000);
 
-    value_type bias = tr.random_real(0.0,1.0);
+    value_type bias = tr.random_real(0.0, 1.0);
 
+    // Prepare the weight multipliers:
+    value_type* wmults = tr.createArray(tr.nt());
+    for(unsigned int j=0;j<tr.nt();++j) {
+      wmults[j] = tr.random_real(0.0,1.0);
+    }
+    
     // Prepare the matrices for hx and pred_hx:
     unsigned int ny = tr.y_train_size();
-    value_type* hx = tr.createArray(ny);
-    value_type* pred_hx = tr.createArray(ny);
+    value_type *hx = tr.createArray(ny);
+    value_type *pred_hx = tr.createArray(ny);
 
     // Now compute the predictions:
-    nn_predict(tr.nl(),tr.lsizes(),tr.nsamples(),tr.params(),tr.X_train(),hx,bias);
-    nn_predict_cpu(tr.nl(),tr.lsizes(),tr.nsamples(),tr.params(),tr.X_train(),pred_hx,bias);
+    nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
+    nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
 
     // Now compate the hx arrays:
     for (unsigned int j = 0; j < ny; ++j)
     {
       value_type v1 = hx[j];
       value_type v2 = pred_hx[j];
-      BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2*epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2 * epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
     }
   }
 

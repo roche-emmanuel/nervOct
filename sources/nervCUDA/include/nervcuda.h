@@ -122,11 +122,11 @@ void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 void gd_errfunc_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
     float* nn_params, float* X, float* yy, float lambda, float& J, float* gradients, float* deltas, float* inputs);
 
-void nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias);
-void nn_predict_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias);
+void nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias, double* wmults);
+void nn_predict_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias, float* wmults);
 
-void nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias);
-void nn_predict_cpu_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias);
+void nn_predict_cpu(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, double* params, double* X, double* hx, double bias, double* wmults);
+void nn_predict_cpu_f(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, float* params, float* X, float* hx, float bias, float* wmults);
 
 };
 
@@ -135,7 +135,7 @@ void reduce_cost_device(T* d_hx, T* d_yy, unsigned int n, T& output, cudaStream_
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-    T* d_params, T* d_X, T* d_inputs, T bias = 1.0, cudaStream_t stream = 0);
+    T* d_params, T* d_X, T* d_inputs, T bias = 1.0,  T* wmults = nullptr, cudaStream_t stream = 0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
