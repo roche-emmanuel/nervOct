@@ -15,8 +15,14 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 
 	int next_input_offset = 0; //nsamples*lsizes[1];
 
-	T wmult = 1.0;
+	// T wmult = 1.0;
 
+	BPComputeTraits<T> traits;
+	traits.params = d_params;
+	traits.inputs = d_inputs;
+	traits.X = d_X;
+	traits.bias = bias;
+	
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:
 
@@ -34,14 +40,24 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 		dim3 dimBlock(blockSize, blockSize);
 		dim3 dimGrid((blockSize + ncols-1)/blockSize, (blockSize + nrows-1)/blockSize);
 
+
+		traits.theta_offset = theta_offset;
+		traits.input_offset = input_offset;
+		traits.next_input_offset = next_input_offset;
+		traits.nrows = nrows;
+		traits.ncols = ncols;
+		traits.niter = ncolT;
+
 		if(wmults)
-			wmult = wmults[i];
+			traits.wmult = wmults[i];
 
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-		ComputeActivation<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, next_input_offset,
-			nrows, ncols, ncolT, d_params, d_inputs, d_X, bias, wmult);
+		// ComputeActivation<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, next_input_offset,
+		// 	nrows, ncols, ncolT, d_params, d_inputs, d_X, bias, wmult);
+		ComputeActivation<<<dimGrid, dimBlock,0,stream>>>(traits);
+
 		// CHECK_KERNEL();
 
 		// update the offsets:

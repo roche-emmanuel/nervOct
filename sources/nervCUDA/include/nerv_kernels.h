@@ -91,9 +91,12 @@ __global__ void MatMultTpA(unsigned int nrowC, unsigned int niter, unsigned int 
 __global__ void CostFuncKernel(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
                                double *nn_params, double *X, double *yy, double lambda);
 
-template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-                                  unsigned int nrows, unsigned int ncols, unsigned int ncolT, T *nn_params, T *inputs, T *X, T bias = 1.0, T wmult = 1.0);
+template <typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void ComputeActivation(BPComputeTraits<T> traits);
+
+// template<typename T, unsigned int blockSize = BLOCK_SIZE>
+// __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
+//                                   unsigned int nrows, unsigned int ncols, unsigned int ncolT, T *nn_params, T *inputs, T *X, T bias = 1.0, T wmult = 1.0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void InitLastDelta(unsigned int input_offset, unsigned int nrows, unsigned int ncols, T *deltas, T *inputs, T *yy);

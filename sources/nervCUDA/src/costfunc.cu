@@ -19,6 +19,11 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 
 	int next_input_offset = 0; //nsamples*lsizes[1];
 
+	BPComputeTraits<double> traits;
+	traits.params = d_params;
+	traits.inputs = d_inputs;
+	traits.X = d_X;
+
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:
 
@@ -36,11 +41,20 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 		dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 		dim3 dimGrid((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
 
+		traits.theta_offset = theta_offset;
+		traits.input_offset = input_offset;
+		traits.next_input_offset = next_input_offset;
+		traits.nrows = nrows;
+		traits.ncols = ncols;
+		traits.niter = ncolT;
+
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-		ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
-			nrows, ncols, ncolT, d_params, d_inputs, d_X);
+		// ComputeActivation<<<dimGrid, dimBlock>>>(theta_offset, input_offset, next_input_offset,
+		// 	nrows, ncols, ncolT, d_params, d_inputs, d_X);
+		ComputeActivation<<<dimGrid, dimBlock>>>(traits);
+
 		// CHECK_KERNEL();
 
 		// update the offsets:

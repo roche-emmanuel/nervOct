@@ -129,3 +129,4 @@
 - Added random bias in nn_predict tests.
 - Added support for weight multiplier in nn activation computation.
 - Preparing trait struct for BP compute kernels.
+- Replacing ComputeActivation with traits argument version.
