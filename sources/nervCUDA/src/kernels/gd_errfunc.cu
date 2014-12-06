@@ -130,9 +130,6 @@ void _gd_errfunc(BPTraits<T>& traits)
   // unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	// T* nn_params, T* X, T* yy, T lambda, T& J, T* gradients, T* deltas, T* inputs)
 {
-	// Allocate the device memory:
-	size_t size;
-
 	// Compute the total number of parameters in this network:
 	unsigned int np = 0;
 	unsigned int nl = traits.nl;
@@ -144,8 +141,8 @@ void _gd_errfunc(BPTraits<T>& traits)
 		np += lsizes[i+1]*(lsizes[i]+1);
 	}
 
-	size = np * sizeof(T);
-	T* d_params = createGPUBuffer(np,traits.params);
+	size_t size = np * sizeof(T);
+	T* d_params = createGPUBuffer<T>(np,traits.params);
 
 	// prepare regularization weigths:
 	T* h_regw = new T[size];
@@ -168,14 +165,10 @@ void _gd_errfunc(BPTraits<T>& traits)
 
 
 	// Prepare the reg weights for this network:
-	T* d_regw = NULL;
-	checkCudaErrors(cudaMalloc(&d_regw, size));
-	checkCudaErrors(cudaMemcpy(d_regw, h_regw, size, cudaMemcpyHostToDevice));
+	T* d_regw = createGPUBuffer<T>(np,h_regw);
 
 	// Also allocation the gradient array, with the same number of elements:
-	T* d_grads = NULL;
-	checkCudaErrors(cudaMalloc(&d_grads, size));
-	checkCudaErrors(cudaMemset(d_grads,0,size));
+	T* d_grads = createGPUBuffer<T>(np);
 
 	// Compute the total number of delta coefficients:
 	unsigned int nd = 0;
@@ -183,16 +176,10 @@ void _gd_errfunc(BPTraits<T>& traits)
 		nd += lsizes[i]*nsamples;
 	}
 
-	size = nd*sizeof(T);
-	T* d_deltas = NULL;
-	checkCudaErrors(cudaMalloc(&d_deltas, size));
-	checkCudaErrors(cudaMemset(d_deltas,0,size));
+	T* d_deltas = createGPUBuffer<T>(nd);
 
 	// Prepare the X matrix:
-	size = sizeof(T) * nsamples * lsizes[0];
-	T* d_X = NULL;
-	checkCudaErrors(cudaMalloc(&d_X, size));
-	checkCudaErrors(cudaMemcpy(d_X, traits.X, size, cudaMemcpyHostToDevice));
+	T* d_X = createGPUBuffer<T>(nsamples * lsizes[0],traits.X);
 
 	// Prepare the input data:
 	// the size of each input matrix is lsize[i+1]*nsamples;
@@ -203,17 +190,11 @@ void _gd_errfunc(BPTraits<T>& traits)
 		count += lsizes[i+1];
 	}
 
-	size = nsamples * count * sizeof(T);
-	size_t input_size = size;
-	T* d_inputs = NULL;
-	checkCudaErrors(cudaMalloc(&d_inputs, size));
-	checkCudaErrors(cudaMemset(d_inputs,0,size)); // This is needed for debugging only.
+	size_t input_size = nsamples * count * sizeof(T);
+	T* d_inputs = createGPUBuffer<T>(nsamples * count);
 
 	// Copy the label matrix:	
-	size = nsamples * lsizes[nt] * sizeof(T);
-	T* d_yy = NULL;
-	checkCudaErrors(cudaMalloc(&d_yy, size));
-	checkCudaErrors(cudaMemcpy(d_yy, traits.yy, size, cudaMemcpyHostToDevice));
+	T* d_yy = createGPUBuffer<T>(nsamples * lsizes[nt],traits.yy);
 
 	// Call the actual method to perform the computations:
 	// costFunc_device(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs, d_regw);
@@ -237,13 +218,12 @@ void _gd_errfunc(BPTraits<T>& traits)
 	// Free device memory
 	// checkCudaErrors(cudaFree(d_lsizes));
 	destroyGPUBuffer(d_params);
-	// checkCudaErrors(cudaFree(d_params));
-	checkCudaErrors(cudaFree(d_regw));
-	checkCudaErrors(cudaFree(d_inputs));	
-	checkCudaErrors(cudaFree(d_yy));	
-	checkCudaErrors(cudaFree(d_X));	
-	checkCudaErrors(cudaFree(d_deltas));	
-	checkCudaErrors(cudaFree(d_grads));	
+	destroyGPUBuffer(d_regw);
+	destroyGPUBuffer(d_inputs);	
+	destroyGPUBuffer(d_yy);	
+	destroyGPUBuffer(d_X);	
+	destroyGPUBuffer(d_deltas);	
+	destroyGPUBuffer(d_grads);	
 	delete [] h_regw;
 }
 

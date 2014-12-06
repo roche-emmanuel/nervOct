@@ -137,3 +137,4 @@
 - refactoring gd_errfunc to use traits.
 - Refactoring errfunc to use traits.
 - Started to used createGPUBuffer.
+- Using create/destroy GPU buffer methods.
