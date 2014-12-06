@@ -6,7 +6,6 @@
 #define logDEBUG(msg) std::cout << msg << std::endl;
 
 
-
 // Utility class used to avoid linker errors with extern
 // unsized shared memory arrays with templated type
 template<class T>
@@ -63,7 +62,7 @@ struct BPComputeTraits
 
   unsigned int delta_offset;
   unsigned int next_delta_offset;
-  
+
   unsigned int grad_offset;
 
   unsigned int nrows;

@@ -125,13 +125,6 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 	}
 }
 
-// Explicit specializations:
-// Note that this is not needed since those templates are instantiated anyway below in the "C" functions.
-
-// template void gd_errfunc_device<double, BLOCK_SIZE>(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-// 	double* d_params, double* d_X, double* d_yy, double lambda, double& J, double* d_grads, double* d_deltas, double* d_inputs, double* d_regw);
-
-
 template <typename T>
 void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
 	T* nn_params, T* X, T* yy, T lambda, T& J, T* gradients, T* deltas, T* inputs)
@@ -268,11 +261,6 @@ void _gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	checkCudaErrors(cudaFree(d_grads));	
 	delete [] h_regw;
 }
-
-// template <typename T>
-// void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-// 	double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs)
-
 
 extern "C" {
 

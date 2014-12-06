@@ -29,16 +29,12 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
   	// the dimension of of the sub z(i) matrix (which is transposed.)
   	// THe dimensions for z(i) are: lsize(i+1) * nsamples
   	// When this is transposed we get: nsamples * lsize(i+1);
-		unsigned int nrows = lsizes[i+1];
-		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
-		unsigned int ncols = nsamples;
+		traits.nrows = lsizes[i+1];
+		traits.niter = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
+		traits.ncols = nsamples;
 
 		dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-		dim3 dimGrid((BLOCK_SIZE + ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + nrows-1)/BLOCK_SIZE);
-
-		traits.nrows = nrows;
-		traits.ncols = ncols;
-		traits.niter = ncolT;
+		dim3 dimGrid((BLOCK_SIZE + traits.ncols-1)/BLOCK_SIZE, (BLOCK_SIZE + traits.nrows-1)/BLOCK_SIZE);
 
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
@@ -52,7 +48,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 		// update the offsets:
 		traits.theta_offset += lsizes[i+1]*(lsizes[i]+1);
 		traits.input_offset = traits.next_input_offset;
-		traits.next_input_offset += nrows*ncols;
+		traits.next_input_offset += traits.nrows*traits.ncols;
   }
 
   double* d_hx = d_inputs + traits.input_offset;
@@ -79,12 +75,6 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 	// remove the last theta matrix size from the theta offset so that we can use
 	// that offset to retrieve the proper theta matrix:
 	traits.theta_offset -= lsizes[nt]*(lsizes[nt-1]+1);
-
-	// initially the input_offset is pointing on the hx matrix which is z(nt-1) with our convention (eg. z(0) is not in the array.)
-	// But the first one we will need is actually the one before that: z(nt-2)
-	// So we need to update the offset, and remove the size of the matrix z(nt-2) ! (pointer is at the beginning of z(nt-1))
-	// Note: This is now done inside the loop:
-	// input_offset -= lsizes[nt-1]*nsamples;
 
 	// Prepare the offset for the gradient array:
 	// keep in mind we start with the latest theta matrix:
