@@ -139,15 +139,13 @@ void _gd_errfunc(BPTraits<T>& traits)
 	unsigned int nt = traits.nl-1; // number of matrices evolved.
 	unsigned int* lsizes = traits.lsizes;
 	unsigned int nsamples = traits.nsamples;
-	
+
 	for(unsigned int i=0;i<nt;++i) {
 		np += lsizes[i+1]*(lsizes[i]+1);
 	}
 
 	size = np * sizeof(T);
-	T* d_params = NULL;
-	checkCudaErrors(cudaMalloc(&d_params, size));
-	checkCudaErrors(cudaMemcpy(d_params, traits.params, size, cudaMemcpyHostToDevice));
+	T* d_params = createGPUBuffer(np,traits.params);
 
 	// prepare regularization weigths:
 	T* h_regw = new T[size];
@@ -238,7 +236,8 @@ void _gd_errfunc(BPTraits<T>& traits)
 
 	// Free device memory
 	// checkCudaErrors(cudaFree(d_lsizes));
-	checkCudaErrors(cudaFree(d_params));
+	destroyGPUBuffer(d_params);
+	// checkCudaErrors(cudaFree(d_params));
 	checkCudaErrors(cudaFree(d_regw));
 	checkCudaErrors(cudaFree(d_inputs));	
 	checkCudaErrors(cudaFree(d_yy));	
