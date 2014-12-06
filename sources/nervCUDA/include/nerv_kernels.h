@@ -50,6 +50,7 @@ struct BPComputeTraits
     : theta_offset(0),
       input_offset(0), next_input_offset(0),
       delta_offset(0), next_delta_offset(0),
+      grad_offset(0),
       nrows(0), ncols(0), niter(0),
       bias(1.0), wmult(1.0), lambda(0.0),
       X(nullptr), yy(nullptr), params(nullptr),
@@ -62,6 +63,8 @@ struct BPComputeTraits
 
   unsigned int delta_offset;
   unsigned int next_delta_offset;
+  
+  unsigned int grad_offset;
 
   unsigned int nrows;
   unsigned int ncols;
@@ -94,19 +97,14 @@ __global__ void CostFuncKernel(unsigned int nl, unsigned int *lsizes, unsigned i
 template <typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeActivation(BPComputeTraits<T> traits);
 
-// template<typename T, unsigned int blockSize = BLOCK_SIZE>
-// __global__ void ComputeActivation(unsigned int theta_offset, unsigned int input_offset, unsigned int next_input_offset,
-//                                   unsigned int nrows, unsigned int ncols, unsigned int ncolT, T *nn_params, T *inputs, T *X, T bias = 1.0, T wmult = 1.0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void InitLastDelta(unsigned int input_offset, unsigned int nrows, unsigned int ncols, T *deltas, T *inputs, T *yy);
+__global__ void InitLastDelta(BPComputeTraits<T> traits);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void ComputeDelta(unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
-                             unsigned int nrows, unsigned int ncols, unsigned int niter, T *nn_params, T *inputs, T *deltas);
+__global__ void ComputeDelta(BPComputeTraits<T> traits);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-__global__ void ComputeGradient(unsigned int theta_offset, int input_offset, unsigned int delta_offset, unsigned int grad_offset,
-                                unsigned int nrows, unsigned int ncols, unsigned int niter, T *X, T *nn_params, T *inputs, T *deltas, T *grads, T lambda, T bias = 1.0);
+__global__ void ComputeGradient(BPComputeTraits<T> traits);
 
 #endif
