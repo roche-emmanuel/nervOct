@@ -142,3 +142,4 @@
 - Preparing to update GDTraits.
 - Converted GDTraits to BPTraits base.
 - Updating gradinet descent to use BPTraits.
+- Starting usage of BPDeviceTraits in gradient descent class.

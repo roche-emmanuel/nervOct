@@ -97,6 +97,7 @@ void GDTraits<T>::validate() const
   unsigned int ns_cv = y_cv_size / lsizes[nl-1];
   THROW_IF(nsamples_cv() != ns_cv, "Mismatch in computation of _nsamples_cv" << nsamples_cv() << "!=" << ns_cv)
   THROW_IF(miniBatchSize > nsamples / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples / 2));
+  THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
 }
 
 template <typename T>
@@ -158,16 +159,17 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   _d_traits.stream = _stream1;
 
   // Upload all the buffers on the device:
-  // _d_traits = traits;
+  _d_traits = traits;
 
   size_t size;
 
   // Load the X matrix on the GPU directly:
-  size = sizeof(value_type) * nx;
-  d_X_train = NULL;
-  checkCudaErrors(cudaHostRegister(traits.X, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  checkCudaErrors(cudaMalloc(&d_X_train, size));
-  checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X, size, cudaMemcpyHostToDevice, _stream1));
+  // size = sizeof(value_type) * nx;
+  d_X_train = _d_traits.X;
+  // NULL;
+  // checkCudaErrors(cudaHostRegister(traits.X, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+  // checkCudaErrors(cudaMalloc(&d_X_train, size));
+  // checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X, size, cudaMemcpyHostToDevice, _stream1));
 
 
   // load the yy matrix on the GPU:
@@ -178,7 +180,6 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.yy, size, cudaMemcpyHostToDevice, _stream1));
 
   // Prepare the cv datasets if applicable:
-  THROW_IF(traits.validationWindowSize > 0 && (!traits.X_cv || !traits.y_cv), "Invalid cv datasets.");
   d_X_cv = NULL;
   d_y_cv = NULL;
 
@@ -285,7 +286,8 @@ template<typename T>
 GradientDescent<T>::~GradientDescent()
 {
   // unregister the pinned memory:
-  checkCudaErrors(cudaHostUnregister(_traits.X));
+  // checkCudaErrors(cudaHostUnregister(_traits.X));
+  
   checkCudaErrors(cudaHostUnregister(_traits.yy));
   checkCudaErrors(cudaHostUnregister(_traits.params));
   checkCudaErrors(cudaHostUnregister(_regw));
@@ -304,7 +306,7 @@ GradientDescent<T>::~GradientDescent()
   }
 
   // free GPU buffers:
-  checkCudaErrors(cudaFree(d_X_train));
+  // checkCudaErrors(cudaFree(d_X_train));
   checkCudaErrors(cudaFree(d_y_train));
   checkCudaErrors(cudaFree(d_params));
   checkCudaErrors(cudaFree(d_theta));
