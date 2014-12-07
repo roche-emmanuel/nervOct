@@ -12,7 +12,14 @@ struct BPDeviceTraits : public BPTraits<T>
 {
   typedef std::vector<T *> BufferList;
 
-  BPDeviceTraits(cudaStream_t s = 0) : regw(nullptr), stream(s) {};
+  BPDeviceTraits(bool withStream = false)
+    : regw(nullptr), stream(nullptr), owned_stream(withStream)
+  {
+    if (withStream)
+    {
+      checkCudaErrors(cudaStreamCreate(&stream));
+    }
+  };
 
   BPDeviceTraits(const BPDeviceTraits &) = delete;
   BPDeviceTraits &operator=(const BPDeviceTraits &) = delete;
@@ -33,6 +40,10 @@ struct BPDeviceTraits : public BPTraits<T>
   ~BPDeviceTraits()
   {
     release();
+    if (owned_stream)
+    {
+      checkCudaErrors(cudaStreamDestroy(stream));
+    }
   }
 
   bool compute_cost;
@@ -68,6 +79,7 @@ struct BPDeviceTraits : public BPTraits<T>
 
 protected:
   BufferList _buffers;
+  bool owned_stream;
 
   void release()
   {

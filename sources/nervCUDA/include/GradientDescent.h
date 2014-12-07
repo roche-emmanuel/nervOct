@@ -83,7 +83,6 @@ protected:
   BPDeviceTraits<value_type> _d_traits;
 
 
-  unsigned int _nl; // number of layers
   unsigned int _nt; // number of theta matrices
   unsigned int _np; // number of parameters
   unsigned int _nsamples; // number of samples.
@@ -98,9 +97,6 @@ protected:
   value_type _mu; // current value of the momentum.
   value_type _epsilon; // Learning rate value.
   value_type _minCvCostDec; // minimal valid mean cv cost decrease
-  value_type _bias; // Bias value used for the neurons in the network.
-
-  value_type _lambda; // regularization parameter.
 
   // GPU buffers:
   value_type *d_X_train;
@@ -118,8 +114,6 @@ protected:
 
   // buffers for cost function evaluation:
   value_type *d_regw;
-
-  cudaStream_t _stream1; // main processing stream.
 
   unsigned int _miniBatchSize; // size of the mini batch or 0 if full batch.
 

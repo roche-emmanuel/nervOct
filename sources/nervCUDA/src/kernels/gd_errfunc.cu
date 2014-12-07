@@ -124,7 +124,7 @@ template <typename T>
 void _gd_errfunc(BPTraits<T>& traits)
 {	
 	// BPDeviceTraits<T> d_traits(traits);
-	BPDeviceTraits<T> d_traits;
+	BPDeviceTraits<T> d_traits(false);
 	d_traits = traits;
 
 	// Compute the total number of delta coefficients:

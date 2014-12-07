@@ -93,8 +93,8 @@ void GDTraits<T>::validate() const
   THROW_IF(!X, "Invalid X_train value.");
   THROW_IF(y_train_size != ny(), "Invalid size for y: " << y_train_size << "!=" << ny());
   THROW_IF(!yy, "Invalid y_train value.");
-  
-  unsigned int ns_cv = y_cv_size / lsizes[nl-1];
+
+  unsigned int ns_cv = y_cv_size / lsizes[nl - 1];
   THROW_IF(nsamples_cv() != ns_cv, "Mismatch in computation of _nsamples_cv" << nsamples_cv() << "!=" << ns_cv)
   THROW_IF(miniBatchSize > nsamples / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples / 2));
   THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
@@ -102,16 +102,16 @@ void GDTraits<T>::validate() const
 
 template <typename T>
 GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
+  : _d_traits(true)
 {
   traits.validate();
+
+  THROW_IF(_d_traits.stream == 0, "Invalid stream.");
 
   _bestIter = 0;
 
   // Assign the max number of iteration:
   _maxiter = traits.maxiter;
-
-  // Assign regularization parameter:
-  _lambda = traits.lambda;
 
   _mumax = traits.momentum;
   _mu = 0.0; // will be initialized later.
@@ -119,49 +119,25 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   _epsilon = traits.epsilon;
 
   _miniBatchSize = traits.miniBatchSize;
-
   _validationWindowSize = traits.validationWindowSize;
-
   _minCvCostDec = (value_type)0.00001;
 
-  // Retrieve the bias value:
-  _bias = traits.bias;
-
-  _nl = traits.nl;
-  _nt = _nl - 1;
+  _nt = traits.nl - 1;
 
   _lsizes = traits.lsizes;
 
   _nsamples = traits.nsamples;
 
   // Compute the number of parameters that are expected:
-  unsigned int np = 0;
-  for (unsigned int i = 0; i < _nt; ++i)
-  {
-    np += _lsizes[i + 1] * (_lsizes[i] + 1);
-  }
-  _np = np;
-
-  // Compute the expected size for X:
-  unsigned int nx = _nsamples * _lsizes[0];
-
-  // Compute the expected size for y:
-  unsigned int ny = _nsamples * _lsizes[_nt];
-
+  _np = traits.np();
   _nsamples_cv = traits.nsamples_cv();
 
   // keep a copy of the traits:
   _traits = traits;
 
   // Now that we checked that the input data is valid, we should allocate the GPU resources:
-  // First we allocate the stream that will be used for the main processing:
-  checkCudaErrors(cudaStreamCreate(&_stream1));
-  _d_traits.stream = _stream1;
-
   // Upload all the buffers on the device:
   _d_traits = traits;
-
-  size_t size;
 
   // Load the X matrix on the GPU directly:
   d_X_train = _d_traits.X;
@@ -176,23 +152,21 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   if (traits.validationWindowSize > 0)
   {
     // Load the Xcv matrix on the GPU directly:
-    d_X_cv = _d_traits.createDeviceBuffer(traits.X_cv_size,traits.X_cv);
-    d_y_cv = _d_traits.createDeviceBuffer(traits.y_cv_size,traits.y_cv);
+    d_X_cv = _d_traits.createDeviceBuffer(traits.X_cv_size, traits.X_cv);
+    d_y_cv = _d_traits.createDeviceBuffer(traits.y_cv_size, traits.y_cv);
   }
 
   // Load the parameters (weights) on the GPU:
   // params is the vector used for the evaluation of the cost function.
   d_params = _d_traits.params;
 
-  size = sizeof(value_type) * np;
-
   // velocity vector used to store the NAG velocity for each cycle:
-  d_vel = _d_traits.createDeviceBuffer(np);
-  d_vel_bak = _d_traits.createDeviceBuffer(np);
+  d_vel = _d_traits.createDeviceBuffer(_np);
+  d_vel_bak = _d_traits.createDeviceBuffer(_np);
 
   // Theta is the array containing the computed network weights at each cycle:
-  d_theta = _d_traits.createDeviceBuffer(np,traits.params);
-  d_theta_bak = _d_traits.createDeviceBuffer(np);
+  d_theta = _d_traits.createDeviceBuffer(_np, traits.params);
+  d_theta_bak = _d_traits.createDeviceBuffer(_np);
 
   // Prepare the reg weights for this network:
   d_regw = _d_traits.regw;
@@ -206,8 +180,7 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
 template<typename T>
 GradientDescent<T>::~GradientDescent()
 {
-  // destroy the processing stream:
-  checkCudaErrors(cudaStreamDestroy(_stream1));
+
 }
 
 template <typename T>
@@ -239,7 +212,6 @@ void GradientDescent<T>::run()
   value_type cur_mean = 0.0;
   value_type bestCvCost = std::numeric_limits<value_type>::max();
 
-
   // number of cycles after which to evaluation is performed on the cross validation set
   // when using early stopping:
   unsigned int evalFrequency = 128;
@@ -268,23 +240,24 @@ void GradientDescent<T>::run()
     _mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter / 250.0) + 1) / LOG2), (double)_mumax);
 
     // 2. prepare the parameter vector:
-    mix_vectors_device(d_params, d_theta, d_vel, (value_type)1.0, _mu, _np, _stream1);
+    mix_vectors_device(d_params, d_theta, d_vel, (value_type)1.0, _mu, _np, _d_traits.stream);
 
     // 3. Once we have the parameter vector, we compute the gradient at that location:
-    // gd_errfunc_device(_nl, _np, _lsizes, ns, d_params,
-    //                   X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
     _d_traits.X = X_train_ptr;
     _d_traits.yy = y_train_ptr;
     _d_traits.nsamples = ns;
+    _d_traits.compute_cost = false;
+    _d_traits.compute_grads = true;
+
     gd_errfunc_device(_d_traits);
 
     // logDEBUG("Performing iteration "<<iter<<", Jtrain="<<current_cost);
 
     // 4. With the gradient we update the velocity vector:
-    mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _stream1);
+    mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _d_traits.stream);
 
     // 5. Now that we have the new velocity, we can compute the new value for the theta vector:
-    mix_vectors_device(d_theta, d_theta, d_vel, (value_type)1.0, (value_type)1.0, _np, _stream1);
+    mix_vectors_device(d_theta, d_theta, d_vel, (value_type)1.0, (value_type)1.0, _np, _d_traits.stream);
 
     if (_miniBatchSize > 0)
     {
