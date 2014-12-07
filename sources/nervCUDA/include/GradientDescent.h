@@ -62,18 +62,10 @@ public:
   // Constructor taking all the parameters needed for computation:
   GradientDescent(const GDTraits<value_type> &traits);
 
-  // unsigned int nl, unsigned int nsamples, unsigned int nparams,
-  //         unsigned int* lsizes, double* X, double* yy, double* init_params,
-  //          double lambda, unsigned int maxiter, double* params
-
-  ~GradientDescent();
-
   void run();
 
   value_type computeTrainCost();
   value_type computeCvCost();
-
-  void downloadParameters();
 
   void saveState(unsigned int iter, const WindowedMean<value_type> &mean);
   unsigned int restoreState(WindowedMean<value_type> &mean);
@@ -81,7 +73,6 @@ public:
 protected:
   GDTraits<value_type> _traits;
   BPDeviceTraits<value_type> _d_traits;
-
 
   unsigned int _nt; // number of theta matrices
   unsigned int _np; // number of parameters
@@ -103,17 +94,12 @@ protected:
   value_type *d_y_train;
   value_type *d_X_cv;
   value_type *d_y_cv;
-  value_type *d_params; // weights buffer.
+
   value_type *d_theta; // weights buffer.
   value_type *d_theta_bak; // weights buffer.
+  
   value_type *d_vel; // weights evolution velocity buffer.
   value_type *d_vel_bak; // weights evolution velocity buffer.
-  value_type *d_grads;
-  value_type *d_deltas;
-  value_type *d_inputs;
-
-  // buffers for cost function evaluation:
-  value_type *d_regw;
 
   unsigned int _miniBatchSize; // size of the mini batch or 0 if full batch.
 

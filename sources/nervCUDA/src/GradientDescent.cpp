@@ -156,10 +156,6 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
     d_y_cv = _d_traits.createDeviceBuffer(traits.y_cv_size, traits.y_cv);
   }
 
-  // Load the parameters (weights) on the GPU:
-  // params is the vector used for the evaluation of the cost function.
-  d_params = _d_traits.params;
-
   // velocity vector used to store the NAG velocity for each cycle:
   d_vel = _d_traits.createDeviceBuffer(_np);
   d_vel_bak = _d_traits.createDeviceBuffer(_np);
@@ -167,20 +163,6 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Theta is the array containing the computed network weights at each cycle:
   d_theta = _d_traits.createDeviceBuffer(_np, traits.params);
   d_theta_bak = _d_traits.createDeviceBuffer(_np);
-
-  // Prepare the reg weights for this network:
-  d_regw = _d_traits.regw;
-
-  // for the cost computation we will also need the grads and delta and input arrays:
-  d_grads = _d_traits.grads;
-  d_deltas = _d_traits.deltas;
-  d_inputs = _d_traits.inputs;
-}
-
-template<typename T>
-GradientDescent<T>::~GradientDescent()
-{
-
 }
 
 template <typename T>
@@ -240,7 +222,7 @@ void GradientDescent<T>::run()
     _mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter / 250.0) + 1) / LOG2), (double)_mumax);
 
     // 2. prepare the parameter vector:
-    mix_vectors_device(d_params, d_theta, d_vel, (value_type)1.0, _mu, _np, _d_traits.stream);
+    mix_vectors_device(_d_traits.params, d_theta, d_vel, (value_type)1.0, _mu, _np, _d_traits.stream);
 
     // 3. Once we have the parameter vector, we compute the gradient at that location:
     _d_traits.X = X_train_ptr;
@@ -254,7 +236,7 @@ void GradientDescent<T>::run()
     // logDEBUG("Performing iteration "<<iter<<", Jtrain="<<current_cost);
 
     // 4. With the gradient we update the velocity vector:
-    mix_vectors_device(d_vel, d_vel, d_grads, _mu, -_epsilon, _np, _d_traits.stream);
+    mix_vectors_device(d_vel, d_vel, _d_traits.grads, _mu, -_epsilon, _np, _d_traits.stream);
 
     // 5. Now that we have the new velocity, we can compute the new value for the theta vector:
     mix_vectors_device(d_theta, d_theta, d_vel, (value_type)1.0, (value_type)1.0, _np, _d_traits.stream);
@@ -341,14 +323,8 @@ void GradientDescent<T>::run()
     iter++;
   }
 
-  downloadParameters();
-}
-
-template <typename T>
-void GradientDescent<T>::downloadParameters()
-{
   // Download the parameters from the theta buffer on the GPU:
-  checkCudaErrors(cudaMemcpy(_traits.params, d_theta, _np * sizeof(value_type), cudaMemcpyDeviceToHost));
+  copyFromDevice(_traits.params, d_theta, _np);
 }
 
 template <typename T>
