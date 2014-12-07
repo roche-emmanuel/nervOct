@@ -2,48 +2,54 @@
 #include <nerv_kernels.h>
 
 template<typename T, unsigned int blockSize>
-void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-	T* d_params, T* d_X, T* d_yy, T lambda, T* J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, T bias, cudaStream_t stream)
+void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
+	// unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
+	// T* d_params, T* d_X, T* d_yy, T lambda, T* J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, T bias, cudaStream_t stream)
 {
+	unsigned int nl = d_traits.nl;
+	unsigned int np = d_traits.np();
 	unsigned int nt = nl-1; // number of matrices evolved.
+	unsigned int nsamples = d_traits.nsamples;
+	unsigned int* lsizes = d_traits.lsizes;
+	cudaStream_t stream = d_traits.stream;
 
 	BPComputeTraits<T> traits;
-	traits.params = d_params;
-	traits.inputs = d_inputs;
-	traits.deltas = d_deltas;
-	traits.grads = d_grads;
-	traits.yy = d_yy;
-	traits.X = d_X;
-	traits.bias = bias;
-	traits.lambda = lambda;
+	traits.params = d_traits.params;
+	traits.inputs = d_traits.inputs;
+	traits.deltas = d_traits.deltas;
+	traits.grads = d_traits.grads;
+	traits.yy = d_traits.yy;
+	traits.X = d_traits.X;
+	traits.bias = d_traits.bias;
+	traits.lambda = d_traits.lambda;
 
-	T* wmults = nullptr;
+  traits.input_offset = nn_activation_device(d_traits.nl, d_traits.lsizes, d_traits.nsamples, d_traits.params, 
+  	d_traits.X, d_traits.inputs, d_traits.bias, d_traits.wmults, stream);
 
-  traits.input_offset = nn_activation_device(nl, lsizes, nsamples, d_params, d_X, d_inputs, bias, wmults, stream);
-
-  T* d_hx = d_inputs + traits.input_offset;
+  T* d_hx = d_traits.inputs + traits.input_offset;
 
   // Here we can compute the cost now:
   // but only if requested:
-  if(J) {
+  if(d_traits.compute_cost) {
 	  // The hx matrix is mapped to the last z matrix. eg at i=nt-1
 	  // So its dimensions are lsizes[nt-1+1] * nsamples = lsizes[nl-1] * nsamples
 	  // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
-		*J = 0.0;
+		T J = 0.0;
 		unsigned int count = nsamples*lsizes[nt];
-		reduce_cost_device(d_hx, d_yy, count, *J, stream);
+		reduce_cost_device(d_hx, d_traits.yy, count, J, stream);
 		// CHECK_KERNEL()
 
-		*J /= (T)nsamples;
+		J /= (T)nsamples;
 
 		T Jreg = 0.0;
-		reduce_cost_reg_device(d_params, d_regw, np, Jreg, stream);
+		reduce_cost_reg_device(d_traits.params, d_traits.regw, np, Jreg, stream);
 		// CHECK_KERNEL()
 
-		*J += (T)((Jreg*lambda)/(2.0*nsamples));
+		J += (T)((Jreg*d_traits.lambda)/(2.0*nsamples));
+		d_traits.cost = J;
   }
 
-  if(!d_grads) {
+  if(!d_traits.compute_grads) {
   	// we don't need to compute the gradients.
   	return;
   }
@@ -130,9 +136,9 @@ void _gd_errfunc(BPTraits<T>& traits)
 {
 	// Compute the total number of parameters in this network:
 	unsigned int np = traits.np();
-	unsigned int nl = traits.nl;
-	unsigned int* lsizes = traits.lsizes;
-	unsigned int nsamples = traits.nsamples;
+	// unsigned int nl = traits.nl;
+	// unsigned int* lsizes = traits.lsizes;
+	// unsigned int nsamples = traits.nsamples;
 
 	// BPDeviceTraits<T> d_traits(traits);
 	BPDeviceTraits<T> d_traits;
@@ -142,8 +148,14 @@ void _gd_errfunc(BPTraits<T>& traits)
 	unsigned int nd = traits.nd();
 
 	// Call the actual method to perform the computations:
-	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_traits.params, d_traits.X, d_traits.yy, traits.lambda, &traits.cost, d_traits.grads, d_traits.deltas, 
-		d_traits.inputs, d_traits.regw);
+	// gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_traits.params, d_traits.X, d_traits.yy, traits.lambda, &traits.cost, d_traits.grads, d_traits.deltas, 
+	// 	d_traits.inputs, d_traits.regw);
+		
+	d_traits.compute_cost = true;
+	d_traits.compute_grads = true;
+
+	gd_errfunc_device<T>(d_traits);
+	traits.cost = d_traits.cost;
 
 	// Here we should also read back the gradient values:
 	copyFromDevice(traits.grads,d_traits.grads,np);

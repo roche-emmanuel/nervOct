@@ -6,6 +6,7 @@
 - Provide traits for methods with many arguments.
 - Test copy construction of BPTraits ?
 - Add d_traits usage for errfunc_device.
+- Test the value from computeTrainCost and computeCvCost
 
 
 *** CUDA infos:

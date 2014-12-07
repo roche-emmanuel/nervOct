@@ -97,9 +97,11 @@ template<typename T, unsigned int blockSize = BLOCK_SIZE>
 int nn_activation_device(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
                          T *d_params, T *d_X, T *d_inputs, T bias = 1.0,  T *wmults = nullptr, cudaStream_t stream = 0);
 
+// template<typename T, unsigned int blockSize = BLOCK_SIZE>
+// void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int *lsizes, unsigned int nsamples,
+//                        T *d_params, T *d_X, T *d_yy, T lambda, T *J, T *d_grads, T *d_deltas, T *d_inputs, T *d_regw, T bias = 1.0, cudaStream_t stream = 0);
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int *lsizes, unsigned int nsamples,
-                       T *d_params, T *d_X, T *d_yy, T lambda, T *J, T *d_grads, T *d_deltas, T *d_inputs, T *d_regw, T bias = 1.0, cudaStream_t stream = 0);
+void gd_errfunc_device(BPDeviceTraits<T>& d_traits);
 
 template<typename T>
 T compute_dot_device(T *d_vec1, T *d_vec2, T *d_redtmp, unsigned int size);

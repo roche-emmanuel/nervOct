@@ -12,7 +12,7 @@ struct BPDeviceTraits : public BPTraits<T>
 {
   typedef std::vector<T *> BufferList;
 
-  BPDeviceTraits(cudaStream_t s = 0) : regw(nullptr), stream(s) {};
+  BPDeviceTraits(cudaStream_t s = 0) : compute_cost(false), compute_grads(true), regw(nullptr), stream(s) {};
 
   BPDeviceTraits(const BPDeviceTraits &) = delete;
   BPDeviceTraits &operator=(const BPDeviceTraits &) = delete;
@@ -35,6 +35,8 @@ struct BPDeviceTraits : public BPTraits<T>
     release();
   }
 
+  bool compute_cost;
+  bool compute_grads;
   T *regw; // array containing the L2 regularization weights.
   cudaStream_t stream;
 

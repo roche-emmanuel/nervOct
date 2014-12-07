@@ -271,8 +271,12 @@ void GradientDescent<T>::run()
     mix_vectors_device(d_params, d_theta, d_vel, (value_type)1.0, _mu, _np, _stream1);
 
     // 3. Once we have the parameter vector, we compute the gradient at that location:
-    gd_errfunc_device(_nl, _np, _lsizes, ns, d_params,
-                      X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
+    // gd_errfunc_device(_nl, _np, _lsizes, ns, d_params,
+    //                   X_train_ptr, y_train_ptr, _lambda, current_cost, d_grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
+    _d_traits.X = X_train_ptr;
+    _d_traits.yy = y_train_ptr;
+    _d_traits.nsamples = ns;
+    gd_errfunc_device(_d_traits);
 
     // logDEBUG("Performing iteration "<<iter<<", Jtrain="<<current_cost);
 
@@ -377,23 +381,41 @@ void GradientDescent<T>::downloadParameters()
 template <typename T>
 T GradientDescent<T>::computeTrainCost()
 {
-  value_type J = 0.0;
-  value_type *grads = nullptr;
+  // value_type J = 0.0;
+  // value_type *grads = nullptr;
 
   // compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-  gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
-  return J;
+  _d_traits.X = d_X_train;
+  _d_traits.yy = d_y_train;
+  _d_traits.nsamples = _nsamples;
+  _d_traits.compute_cost = true;
+  _d_traits.compute_grads = false;
+  gd_errfunc_device(_d_traits);
+  _d_traits.compute_cost = false;
+  _d_traits.compute_grads = true;
+
+  // gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
+  return _d_traits.cost;
 }
 
 template <typename T>
 T GradientDescent<T>::computeCvCost()
 {
-  value_type J = 0.0;
-  value_type *grads = nullptr;
+  // value_type J = 0.0;
+  // value_type *grads = nullptr;
+
+  _d_traits.X = d_X_cv;
+  _d_traits.yy = d_y_cv;
+  _d_traits.nsamples = _nsamples_cv;
+  _d_traits.compute_cost = true;
+  _d_traits.compute_grads = false;
+  gd_errfunc_device(_d_traits);
+  _d_traits.compute_cost = false;
+  _d_traits.compute_grads = true;
 
   // compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-  gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
-  return J;
+  // gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
+  return _d_traits.cost;
 }
 
 template <typename T>

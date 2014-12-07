@@ -101,7 +101,6 @@ protected:
   value_type _bias; // Bias value used for the neurons in the network.
 
   value_type _lambda; // regularization parameter.
-  value_type *_regw; // host regularization buffer.
 
   // GPU buffers:
   value_type *d_X_train;
