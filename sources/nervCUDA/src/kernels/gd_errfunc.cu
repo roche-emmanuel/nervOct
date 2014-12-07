@@ -127,104 +127,35 @@ void gd_errfunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, u
 
 template <typename T>
 void _gd_errfunc(BPTraits<T>& traits)
-  // unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	// T* nn_params, T* X, T* yy, T lambda, T& J, T* gradients, T* deltas, T* inputs)
 {
 	// Compute the total number of parameters in this network:
-	unsigned int np = 0;
+	unsigned int np = traits.np();
 	unsigned int nl = traits.nl;
-	unsigned int nt = traits.nl-1; // number of matrices evolved.
 	unsigned int* lsizes = traits.lsizes;
 	unsigned int nsamples = traits.nsamples;
 
-	for(unsigned int i=0;i<nt;++i) {
-		np += lsizes[i+1]*(lsizes[i]+1);
-	}
-
-	size_t size = np * sizeof(T);
-	T* d_params = createGPUBuffer<T>(np,traits.params);
-
-	// prepare regularization weigths:
-	T* h_regw = new T[size];
-	memset(h_regw,0,size);
-
-	// prepare the regularization correction:
-	T* rptr = h_regw;
-
-	for(unsigned int i=0; i<nt;++i) {
-		unsigned int nrows = lsizes[i+1];
-		unsigned int ncolT = lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
-
-		rptr += nrows;
-		unsigned int count = nrows*ncolT;
-
-		for(unsigned int j=0;j<count;++j) {
-			(*rptr++) = 1.0;
-		}
-	}
-
-
-	// Prepare the reg weights for this network:
-	T* d_regw = createGPUBuffer<T>(np,h_regw);
-
-	// Also allocation the gradient array, with the same number of elements:
-	T* d_grads = createGPUBuffer<T>(np);
+	// BPDeviceTraits<T> d_traits(traits);
+	BPDeviceTraits<T> d_traits;
+	d_traits = traits;
 
 	// Compute the total number of delta coefficients:
-	unsigned int nd = 0;
-	for(unsigned int i=1;i<nl;++i) {
-		nd += lsizes[i]*nsamples;
-	}
-
-	T* d_deltas = createGPUBuffer<T>(nd);
-
-	// Prepare the X matrix:
-	T* d_X = createGPUBuffer<T>(nsamples * lsizes[0],traits.X);
-
-	// Prepare the input data:
-	// the size of each input matrix is lsize[i+1]*nsamples;
-	// and we need input 0 to nt-1, inclusive.
-	// So that's nl input matrices.
-	unsigned int count = 0;
-	for(unsigned int i=0;i<nt;++i) {
-		count += lsizes[i+1];
-	}
-
-	size_t input_size = nsamples * count * sizeof(T);
-	T* d_inputs = createGPUBuffer<T>(nsamples * count);
-
-	// Copy the label matrix:	
-	T* d_yy = createGPUBuffer<T>(nsamples * lsizes[nt],traits.yy);
+	unsigned int nd = traits.nd();
 
 	// Call the actual method to perform the computations:
-	// costFunc_device(nl, np, lsizes, nsamples, d_params, d_X, d_yy, lambda, J, d_grads, d_deltas, d_inputs, d_regw);
-	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_params, d_X, d_yy, traits.lambda, &traits.cost, d_grads, d_deltas, d_inputs, d_regw);
+	gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_traits.params, d_traits.X, d_traits.yy, traits.lambda, &traits.cost, d_traits.grads, d_traits.deltas, 
+		d_traits.inputs, d_traits.regw);
 
 	// Here we should also read back the gradient values:
-	checkCudaErrors(cudaMemcpy(traits.grads, d_grads, sizeof(T)*np, cudaMemcpyDeviceToHost));
-	// memset(gradients,0,sizeof(T)*np);
+	copyFromDevice(traits.grads,d_traits.grads,np);
 	
 	// Read inputs from device memory
 	if(traits.inputs) {
-		checkCudaErrors(cudaMemcpy(traits.inputs, d_inputs, input_size, cudaMemcpyDeviceToHost));
+		copyFromDevice(traits.inputs, d_traits.inputs, nd);
 	}
 
 	if(traits.deltas) {
-		checkCudaErrors(cudaMemcpy(traits.deltas, d_deltas, sizeof(T)*nd, cudaMemcpyDeviceToHost)); // only retrieve the deltas if requested.
+		copyFromDevice(traits.deltas, d_traits.deltas, nd); // only retrieve the deltas if requested.
 	}
-
-	// cudaDeviceSynchronize();
-
-	// Free device memory
-	// checkCudaErrors(cudaFree(d_lsizes));
-	destroyGPUBuffer(d_params);
-	destroyGPUBuffer(d_regw);
-	destroyGPUBuffer(d_inputs);	
-	destroyGPUBuffer(d_yy);	
-	destroyGPUBuffer(d_X);	
-	destroyGPUBuffer(d_deltas);	
-	destroyGPUBuffer(d_grads);	
-	delete [] h_regw;
 }
 
 extern "C" {

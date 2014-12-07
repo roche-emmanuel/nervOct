@@ -1,6 +1,8 @@
 #ifndef NERV_BPTRAITS_H_
 #define NERV_BPTRAITS_H_
 
+#include <vector>
+
 namespace nerv
 {
 
@@ -13,7 +15,7 @@ struct BPTraitsBase
       inputs(nullptr), deltas(nullptr), grads(nullptr) {}
 
   virtual ~BPTraitsBase() {}
-  
+
   T bias;
   T lambda;
 
@@ -28,9 +30,13 @@ struct BPTraitsBase
 template<typename T>
 struct BPTraits : public BPTraitsBase<T>
 {
+  typedef std::vector<T *> ArrayList;
+
   BPTraits()
     :  wmults(nullptr), cost(0.0),
        nsamples(0), nl(0), lsizes(nullptr) {};
+
+  virtual ~BPTraits() {}
 
   unsigned int nsamples;
   unsigned int nl;
@@ -38,34 +44,41 @@ struct BPTraits : public BPTraitsBase<T>
 
   T cost;
   T *wmults;
-};
 
-template<typename T>
-struct BPComputeTraits : public BPTraitsBase<T>
-{
-  BPComputeTraits()
-    : theta_offset(0),
-      input_offset(0), next_input_offset(0),
-      delta_offset(0), next_delta_offset(0),
-      grad_offset(0),
-      nrows(0), ncols(0), niter(0),
-      wmult(1.0) {};
+  // Compute the number of parameters:
+  unsigned int np()
+  {
+    unsigned int res = 0;
+    unsigned int nt = nl - 1;
+    for (unsigned int i = 0; i < nt; ++i)
+    {
+      res += lsizes[i + 1] * (lsizes[i] + 1);
+    }
+    return res;
+  }
 
-  unsigned int theta_offset;
+  // Compute the number of deltas (or inputs)
+  unsigned int nd()
+  {
+    unsigned int res = 0;
+    for (unsigned int i = 1; i < nl; ++i)
+    {
+      res += lsizes[i];
+    }
+    return res * nsamples;
+  }
 
-  int input_offset;
-  unsigned int next_input_offset;
+  // Compute the number of elments in the X matrix:
+  unsigned int nx()
+  {
+    return nsamples * lsizes[0];
+  }
 
-  unsigned int delta_offset;
-  unsigned int next_delta_offset;
-
-  unsigned int grad_offset;
-
-  unsigned int nrows;
-  unsigned int ncols;
-  unsigned int niter;
-
-  T wmult;
+  // Compute the number of elments in the yy matrix:
+  unsigned int ny()
+  {
+    return nsamples * lsizes[nl - 1];
+  }
 };
 
 };

@@ -87,6 +87,11 @@ void destroyGPUBuffer(T *ptr)
   }
 }
 
+template<typename T>
+void copyFromDevice(T* dest, T* src, unsigned int n) {
+  checkCudaErrors(cudaMemcpy(dest, src, sizeof(T)*n, cudaMemcpyDeviceToHost));
+}
+
 };
 
 #endif

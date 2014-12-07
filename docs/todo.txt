@@ -4,6 +4,8 @@
 - Implement input feature lost
 - implement octave plugin to access gradient descent.
 - Provide traits for methods with many arguments.
+- Test copy construction of BPTraits ?
+- Add d_traits usage for errfunc_device.
 
 
 *** CUDA infos:

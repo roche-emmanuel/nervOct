@@ -21,7 +21,7 @@
 #define MAX_THREADS_PER_BLOCK 1024
 
 #include <nerv/BPTraits.h>
-#include <nerv/Utils.h>
+#include <nerv/BPDeviceTraits.h>
 
 using namespace nerv;
 
