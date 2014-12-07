@@ -23,13 +23,9 @@ public:
 
   virtual ~GDTraits() {};
 
-  void init();
-
   unsigned int maxiter;
-
   unsigned int X_train_size;
   unsigned int y_train_size;
-
   unsigned int nparams;
 
   T momentum;
@@ -43,6 +39,17 @@ public:
 
   T *y_cv;
   unsigned int y_cv_size;
+
+  void validate() const;
+
+  unsigned int nsamples_cv() const
+  {
+    return X_cv_size / lsizes[0];
+  }
+
+protected:
+  void init();
+
 };
 
 template<typename T>

@@ -81,8 +81,29 @@ GDTraits<T>::GDTraits(const TrainingSet<T> &tr)
 }
 
 template <typename T>
+void GDTraits<T>::validate() const
+{
+  // ensure that the traits are usable:
+  THROW_IF(nl < 3, "Invalid nl value: " << nl);
+  THROW_IF(!lsizes, "Invalid lsizes value.");
+  THROW_IF(!nsamples, "Invalid nsamples value.")
+  THROW_IF(nparams != np(), "Invalid nparams value: " << nparams << "!=" << np());
+  THROW_IF(!params, "Invalid params value.");
+  THROW_IF(X_train_size != nx(), "Invalid size for X: " << X_train_size << "!=" << nx());
+  THROW_IF(!X, "Invalid X_train value.");
+  THROW_IF(y_train_size != ny(), "Invalid size for y: " << y_train_size << "!=" << ny());
+  THROW_IF(!yy, "Invalid y_train value.");
+  
+  unsigned int ns_cv = y_cv_size / lsizes[nl-1];
+  THROW_IF(nsamples_cv() != ns_cv, "Mismatch in computation of _nsamples_cv" << nsamples_cv() << "!=" << ns_cv)
+  THROW_IF(miniBatchSize > nsamples / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples / 2));
+}
+
+template <typename T>
 GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
 {
+  traits.validate();
+
   _bestIter = 0;
 
   // Assign the max number of iteration:
@@ -105,15 +126,11 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Retrieve the bias value:
   _bias = traits.bias;
 
-  // ensure that the traits are usable:
-  THROW_IF(traits.nl < 3, "Invalid nl value: " << traits.nl);
   _nl = traits.nl;
   _nt = _nl - 1;
 
-  THROW_IF(!traits.lsizes, "Invalid lsizes value.")
   _lsizes = traits.lsizes;
 
-  THROW_IF(!traits.nsamples, "Invalid nsamples value.")
   _nsamples = traits.nsamples;
 
   // Compute the number of parameters that are expected:
@@ -122,26 +139,15 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   {
     np += _lsizes[i + 1] * (_lsizes[i] + 1);
   }
-
-  THROW_IF(traits.nparams != np, "Invalid nparams value: " << traits.nparams << "!=" << np)
-  THROW_IF(!traits.params, "Invalid params value.")
   _np = np;
 
   // Compute the expected size for X:
   unsigned int nx = _nsamples * _lsizes[0];
-  THROW_IF(traits.X_train_size != nx, "Invalid size for X: " << traits.X_train_size << "!=" << nx)
-  THROW_IF(!traits.X, "Invalid X_train value.")
 
   // Compute the expected size for y:
   unsigned int ny = _nsamples * _lsizes[_nt];
-  THROW_IF(traits.y_train_size != ny, "Invalid size for y: " << traits.y_train_size << "!=" << ny)
-  THROW_IF(!traits.yy, "Invalid y_train value.")
 
-  _nsamples_cv = traits.X_cv_size / _lsizes[0];
-  unsigned int ns_cv = traits.y_cv_size / _lsizes[_nt];
-  THROW_IF(_nsamples_cv != ns_cv, "Mismatch in computation of _nsamples_cv" << _nsamples_cv << "!=" << ns_cv)
-
-  THROW_IF(_miniBatchSize > _nsamples / 2, "mini-batch size is too big: " << _miniBatchSize << ">" << (_nsamples / 2));
+  _nsamples_cv = traits.nsamples_cv();
 
   // keep a copy of the traits:
   _traits = traits;

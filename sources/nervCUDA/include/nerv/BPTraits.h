@@ -46,7 +46,7 @@ struct BPTraits : public BPTraitsBase<T>
   T *wmults;
 
   // Compute the number of parameters:
-  unsigned int np()
+  unsigned int np() const
   {
     unsigned int res = 0;
     unsigned int nt = nl - 1;
@@ -58,7 +58,7 @@ struct BPTraits : public BPTraitsBase<T>
   }
 
   // Compute the number of deltas (or inputs)
-  unsigned int nd()
+  unsigned int nd() const
   {
     unsigned int res = 0;
     for (unsigned int i = 1; i < nl; ++i)
@@ -69,13 +69,13 @@ struct BPTraits : public BPTraitsBase<T>
   }
 
   // Compute the number of elments in the X matrix:
-  unsigned int nx()
+  unsigned int nx() const
   {
     return nsamples * lsizes[0];
   }
 
   // Compute the number of elments in the yy matrix:
-  unsigned int ny()
+  unsigned int ny() const
   {
     return nsamples * lsizes[nl - 1];
   }

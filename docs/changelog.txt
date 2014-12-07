@@ -141,3 +141,4 @@
 - using BPDeviceTraits in _gd_errfunc
 - Preparing to update GDTraits.
 - Converted GDTraits to BPTraits base.
+- Updating gradinet descent to use BPTraits.
