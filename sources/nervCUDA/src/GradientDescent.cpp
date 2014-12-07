@@ -15,34 +15,34 @@ using namespace nerv;
 template <typename T>
 void GDTraits<T>::init()
 {
-  _nsamples = 0;
-  _maxiter = 0;
-  _lambda = 0.0;
+  nsamples = 0;
+  maxiter = 0;
+  lambda = 0.0;
 
-  _lsizes = nullptr;
-  _nl = 0;
+  lsizes = nullptr;
+  nl = 0;
 
-  _X_train = nullptr;
-  _X_train_size = 0;
+  X = nullptr;
+  X_train_size = 0;
 
-  _y_train = nullptr;
-  _y_train_size = 0;
+  yy = nullptr;
+  y_train_size = 0;
 
-  _X_cv = nullptr;
-  _X_cv_size = 0;
+  X_cv = nullptr;
+  X_cv_size = 0;
 
-  _y_cv = nullptr;
-  _y_cv_size = 0;
+  y_cv = nullptr;
+  y_cv_size = 0;
 
-  _params = nullptr;
-  _nparams = 0;
+  params = nullptr;
+  nparams = 0;
 
-  _mu = 0.0;
-  _epsilon = 0.0;
-  _miniBatchSize = 0;
+  momentum = 0.0;
+  epsilon = 0.0;
+  miniBatchSize = 0;
 
-  _validationWindowSize = 0;
-  _bias = 1.0;
+  validationWindowSize = 0;
+  bias = 1.0;
 }
 
 template <typename T>
@@ -56,66 +56,28 @@ GDTraits<T>::GDTraits(const TrainingSet<T> &tr)
 {
   init();
 
-  _nl = tr.nl();
-  _nsamples = tr.nsamples();
+  nl = tr.nl();
+  nsamples = tr.nsamples();
 
-  _lsizes = tr.lsizes();
+  lsizes = tr.lsizes();
 
-  _X_train = tr.X_train();
-  _X_train_size = tr.X_train_size();
+  X = tr.X_train();
+  X_train_size = tr.X_train_size();
 
-  _y_train = tr.y_train();
-  _y_train_size = tr.y_train_size();
+  yy = tr.y_train();
+  y_train_size = tr.y_train_size();
 
-  _X_cv = tr.X_cv();
-  _X_cv_size = tr.X_cv_size();
+  X_cv = tr.X_cv();
+  X_cv_size = tr.X_cv_size();
 
-  _y_cv = tr.y_cv();
-  _y_cv_size = tr.y_cv_size();
+  y_cv = tr.y_cv();
+  y_cv_size = tr.y_cv_size();
 
-  _params = tr.params();
-  _nparams = tr.np();
+  params = tr.params();
+  nparams = tr.np();
 
-  _maxiter = tr.maxiter();
-  _lambda = tr.lambda();
-}
-
-template <typename T>
-GDTraits<T> &GDTraits<T>::operator=(const GDTraits<T> &rhs)
-{
-  _nl = rhs._nl;
-  _nsamples = rhs._nsamples;
-
-  _lsizes = rhs._lsizes;
-
-  _X_train = rhs._X_train;
-  _X_train_size = rhs._X_train_size;
-
-  _y_train = rhs._y_train;
-  _y_train_size = rhs._y_train_size;
-
-  _params = rhs._params;
-  _nparams = rhs._nparams;
-
-  _maxiter = rhs._maxiter;
-  _lambda = rhs._lambda;
-
-  _mu = rhs._mu;
-  _epsilon = rhs._epsilon;
-
-  _miniBatchSize = rhs._miniBatchSize;
-
-  _validationWindowSize = rhs._validationWindowSize;
-
-  _X_cv = rhs._X_cv;
-  _X_cv_size = rhs._X_cv_size;
-
-  _y_cv = rhs._y_cv;
-  _y_cv_size = rhs._y_cv_size;
-
-  _bias = rhs._bias;
-
-  return *this;
+  maxiter = tr.maxiter();
+  lambda = tr.lambda();
 }
 
 template <typename T>
@@ -124,35 +86,35 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   _bestIter = 0;
 
   // Assign the max number of iteration:
-  _maxiter = traits.maxiter();
+  _maxiter = traits.maxiter;
 
   // Assign regularization parameter:
-  _lambda = traits.lambda();
+  _lambda = traits.lambda;
 
-  _mumax = traits.momentum();
+  _mumax = traits.momentum;
   _mu = 0.0; // will be initialized later.
 
-  _epsilon = traits.learningRate();
+  _epsilon = traits.epsilon;
 
-  _miniBatchSize = traits.miniBatchSize();
+  _miniBatchSize = traits.miniBatchSize;
 
-  _validationWindowSize = traits.validationWindowSize();
+  _validationWindowSize = traits.validationWindowSize;
 
   _minCvCostDec = (value_type)0.00001;
 
   // Retrieve the bias value:
-  _bias = traits.bias();
+  _bias = traits.bias;
 
   // ensure that the traits are usable:
-  THROW_IF(traits.nl() < 3, "Invalid nl value: " << traits.nl())
-  _nl = traits.nl();
+  THROW_IF(traits.nl < 3, "Invalid nl value: " << traits.nl);
+  _nl = traits.nl;
   _nt = _nl - 1;
 
-  THROW_IF(!traits.lsizes(), "Invalid lsizes value.")
-  _lsizes = traits.lsizes();
+  THROW_IF(!traits.lsizes, "Invalid lsizes value.")
+  _lsizes = traits.lsizes;
 
-  THROW_IF(!traits.nsamples(), "Invalid nsamples value.")
-  _nsamples = traits.nsamples();
+  THROW_IF(!traits.nsamples, "Invalid nsamples value.")
+  _nsamples = traits.nsamples;
 
   // Compute the number of parameters that are expected:
   unsigned int np = 0;
@@ -161,22 +123,22 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
     np += _lsizes[i + 1] * (_lsizes[i] + 1);
   }
 
-  THROW_IF(traits.nparams() != np, "Invalid nparams value: " << traits.nparams() << "!=" << np)
-  THROW_IF(!traits.params(), "Invalid params value.")
+  THROW_IF(traits.nparams != np, "Invalid nparams value: " << traits.nparams << "!=" << np)
+  THROW_IF(!traits.params, "Invalid params value.")
   _np = np;
 
   // Compute the expected size for X:
   unsigned int nx = _nsamples * _lsizes[0];
-  THROW_IF(traits.X_train_size() != nx, "Invalid size for X: " << traits.X_train_size() << "!=" << nx)
-  THROW_IF(!traits.X_train(), "Invalid X_train value.")
+  THROW_IF(traits.X_train_size != nx, "Invalid size for X: " << traits.X_train_size << "!=" << nx)
+  THROW_IF(!traits.X, "Invalid X_train value.")
 
   // Compute the expected size for y:
   unsigned int ny = _nsamples * _lsizes[_nt];
-  THROW_IF(traits.y_train_size() != ny, "Invalid size for y: " << traits.y_train_size() << "!=" << ny)
-  THROW_IF(!traits.y_train(), "Invalid y_train value.")
+  THROW_IF(traits.y_train_size != ny, "Invalid size for y: " << traits.y_train_size << "!=" << ny)
+  THROW_IF(!traits.yy, "Invalid y_train value.")
 
-  _nsamples_cv = traits.X_cv_size() / _lsizes[0];
-  unsigned int ns_cv = traits.y_cv_size() / _lsizes[_nt];
+  _nsamples_cv = traits.X_cv_size / _lsizes[0];
+  unsigned int ns_cv = traits.y_cv_size / _lsizes[_nt];
   THROW_IF(_nsamples_cv != ns_cv, "Mismatch in computation of _nsamples_cv" << _nsamples_cv << "!=" << ns_cv)
 
   THROW_IF(_miniBatchSize > _nsamples / 2, "mini-batch size is too big: " << _miniBatchSize << ">" << (_nsamples / 2));
@@ -197,36 +159,36 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Load the X matrix on the GPU directly:
   size = sizeof(value_type) * nx;
   d_X_train = NULL;
-  checkCudaErrors(cudaHostRegister(traits.X_train(), size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+  checkCudaErrors(cudaHostRegister(traits.X, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
   checkCudaErrors(cudaMalloc(&d_X_train, size));
-  checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X_train(), size, cudaMemcpyHostToDevice, _stream1));
+  checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X, size, cudaMemcpyHostToDevice, _stream1));
 
 
   // load the yy matrix on the GPU:
   size = sizeof(value_type) * ny;
   d_y_train = NULL;
-  checkCudaErrors(cudaHostRegister(traits.y_train(), size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+  checkCudaErrors(cudaHostRegister(traits.yy, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
   checkCudaErrors(cudaMalloc(&d_y_train, size));
-  checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.y_train(), size, cudaMemcpyHostToDevice, _stream1));
+  checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.yy, size, cudaMemcpyHostToDevice, _stream1));
 
   // Prepare the cv datasets if applicable:
-  THROW_IF(traits.validationWindowSize() > 0 && (!traits.X_cv() || !traits.y_cv()), "Invalid cv datasets.");
+  THROW_IF(traits.validationWindowSize > 0 && (!traits.X_cv || !traits.y_cv), "Invalid cv datasets.");
   d_X_cv = NULL;
   d_y_cv = NULL;
 
-  if (traits.validationWindowSize() > 0)
+  if (traits.validationWindowSize > 0)
   {
     // Load the Xcv matrix on the GPU directly:
-    size = sizeof(value_type) * traits.X_cv_size();
-    checkCudaErrors(cudaHostRegister(traits.X_cv(), size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+    size = sizeof(value_type) * traits.X_cv_size;
+    checkCudaErrors(cudaHostRegister(traits.X_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
     checkCudaErrors(cudaMalloc(&d_X_cv, size));
-    checkCudaErrors(cudaMemcpyAsync(d_X_cv, traits.X_cv(), size, cudaMemcpyHostToDevice, _stream1));
+    checkCudaErrors(cudaMemcpyAsync(d_X_cv, traits.X_cv, size, cudaMemcpyHostToDevice, _stream1));
 
     // load the ycv matrix on the GPU:
-    size = sizeof(value_type) * traits.y_cv_size();
-    checkCudaErrors(cudaHostRegister(traits.y_cv(), size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+    size = sizeof(value_type) * traits.y_cv_size;
+    checkCudaErrors(cudaHostRegister(traits.y_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
     checkCudaErrors(cudaMalloc(&d_y_cv, size));
-    checkCudaErrors(cudaMemcpyAsync(d_y_cv, traits.y_cv(), size, cudaMemcpyHostToDevice, _stream1));
+    checkCudaErrors(cudaMemcpyAsync(d_y_cv, traits.y_cv, size, cudaMemcpyHostToDevice, _stream1));
   }
 
   // Load the parameters (weights) on the GPU:
@@ -246,9 +208,9 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
 
   // Theta is the array containing the computed network weights at each cycle:
   d_theta = NULL;
-  checkCudaErrors(cudaHostRegister(traits.params(), size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+  checkCudaErrors(cudaHostRegister(traits.params, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
   checkCudaErrors(cudaMalloc(&d_theta, size));
-  checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params(), size, cudaMemcpyHostToDevice, _stream1));
+  checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params, size, cudaMemcpyHostToDevice, _stream1));
 
   d_theta_bak = NULL;
   checkCudaErrors(cudaMalloc(&d_theta_bak, size));
@@ -317,21 +279,21 @@ template<typename T>
 GradientDescent<T>::~GradientDescent()
 {
   // unregister the pinned memory:
-  checkCudaErrors(cudaHostUnregister(_traits.X_train()));
-  checkCudaErrors(cudaHostUnregister(_traits.y_train()));
-  checkCudaErrors(cudaHostUnregister(_traits.params()));
+  checkCudaErrors(cudaHostUnregister(_traits.X));
+  checkCudaErrors(cudaHostUnregister(_traits.yy));
+  checkCudaErrors(cudaHostUnregister(_traits.params));
   checkCudaErrors(cudaHostUnregister(_regw));
   delete [] _regw;
 
   if (d_X_cv)
   {
-    checkCudaErrors(cudaHostUnregister(_traits.X_cv()));
+    checkCudaErrors(cudaHostUnregister(_traits.X_cv));
     checkCudaErrors(cudaFree(d_X_cv));
   }
 
   if (d_y_cv)
   {
-    checkCudaErrors(cudaHostUnregister(_traits.y_cv()));
+    checkCudaErrors(cudaHostUnregister(_traits.y_cv));
     checkCudaErrors(cudaFree(d_y_cv));
   }
 
@@ -511,7 +473,7 @@ template <typename T>
 void GradientDescent<T>::downloadParameters()
 {
   // Download the parameters from the theta buffer on the GPU:
-  checkCudaErrors(cudaMemcpy(_traits.params(), d_theta, _np * sizeof(value_type), cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(_traits.params, d_theta, _np * sizeof(value_type), cudaMemcpyDeviceToHost));
 }
 
 template <typename T>

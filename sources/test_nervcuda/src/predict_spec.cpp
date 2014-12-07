@@ -18,7 +18,6 @@
 
 using namespace nerv;
 
-
 BOOST_AUTO_TEST_SUITE( gradient_descent_suite )
 
 BOOST_AUTO_TEST_CASE( test_nn_predict )

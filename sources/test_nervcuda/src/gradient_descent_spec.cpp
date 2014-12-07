@@ -26,19 +26,19 @@ BOOST_AUTO_TEST_CASE( test_create_gd_traits )
   GDd::Traits traits;
 
   // check the default values:
-  BOOST_CHECK(traits.nl() == 0);
-  BOOST_CHECK(traits.lsizes() == nullptr);
-  BOOST_CHECK(traits.nsamples() == 0);
-  BOOST_CHECK(traits.nparams() == 0);
-  BOOST_CHECK(traits.X_train() == nullptr);
-  BOOST_CHECK(traits.X_train_size() == 0);
-  BOOST_CHECK(traits.y_train() == nullptr);
-  BOOST_CHECK(traits.y_train_size() == 0);
-  BOOST_CHECK(traits.params() == nullptr);
-  BOOST_CHECK(traits.maxiter() == 0);
-  BOOST_CHECK(traits.lambda() == 0.0);
-  BOOST_CHECK(traits.momentum() == 0.0);
-  BOOST_CHECK(traits.learningRate() == 0.0);
+  BOOST_CHECK(traits.nl == 0);
+  BOOST_CHECK(traits.lsizes == nullptr);
+  BOOST_CHECK(traits.nsamples == 0);
+  BOOST_CHECK(traits.nparams == 0);
+  BOOST_CHECK(traits.X == nullptr);
+  BOOST_CHECK(traits.X_train_size == 0);
+  BOOST_CHECK(traits.yy == nullptr);
+  BOOST_CHECK(traits.y_train_size == 0);
+  BOOST_CHECK(traits.params == nullptr);
+  BOOST_CHECK(traits.maxiter == 0);
+  BOOST_CHECK(traits.lambda == 0.0);
+  BOOST_CHECK(traits.momentum == 0.0);
+  BOOST_CHECK(traits.epsilon == 0.0);
 }
 
 BOOST_AUTO_TEST_CASE( test_create_gd )
@@ -52,39 +52,47 @@ BOOST_AUTO_TEST_CASE( test_create_gd )
   BOOST_CHECK_THROW( new GDd(traits), std::runtime_error);
 
   unsigned int sizes2[] = { 3, 4};
-  traits.lsizes(sizes2, 2);
+  traits.lsizes = sizes2;
+  traits.nl = 2;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   unsigned int sizes[] = { 3, 4, 1};
-  traits.lsizes(sizes, 3);
+  traits.lsizes = sizes;
+  traits.nl = 3;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   unsigned int nsamples = 10;
-  traits.nsamples(nsamples);
+  traits.nsamples = nsamples;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   value_t *params = nullptr;
-  traits.params(params, 10);
+  traits.params = params;
+  traits.nparams = 10;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   params = new value_t[21];
-  traits.params(params, 21);
+  traits.params = params;
+  traits.nparams = 21;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   value_t *X = nullptr;
-  traits.X_train(X, 10);
+  traits.X = X;
+  traits.X_train_size = 10;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   X = new value_t[nsamples * 3];
-  traits.X_train(X, nsamples * 3);
+  traits.X = X;
+  traits.X_train_size = nsamples * 3;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   value_t *y = nullptr;
-  traits.y_train(y, 5);
+  traits.yy = y;
+  traits.y_train_size = 5;
   BOOST_CHECK_THROW( new GDd(traits),  std::runtime_error);
 
   y = new value_t[nsamples * 1];
-  traits.y_train(y, nsamples * 1);
+  traits.yy = y;
+  traits.y_train_size = nsamples * 1;
 
   // If we use this call here we will have a problem because of pinned memory registration.
   // BOOST_CHECK_NO_THROW( new GDd(traits) );
@@ -487,8 +495,8 @@ BOOST_AUTO_TEST_CASE( test_train_cost_reduction )
 
   // Create traits from that trainingset:
   GDd::Traits traits(tr);
-  traits.learningRate(0.001);
-  traits.momentum(0.995);
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -521,11 +529,11 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
 
   // Create traits from that trainingset:
   GDd::Traits traits(tr);
-  traits.learningRate(0.001);
-  traits.momentum(0.995);
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
 
   // enabled early stopping:
-  traits.validationWindowSize(10);
+  traits.validationWindowSize =10;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -556,12 +564,12 @@ BOOST_AUTO_TEST_CASE( test_early_stopping_minibatch )
 
   // Create traits from that trainingset:
   GDd::Traits traits(tr);
-  traits.learningRate(0.001);
-  traits.momentum(0.995);
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
 
   // enabled early stopping:
-  traits.validationWindowSize(10);
-  traits.miniBatchSize(10);
+  traits.validationWindowSize = 10;
+  traits.miniBatchSize = 10;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -595,12 +603,12 @@ BOOST_AUTO_TEST_CASE( test_zero_param )
 
   // Create traits from that trainingset:
   GDd::Traits traits(tr);
-  traits.learningRate(0.001);
-  traits.momentum(0.995);
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
 
   // enabled early stopping:
-  traits.validationWindowSize(10);
-  traits.miniBatchSize(10);
+  traits.validationWindowSize = 10;
+  traits.miniBatchSize = 10;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -631,12 +639,12 @@ BOOST_AUTO_TEST_CASE( test_same_params )
 
   // Create traits from that trainingset:
   GDd::Traits traits(tr);
-  traits.learningRate(0.001);
-  traits.momentum(0.995);
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
 
   // enabled early stopping:
-  traits.validationWindowSize(10);
-  traits.miniBatchSize(10);
+  traits.validationWindowSize = 10;
+  traits.miniBatchSize = 10;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -666,13 +674,13 @@ BOOST_AUTO_TEST_CASE( test_specify_bias )
 
   // Create traits from that trainingset:
   GDd::Traits traits(tr);
-  traits.learningRate(0.001);
-  traits.momentum(0.995);
-  traits.bias(0.0);
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
+  traits.bias = 0.0;
 
   // enabled early stopping:
-  traits.validationWindowSize(10);
-  traits.miniBatchSize(100);
+  traits.validationWindowSize = 10;
+  traits.miniBatchSize = 10;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -700,12 +708,12 @@ BOOST_AUTO_TEST_CASE( test_early_stopping_minibatch_float )
 
   // Create traits from that trainingset:
   GDf::Traits traits(tr);
-  traits.learningRate(0.001f);
-  traits.momentum(0.995f);
+  traits.epsilon = 0.001f;
+  traits.momentum = 0.995f;
 
   // enabled early stopping:
-  traits.validationWindowSize(10);
-  traits.miniBatchSize(32);
+  traits.validationWindowSize = 10;
+  traits.miniBatchSize = 32;
 
   // create gradient descent and run:
   GDf gd(traits);
