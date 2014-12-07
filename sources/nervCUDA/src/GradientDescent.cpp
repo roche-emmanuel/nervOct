@@ -381,9 +381,6 @@ void GradientDescent<T>::downloadParameters()
 template <typename T>
 T GradientDescent<T>::computeTrainCost()
 {
-  // value_type J = 0.0;
-  // value_type *grads = nullptr;
-
   // compute the cost at d_theta location, on complete training set, and not accounting for regularization:
   _d_traits.X = d_X_train;
   _d_traits.yy = d_y_train;
@@ -394,16 +391,12 @@ T GradientDescent<T>::computeTrainCost()
   _d_traits.compute_cost = false;
   _d_traits.compute_grads = true;
 
-  // gd_errfunc_device(_nl, _np, _lsizes, _nsamples, d_theta, d_X_train, d_y_train, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
   return _d_traits.cost;
 }
 
 template <typename T>
 T GradientDescent<T>::computeCvCost()
 {
-  // value_type J = 0.0;
-  // value_type *grads = nullptr;
-
   _d_traits.X = d_X_cv;
   _d_traits.yy = d_y_cv;
   _d_traits.nsamples = _nsamples_cv;
@@ -413,8 +406,6 @@ T GradientDescent<T>::computeCvCost()
   _d_traits.compute_cost = false;
   _d_traits.compute_grads = true;
 
-  // compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-  // gd_errfunc_device(_nl, _np, _lsizes, _nsamples_cv, d_theta, d_X_cv, d_y_cv, (value_type)0.0, &J, grads, d_deltas, d_inputs, d_regw, _bias, _stream1);
   return _d_traits.cost;
 }
 

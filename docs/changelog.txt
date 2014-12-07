@@ -146,3 +146,4 @@
 - Now using BPDeviceTraits for y_train and X/y_cv.
 - Updated usage of BPDeviceTraits in Gradient Descent.
 - Using BPDeviceTraits for errfunc.
+- Added compute_cost and compute_grads options in BPTraits.

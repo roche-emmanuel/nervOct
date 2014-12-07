@@ -401,6 +401,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
     traits.grads = grads;
     traits.deltas = deltas;
     traits.inputs = inputs;
+    traits.compute_cost = true; // Note that this is disabled by default.
 
     // costfunc(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, J, grads, deltas, inputs);
     costfunc(traits);

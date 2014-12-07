@@ -12,7 +12,7 @@ struct BPDeviceTraits : public BPTraits<T>
 {
   typedef std::vector<T *> BufferList;
 
-  BPDeviceTraits(cudaStream_t s = 0) : compute_cost(false), compute_grads(true), regw(nullptr), stream(s) {};
+  BPDeviceTraits(cudaStream_t s = 0) : regw(nullptr), stream(s) {};
 
   BPDeviceTraits(const BPDeviceTraits &) = delete;
   BPDeviceTraits &operator=(const BPDeviceTraits &) = delete;
@@ -90,6 +90,8 @@ protected:
     nl = rhs.nl;
     lsizes = rhs.lsizes;
     cost = rhs.cost;
+    compute_cost = rhs.compute_cost;
+    compute_grads = rhs.compute_grads;
     wmults = rhs.wmults;
 
     X = createDeviceBuffer(nx(), rhs.X);

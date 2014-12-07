@@ -3,8 +3,6 @@
 
 template<typename T, unsigned int blockSize>
 void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
-	// unsigned int nl, unsigned int np, unsigned int* lsizes, unsigned int nsamples,
-	// T* d_params, T* d_X, T* d_yy, T lambda, T* J, T* d_grads, T* d_deltas, T* d_inputs, T* d_regw, T bias, cudaStream_t stream)
 {
 	unsigned int nl = d_traits.nl;
 	unsigned int np = d_traits.np();
@@ -37,13 +35,11 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
 		T J = 0.0;
 		unsigned int count = nsamples*lsizes[nt];
 		reduce_cost_device(d_hx, d_traits.yy, count, J, stream);
-		// CHECK_KERNEL()
 
 		J /= (T)nsamples;
 
 		T Jreg = 0.0;
 		reduce_cost_reg_device(d_traits.params, d_traits.regw, np, Jreg, stream);
-		// CHECK_KERNEL()
 
 		J += (T)((Jreg*d_traits.lambda)/(2.0*nsamples));
 		d_traits.cost = J;
@@ -82,18 +78,13 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
 
 		if(i==nt) {
 			// we should just copy the difference of hx and yy into the z matrix.
-			// CHECK_KERNEL()
-			// InitLastDelta<<<dimGrid, dimBlock, 0, stream>>>(input_offset, nrows, ncols, d_deltas, d_inputs, d_yy);
 			InitLastDelta<<<dimGrid, dimBlock, 0, stream>>>(traits);
-			// CHECK_KERNEL()
 		}
 		else {
 			// We compute the delta from the previous delta:
 			// We start this computation for delta(nt-1). this matrix is build from theta(nt-1) and delta(nt).
 			// also in the process we use the input matrix z(nt-2)
-			// ComputeDelta<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, delta_offset, next_delta_offset, nrows, ncols, niter, d_params, d_inputs, d_deltas);
 			ComputeDelta<<<dimGrid, dimBlock, 0, stream>>>(traits);
-			// CHECK_KERNEL()
 
 			// once the computation is done for that layer we move to the previous layer:
 			traits.theta_offset -= lsizes[i]*(lsizes[i-1]+1);
@@ -119,9 +110,7 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
     traits.input_offset -= lsizes[i-1]*nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
 		// logDEBUG("GPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset<<", nsamples="<<nsamples);
 
-		// ComputeGradient<<<dimGrid, dimBlock, 0, stream>>>(theta_offset, input_offset, delta_offset, grad_offset, nrows, ncols, niter, d_X, d_params, d_inputs, d_deltas, d_grads, lambda, bias);
 		ComputeGradient<<<dimGrid, dimBlock, 0, stream>>>(traits);
-		// CHECK_KERNEL()
 
 		// update the gradient offset by removing the size of the next gradient matrix to be computed:
 		// except for the last iteration where the value is not available:
@@ -133,33 +122,27 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
 
 template <typename T>
 void _gd_errfunc(BPTraits<T>& traits)
-{
-	// Compute the total number of parameters in this network:
-	unsigned int np = traits.np();
-	// unsigned int nl = traits.nl;
-	// unsigned int* lsizes = traits.lsizes;
-	// unsigned int nsamples = traits.nsamples;
-
+{	
 	// BPDeviceTraits<T> d_traits(traits);
 	BPDeviceTraits<T> d_traits;
 	d_traits = traits;
 
 	// Compute the total number of delta coefficients:
 	unsigned int nd = traits.nd();
+	unsigned int np = traits.np();
 
 	// Call the actual method to perform the computations:
-	// gd_errfunc_device<T>(nl, np, lsizes, nsamples, d_traits.params, d_traits.X, d_traits.yy, traits.lambda, &traits.cost, d_traits.grads, d_traits.deltas, 
-	// 	d_traits.inputs, d_traits.regw);
-		
-	d_traits.compute_cost = true;
-	d_traits.compute_grads = true;
-
 	gd_errfunc_device<T>(d_traits);
-	traits.cost = d_traits.cost;
+
+	if(traits.compute_cost) {
+		traits.cost = d_traits.cost;	
+	}
 
 	// Here we should also read back the gradient values:
-	copyFromDevice(traits.grads,d_traits.grads,np);
-	
+	if(traits.compute_grads) {
+		copyFromDevice(traits.grads,d_traits.grads,np);
+	}
+
 	// Read inputs from device memory
 	if(traits.inputs) {
 		copyFromDevice(traits.inputs, d_traits.inputs, nd);

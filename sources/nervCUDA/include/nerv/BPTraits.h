@@ -33,7 +33,7 @@ struct BPTraits : public BPTraitsBase<T>
   typedef std::vector<T *> ArrayList;
 
   BPTraits()
-    :  wmults(nullptr), cost(0.0),
+    :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
        nsamples(0), nl(0), lsizes(nullptr) {};
 
   virtual ~BPTraits() {}
@@ -42,6 +42,8 @@ struct BPTraits : public BPTraitsBase<T>
   unsigned int nl;
   unsigned int *lsizes;
 
+  bool compute_cost;
+  bool compute_grads;
   T cost;
   T *wmults;
 
