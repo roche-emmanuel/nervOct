@@ -164,20 +164,17 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   size_t size;
 
   // Load the X matrix on the GPU directly:
-  // size = sizeof(value_type) * nx;
   d_X_train = _d_traits.X;
-  // NULL;
-  // checkCudaErrors(cudaHostRegister(traits.X, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  // checkCudaErrors(cudaMalloc(&d_X_train, size));
-  // checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X, size, cudaMemcpyHostToDevice, _stream1));
 
 
   // load the yy matrix on the GPU:
-  size = sizeof(value_type) * ny;
-  d_y_train = NULL;
-  checkCudaErrors(cudaHostRegister(traits.yy, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  checkCudaErrors(cudaMalloc(&d_y_train, size));
-  checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.yy, size, cudaMemcpyHostToDevice, _stream1));
+  d_y_train = _d_traits.yy;
+
+  // size = sizeof(value_type) * ny;
+  // d_y_train = NULL;
+  // checkCudaErrors(cudaHostRegister(traits.yy, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+  // checkCudaErrors(cudaMalloc(&d_y_train, size));
+  // checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.yy, size, cudaMemcpyHostToDevice, _stream1));
 
   // Prepare the cv datasets if applicable:
   d_X_cv = NULL;
@@ -186,16 +183,19 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   if (traits.validationWindowSize > 0)
   {
     // Load the Xcv matrix on the GPU directly:
-    size = sizeof(value_type) * traits.X_cv_size;
-    checkCudaErrors(cudaHostRegister(traits.X_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-    checkCudaErrors(cudaMalloc(&d_X_cv, size));
-    checkCudaErrors(cudaMemcpyAsync(d_X_cv, traits.X_cv, size, cudaMemcpyHostToDevice, _stream1));
+    d_X_cv = _d_traits.createDeviceBuffer(traits.X_cv_size,traits.X_cv);
+    d_y_cv = _d_traits.createDeviceBuffer(traits.y_cv_size,traits.y_cv);
 
-    // load the ycv matrix on the GPU:
-    size = sizeof(value_type) * traits.y_cv_size;
-    checkCudaErrors(cudaHostRegister(traits.y_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-    checkCudaErrors(cudaMalloc(&d_y_cv, size));
-    checkCudaErrors(cudaMemcpyAsync(d_y_cv, traits.y_cv, size, cudaMemcpyHostToDevice, _stream1));
+    // size = sizeof(value_type) * traits.X_cv_size;
+    // checkCudaErrors(cudaHostRegister(traits.X_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+    // checkCudaErrors(cudaMalloc(&d_X_cv, size));
+    // checkCudaErrors(cudaMemcpyAsync(d_X_cv, traits.X_cv, size, cudaMemcpyHostToDevice, _stream1));
+
+    // // load the ycv matrix on the GPU:
+    // size = sizeof(value_type) * traits.y_cv_size;
+    // checkCudaErrors(cudaHostRegister(traits.y_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+    // checkCudaErrors(cudaMalloc(&d_y_cv, size));
+    // checkCudaErrors(cudaMemcpyAsync(d_y_cv, traits.y_cv, size, cudaMemcpyHostToDevice, _stream1));
   }
 
   // Load the parameters (weights) on the GPU:
@@ -286,28 +286,26 @@ template<typename T>
 GradientDescent<T>::~GradientDescent()
 {
   // unregister the pinned memory:
-  // checkCudaErrors(cudaHostUnregister(_traits.X));
-  
-  checkCudaErrors(cudaHostUnregister(_traits.yy));
+  // checkCudaErrors(cudaHostUnregister(_traits.yy));
   checkCudaErrors(cudaHostUnregister(_traits.params));
   checkCudaErrors(cudaHostUnregister(_regw));
   delete [] _regw;
 
-  if (d_X_cv)
-  {
-    checkCudaErrors(cudaHostUnregister(_traits.X_cv));
-    checkCudaErrors(cudaFree(d_X_cv));
-  }
+  // if (d_X_cv)
+  // {
+  //   checkCudaErrors(cudaHostUnregister(_traits.X_cv));
+  //   checkCudaErrors(cudaFree(d_X_cv));
+  // }
 
-  if (d_y_cv)
-  {
-    checkCudaErrors(cudaHostUnregister(_traits.y_cv));
-    checkCudaErrors(cudaFree(d_y_cv));
-  }
+  // if (d_y_cv)
+  // {
+  //   checkCudaErrors(cudaHostUnregister(_traits.y_cv));
+  //   checkCudaErrors(cudaFree(d_y_cv));
+  // }
 
   // free GPU buffers:
   // checkCudaErrors(cudaFree(d_X_train));
-  checkCudaErrors(cudaFree(d_y_train));
+  // checkCudaErrors(cudaFree(d_y_train));
   checkCudaErrors(cudaFree(d_params));
   checkCudaErrors(cudaFree(d_theta));
   checkCudaErrors(cudaFree(d_vel));

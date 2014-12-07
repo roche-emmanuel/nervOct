@@ -38,13 +38,40 @@ struct BPDeviceTraits : public BPTraits<T>
   T *regw; // array containing the L2 regularization weights.
   cudaStream_t stream;
 
+  T *createDeviceBuffer(unsigned int n, T *data = NULL)
+  {
+    T *ptr = NULL;
+    size_t size = n * sizeof(T);
+    checkCudaErrors(cudaMalloc(&ptr, size));
+    if (data)
+    {
+      checkCudaErrors(cudaMemcpy(ptr, data, size, cudaMemcpyHostToDevice));
+    }
+    else
+    {
+      checkCudaErrors(cudaMemset(ptr, 0, size));
+    }
+
+    // If using pinned memory:
+    // checkCudaErrors(cudaHostRegister(traits.X, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+    // checkCudaErrors(cudaMalloc(&d_X_train, size));
+    // checkCudaErrors(cudaMemcpyAsync(d_X_train, traits.X, size, cudaMemcpyHostToDevice, _stream1));
+
+    // To unregister:
+    // checkCudaErrors(cudaHostUnregister(_traits.X));
+
+    _buffers.push_back(ptr);
+    return ptr;
+  }
+
 protected:
   BufferList _buffers;
 
   void release()
   {
     size_t num = _buffers.size();
-    for(size_t i=0;i<num;++i) {
+    for (size_t i = 0; i < num; ++i)
+    {
       releaseDeviceBuffer(_buffers[i]);
     }
 
@@ -75,23 +102,7 @@ protected:
     buildL2RegWeights();
   }
 
-  T *createDeviceBuffer(unsigned int n, T *data = NULL)
-  {
-    T *ptr = NULL;
-    size_t size = n * sizeof(T);
-    checkCudaErrors(cudaMalloc(&ptr, size));
-    if (data)
-    {
-      checkCudaErrors(cudaMemcpy(ptr, data, size, cudaMemcpyHostToDevice));
-    }
-    else
-    {
-      checkCudaErrors(cudaMemset(ptr, 0, size));
-    }
 
-    _buffers.push_back(ptr);
-    return ptr;
-  }
 
   void buildL2RegWeights()
   {
