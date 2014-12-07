@@ -166,15 +166,8 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Load the X matrix on the GPU directly:
   d_X_train = _d_traits.X;
 
-
   // load the yy matrix on the GPU:
   d_y_train = _d_traits.yy;
-
-  // size = sizeof(value_type) * ny;
-  // d_y_train = NULL;
-  // checkCudaErrors(cudaHostRegister(traits.yy, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  // checkCudaErrors(cudaMalloc(&d_y_train, size));
-  // checkCudaErrors(cudaMemcpyAsync(d_y_train, traits.yy, size, cudaMemcpyHostToDevice, _stream1));
 
   // Prepare the cv datasets if applicable:
   d_X_cv = NULL;
@@ -185,17 +178,6 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
     // Load the Xcv matrix on the GPU directly:
     d_X_cv = _d_traits.createDeviceBuffer(traits.X_cv_size,traits.X_cv);
     d_y_cv = _d_traits.createDeviceBuffer(traits.y_cv_size,traits.y_cv);
-
-    // size = sizeof(value_type) * traits.X_cv_size;
-    // checkCudaErrors(cudaHostRegister(traits.X_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-    // checkCudaErrors(cudaMalloc(&d_X_cv, size));
-    // checkCudaErrors(cudaMemcpyAsync(d_X_cv, traits.X_cv, size, cudaMemcpyHostToDevice, _stream1));
-
-    // // load the ycv matrix on the GPU:
-    // size = sizeof(value_type) * traits.y_cv_size;
-    // checkCudaErrors(cudaHostRegister(traits.y_cv, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-    // checkCudaErrors(cudaMalloc(&d_y_cv, size));
-    // checkCudaErrors(cudaMemcpyAsync(d_y_cv, traits.y_cv, size, cudaMemcpyHostToDevice, _stream1));
   }
 
   // Load the parameters (weights) on the GPU:
@@ -203,124 +185,27 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   d_params = _d_traits.params;
 
   size = sizeof(value_type) * np;
-  // d_params = NULL;
-  // checkCudaErrors(cudaMalloc(&d_params, size));
-  // checkCudaErrors(cudaMemsetAsync(d_params, 0, size, _stream1));
 
   // velocity vector used to store the NAG velocity for each cycle:
-  
   d_vel = _d_traits.createDeviceBuffer(np);
-  // d_vel = NULL;
-  // checkCudaErrors(cudaMalloc(&d_vel, size));
-  // checkCudaErrors(cudaMemsetAsync(d_vel, 0, size, _stream1));
-
   d_vel_bak = _d_traits.createDeviceBuffer(np);
-  // d_vel_bak = NULL;
-  // checkCudaErrors(cudaMalloc(&d_vel_bak, size));
 
   // Theta is the array containing the computed network weights at each cycle:
   d_theta = _d_traits.createDeviceBuffer(np,traits.params);
-  // d_theta = NULL;
-  // checkCudaErrors(cudaHostRegister(traits.params, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  // checkCudaErrors(cudaMalloc(&d_theta, size));
-  // checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params, size, cudaMemcpyHostToDevice, _stream1));
-
   d_theta_bak = _d_traits.createDeviceBuffer(np);
-  // d_theta_bak = NULL;
-  // checkCudaErrors(cudaMalloc(&d_theta_bak, size));
-
-
-  // prepare regularization weigths:
-  _regw = new value_type[size];
-  memset(_regw, 0, size);
-
-  // prepare the regularization correction:
-  value_type *rptr = _regw;
-
-  for (unsigned int i = 0; i < _nt; ++i)
-  {
-    unsigned int nrows = _lsizes[i + 1];
-    unsigned int ncolT = _lsizes[i]; // we remove 1 here because we consider the intercept row as "virtual" in our calculation.
-
-    rptr += nrows;
-    unsigned int count = nrows * ncolT;
-
-    for (unsigned int j = 0; j < count; ++j)
-    {
-      (*rptr++) = 1.0;
-    }
-  }
 
   // Prepare the reg weights for this network:
-  d_regw = NULL;
-  checkCudaErrors(cudaHostRegister(_regw, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  checkCudaErrors(cudaMalloc(&d_regw, size));
-  checkCudaErrors(cudaMemcpyAsync(d_regw, _regw, size, cudaMemcpyHostToDevice, _stream1));
-
+  d_regw = _d_traits.regw;
 
   // for the cost computation we will also need the grads and delta and input arrays:
-  // Also allocation the gradient array, with the same number of elements:
-  d_grads = NULL;
-  checkCudaErrors(cudaMalloc(&d_grads, size));
-  checkCudaErrors(cudaMemsetAsync(d_grads, 0, size, _stream1));
-
-  // Compute the total number of delta coefficients:
-  unsigned int nd = 0;
-  for (unsigned int i = 1; i < _nl; ++i)
-  {
-    nd += _lsizes[i] * _nsamples;
-  }
-
-  size = sizeof(value_type) * nd;
-  d_deltas = NULL;
-  checkCudaErrors(cudaMalloc(&d_deltas, size));
-  checkCudaErrors(cudaMemsetAsync(d_deltas, 0, size, _stream1));
-
-  // finally we also need the inputs array:
-  unsigned int ni = 0;
-  for (unsigned int i = 0; i < _nt; ++i)
-  {
-    ni += _lsizes[i + 1] * _nsamples;
-  }
-
-  size = sizeof(value_type) * ni;
-  d_inputs = NULL;
-  checkCudaErrors(cudaMalloc(&d_inputs, size));
-  checkCudaErrors(cudaMemsetAsync(d_inputs, 0, size, _stream1));
+  d_grads = _d_traits.grads;
+  d_deltas = _d_traits.deltas;
+  d_inputs = _d_traits.inputs;
 }
 
 template<typename T>
 GradientDescent<T>::~GradientDescent()
 {
-  // unregister the pinned memory:
-  // checkCudaErrors(cudaHostUnregister(_traits.yy));
-  // checkCudaErrors(cudaHostUnregister(_traits.params));
-  checkCudaErrors(cudaHostUnregister(_regw));
-  delete [] _regw;
-
-  // if (d_X_cv)
-  // {
-  //   checkCudaErrors(cudaHostUnregister(_traits.X_cv));
-  //   checkCudaErrors(cudaFree(d_X_cv));
-  // }
-
-  // if (d_y_cv)
-  // {
-  //   checkCudaErrors(cudaHostUnregister(_traits.y_cv));
-  //   checkCudaErrors(cudaFree(d_y_cv));
-  // }
-
-  // free GPU buffers:
-  // checkCudaErrors(cudaFree(d_X_train));
-  // checkCudaErrors(cudaFree(d_y_train));
-  // checkCudaErrors(cudaFree(d_params));
-  // checkCudaErrors(cudaFree(d_theta));
-  // checkCudaErrors(cudaFree(d_vel));
-  checkCudaErrors(cudaFree(d_regw));
-  checkCudaErrors(cudaFree(d_grads));
-  checkCudaErrors(cudaFree(d_deltas));
-  checkCudaErrors(cudaFree(d_inputs));
-
   // destroy the processing stream:
   checkCudaErrors(cudaStreamDestroy(_stream1));
 }
