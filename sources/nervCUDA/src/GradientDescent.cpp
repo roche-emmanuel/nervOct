@@ -200,27 +200,34 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
 
   // Load the parameters (weights) on the GPU:
   // params is the vector used for the evaluation of the cost function.
+  d_params = _d_traits.params;
+
   size = sizeof(value_type) * np;
-  d_params = NULL;
-  checkCudaErrors(cudaMalloc(&d_params, size));
-  checkCudaErrors(cudaMemsetAsync(d_params, 0, size, _stream1));
+  // d_params = NULL;
+  // checkCudaErrors(cudaMalloc(&d_params, size));
+  // checkCudaErrors(cudaMemsetAsync(d_params, 0, size, _stream1));
 
   // velocity vector used to store the NAG velocity for each cycle:
-  d_vel = NULL;
-  checkCudaErrors(cudaMalloc(&d_vel, size));
-  checkCudaErrors(cudaMemsetAsync(d_vel, 0, size, _stream1));
+  
+  d_vel = _d_traits.createDeviceBuffer(np);
+  // d_vel = NULL;
+  // checkCudaErrors(cudaMalloc(&d_vel, size));
+  // checkCudaErrors(cudaMemsetAsync(d_vel, 0, size, _stream1));
 
-  d_vel_bak = NULL;
-  checkCudaErrors(cudaMalloc(&d_vel_bak, size));
+  d_vel_bak = _d_traits.createDeviceBuffer(np);
+  // d_vel_bak = NULL;
+  // checkCudaErrors(cudaMalloc(&d_vel_bak, size));
 
   // Theta is the array containing the computed network weights at each cycle:
-  d_theta = NULL;
-  checkCudaErrors(cudaHostRegister(traits.params, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
-  checkCudaErrors(cudaMalloc(&d_theta, size));
-  checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params, size, cudaMemcpyHostToDevice, _stream1));
+  d_theta = _d_traits.createDeviceBuffer(np,traits.params);
+  // d_theta = NULL;
+  // checkCudaErrors(cudaHostRegister(traits.params, size, cudaHostRegisterDefault)); // register the memory as pinned memory.
+  // checkCudaErrors(cudaMalloc(&d_theta, size));
+  // checkCudaErrors(cudaMemcpyAsync(d_theta, traits.params, size, cudaMemcpyHostToDevice, _stream1));
 
-  d_theta_bak = NULL;
-  checkCudaErrors(cudaMalloc(&d_theta_bak, size));
+  d_theta_bak = _d_traits.createDeviceBuffer(np);
+  // d_theta_bak = NULL;
+  // checkCudaErrors(cudaMalloc(&d_theta_bak, size));
 
 
   // prepare regularization weigths:
@@ -287,7 +294,7 @@ GradientDescent<T>::~GradientDescent()
 {
   // unregister the pinned memory:
   // checkCudaErrors(cudaHostUnregister(_traits.yy));
-  checkCudaErrors(cudaHostUnregister(_traits.params));
+  // checkCudaErrors(cudaHostUnregister(_traits.params));
   checkCudaErrors(cudaHostUnregister(_regw));
   delete [] _regw;
 
@@ -306,9 +313,9 @@ GradientDescent<T>::~GradientDescent()
   // free GPU buffers:
   // checkCudaErrors(cudaFree(d_X_train));
   // checkCudaErrors(cudaFree(d_y_train));
-  checkCudaErrors(cudaFree(d_params));
-  checkCudaErrors(cudaFree(d_theta));
-  checkCudaErrors(cudaFree(d_vel));
+  // checkCudaErrors(cudaFree(d_params));
+  // checkCudaErrors(cudaFree(d_theta));
+  // checkCudaErrors(cudaFree(d_vel));
   checkCudaErrors(cudaFree(d_regw));
   checkCudaErrors(cudaFree(d_grads));
   checkCudaErrors(cudaFree(d_deltas));

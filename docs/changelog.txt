@@ -144,3 +144,4 @@
 - Updating gradinet descent to use BPTraits.
 - Starting usage of BPDeviceTraits in gradient descent class.
 - Now using BPDeviceTraits for y_train and X/y_cv.
+- Updated usage of BPDeviceTraits in Gradient Descent.
