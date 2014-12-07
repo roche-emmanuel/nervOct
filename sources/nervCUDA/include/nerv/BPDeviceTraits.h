@@ -10,42 +10,51 @@ namespace nerv
 template<typename T>
 struct BPDeviceTraits : public BPTraits<T>
 {
-  BPDeviceTraits() : regw(nullptr) {};
+  typedef std::vector<T *> BufferList;
 
-  BPDeviceTraits(const BPDeviceTraits&) = delete;
-  BPDeviceTraits& operator=(const BPDeviceTraits&) = delete;
+  BPDeviceTraits(cudaStream_t s = 0) : regw(nullptr), stream(s) {};
+
+  BPDeviceTraits(const BPDeviceTraits &) = delete;
+  BPDeviceTraits &operator=(const BPDeviceTraits &) = delete;
 
   BPDeviceTraits(const BPTraits<T> &rhs)
   {
     assign(rhs);
   }
 
-  BPDeviceTraits& operator=(const BPTraits<T>& rhs) {
+  BPDeviceTraits &operator=(const BPTraits<T> &rhs)
+  {
     release();
 
     assign(rhs);
     return *this;
   }
 
-  ~BPDeviceTraits() {
+  ~BPDeviceTraits()
+  {
     release();
   }
 
-  void release() {
-    releaseDeviceBuffer(params);
-    releaseDeviceBuffer(regw);
-    releaseDeviceBuffer(inputs); 
-    releaseDeviceBuffer(yy); 
-    releaseDeviceBuffer(X);  
-    releaseDeviceBuffer(deltas); 
-    releaseDeviceBuffer(grads);
-  }
-
-  T* regw; // array containing the L2 regularization weights.
+  T *regw; // array containing the L2 regularization weights.
+  cudaStream_t stream;
 
 protected:
+  BufferList _buffers;
 
-  void assign(const BPTraits<T>& rhs) {
+  void release()
+  {
+    size_t num = _buffers.size();
+    for(size_t i=0;i<num;++i) {
+      releaseDeviceBuffer(_buffers[i]);
+    }
+
+    _buffers.clear();
+
+    params = regw = inputs = yy = X = deltas = grads = nullptr;
+  }
+
+  void assign(const BPTraits<T> &rhs)
+  {
     bias = rhs.bias;
     lambda = rhs.lambda;
     nsamples = rhs.nsamples;
@@ -54,10 +63,10 @@ protected:
     cost = rhs.cost;
     wmults = rhs.wmults;
 
-    X = createDeviceBuffer(nx(),rhs.X);
-    yy = createDeviceBuffer(ny(),rhs.yy);
+    X = createDeviceBuffer(nx(), rhs.X);
+    yy = createDeviceBuffer(ny(), rhs.yy);
 
-    params = createDeviceBuffer(np(),rhs.params);
+    params = createDeviceBuffer(np(), rhs.params);
     grads = createDeviceBuffer(np());
 
     inputs = createDeviceBuffer(nd());
@@ -66,18 +75,21 @@ protected:
     buildL2RegWeights();
   }
 
-  T *createDeviceBuffer(unsigned int n, T* data = NULL)
+  T *createDeviceBuffer(unsigned int n, T *data = NULL)
   {
     T *ptr = NULL;
     size_t size = n * sizeof(T);
     checkCudaErrors(cudaMalloc(&ptr, size));
-    if(data) {
+    if (data)
+    {
       checkCudaErrors(cudaMemcpy(ptr, data, size, cudaMemcpyHostToDevice));
     }
-    else {
+    else
+    {
       checkCudaErrors(cudaMemset(ptr, 0, size));
     }
 
+    _buffers.push_back(ptr);
     return ptr;
   }
 
@@ -86,7 +98,7 @@ protected:
     unsigned int n = np();
     unsigned int nt = nl - 1;
 
-    T* h_regw = new T[n];
+    T *h_regw = new T[n];
     memset(h_regw, 0, n * sizeof(T));
 
     // prepare the regularization correction:
@@ -106,12 +118,14 @@ protected:
       }
     }
 
-    regw = createDeviceBuffer(n,h_regw);
+    regw = createDeviceBuffer(n, h_regw);
     delete [] h_regw;
   }
 
-  void releaseDeviceBuffer(T*& ptr) {
-    if(ptr) {
+  void releaseDeviceBuffer(T *&ptr)
+  {
+    if (ptr)
+    {
       checkCudaErrors(cudaFree(ptr));
       ptr = nullptr;
     }

@@ -187,6 +187,10 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Now that we checked that the input data is valid, we should allocate the GPU resources:
   // First we allocate the stream that will be used for the main processing:
   checkCudaErrors(cudaStreamCreate(&_stream1));
+  _d_traits.stream = _stream1;
+
+  // Upload all the buffers on the device:
+  // _d_traits = traits;
 
   size_t size;
 

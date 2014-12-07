@@ -319,6 +319,8 @@ public:
 
 protected:
   GDTraits<value_type> _traits;
+  BPDeviceTraits<value_type> _d_traits;
+
 
   unsigned int _nl; // number of layers
   unsigned int _nt; // number of theta matrices
