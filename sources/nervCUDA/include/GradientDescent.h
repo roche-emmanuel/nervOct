@@ -34,18 +34,10 @@ public:
   unsigned int miniBatchSize;
   unsigned int validationWindowSize;
 
-  T *X_cv;
   unsigned int X_cv_size;
-
-  T *y_cv;
   unsigned int y_cv_size;
 
   void validate() const;
-
-  unsigned int nsamples_cv() const
-  {
-    return X_cv_size / lsizes[0];
-  }
 
 protected:
   void init();

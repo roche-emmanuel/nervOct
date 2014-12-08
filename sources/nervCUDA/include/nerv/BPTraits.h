@@ -34,18 +34,25 @@ struct BPTraits : public BPTraitsBase<T>
 
   BPTraits()
     :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
-       nsamples(0), nl(0), lsizes(nullptr) {};
+       nsamples_train(0), nl(0), lsizes(nullptr), X_cv(nullptr), y_cv(nullptr),
+       nsamples_cv(0) {};
 
   virtual ~BPTraits() {}
 
-  unsigned int nsamples;
+  unsigned int nsamples_train;
+  unsigned int nsamples_cv;
+
   unsigned int nl;
   unsigned int *lsizes;
 
   bool compute_cost;
   bool compute_grads;
+  
   T cost;
   T *wmults;
+  
+  T *X_cv;
+  T *y_cv;
 
   // Compute the number of parameters:
   unsigned int np() const
@@ -67,20 +74,33 @@ struct BPTraits : public BPTraitsBase<T>
     {
       res += lsizes[i];
     }
-    return res * nsamples;
+    return res * nsamples_train;
   }
 
   // Compute the number of elments in the X matrix:
   unsigned int nx() const
   {
-    return nsamples * lsizes[0];
+    return nsamples_train * lsizes[0];
   }
 
   // Compute the number of elments in the yy matrix:
   unsigned int ny() const
   {
-    return nsamples * lsizes[nl - 1];
+    return nsamples_train * lsizes[nl - 1];
   }
+
+  // Compute the number of elments in the X matrix:
+  unsigned int nx_cv() const
+  {
+    return nsamples_cv * lsizes[0];
+  }
+
+  // Compute the number of elments in the yy matrix:
+  unsigned int ny_cv() const
+  {
+    return nsamples_cv * lsizes[nl - 1];
+  }
+
 };
 
 };

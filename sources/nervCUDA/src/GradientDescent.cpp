@@ -15,7 +15,7 @@ using namespace nerv;
 template <typename T>
 void GDTraits<T>::init()
 {
-  nsamples = 0;
+  nsamples_train = 0;
   maxiter = 0;
   lambda = 0.0;
 
@@ -57,8 +57,7 @@ GDTraits<T>::GDTraits(const TrainingSet<T> &tr)
   init();
 
   nl = tr.nl();
-  nsamples = tr.nsamples();
-
+  nsamples_train = tr.nsamples();
   lsizes = tr.lsizes();
 
   X = tr.X_train();
@@ -73,6 +72,8 @@ GDTraits<T>::GDTraits(const TrainingSet<T> &tr)
   y_cv = tr.y_cv();
   y_cv_size = tr.y_cv_size();
 
+  nsamples_cv = tr.X_cv_size()/lsizes[0];
+
   params = tr.params();
   nparams = tr.np();
 
@@ -86,7 +87,7 @@ void GDTraits<T>::validate() const
   // ensure that the traits are usable:
   THROW_IF(nl < 3, "Invalid nl value: " << nl);
   THROW_IF(!lsizes, "Invalid lsizes value.");
-  THROW_IF(!nsamples, "Invalid nsamples value.")
+  THROW_IF(!nsamples_train, "Invalid nsamples value.")
   THROW_IF(nparams != np(), "Invalid nparams value: " << nparams << "!=" << np());
   THROW_IF(!params, "Invalid params value.");
   THROW_IF(X_train_size != nx(), "Invalid size for X: " << X_train_size << "!=" << nx());
@@ -95,8 +96,8 @@ void GDTraits<T>::validate() const
   THROW_IF(!yy, "Invalid y_train value.");
 
   unsigned int ns_cv = y_cv_size / lsizes[nl - 1];
-  THROW_IF(nsamples_cv() != ns_cv, "Mismatch in computation of _nsamples_cv" << nsamples_cv() << "!=" << ns_cv)
-  THROW_IF(miniBatchSize > nsamples / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples / 2));
+  THROW_IF(nsamples_cv != ns_cv, "Mismatch in computation of _nsamples_cv" << nsamples_cv << "!=" << ns_cv)
+  THROW_IF(miniBatchSize > nsamples_train / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples_train / 2));
   THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
 }
 
@@ -126,11 +127,11 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
 
   _lsizes = traits.lsizes;
 
-  _nsamples = traits.nsamples;
+  _nsamples = traits.nsamples_train;
 
   // Compute the number of parameters that are expected:
   _np = traits.np();
-  _nsamples_cv = traits.nsamples_cv();
+  _nsamples_cv = traits.nsamples_cv;
 
   // keep a copy of the traits:
   _traits = traits;

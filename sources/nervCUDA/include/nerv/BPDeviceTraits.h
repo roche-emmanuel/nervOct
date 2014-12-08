@@ -46,10 +46,15 @@ struct BPDeviceTraits : public BPTraits<T>
     }
   }
 
+  unsigned int nsamples;
   bool compute_cost;
   bool compute_grads;
+
   T *regw; // array containing the L2 regularization weights.
   cudaStream_t stream;
+  
+  T* X_train;
+  T* y_train;
 
   T *createDeviceBuffer(unsigned int n, T *data = NULL)
   {
@@ -98,7 +103,9 @@ protected:
   {
     bias = rhs.bias;
     lambda = rhs.lambda;
-    nsamples = rhs.nsamples;
+    nsamples = rhs.nsamples_train;
+    nsamples_train = rhs.nsamples_train;
+    nsamples_cv = rhs.nsamples_cv;
     nl = rhs.nl;
     lsizes = rhs.lsizes;
     cost = rhs.cost;
@@ -106,8 +113,11 @@ protected:
     compute_grads = rhs.compute_grads;
     wmults = rhs.wmults;
 
-    X = createDeviceBuffer(nx(), rhs.X);
-    yy = createDeviceBuffer(ny(), rhs.yy);
+    X_train = createDeviceBuffer(nx(), rhs.X);
+    y_train = createDeviceBuffer(ny(), rhs.yy);
+
+    X = X_train;
+    yy = y_train;
 
     params = createDeviceBuffer(np(), rhs.params);
     grads = createDeviceBuffer(np());

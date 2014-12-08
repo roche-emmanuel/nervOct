@@ -148,3 +148,4 @@
 - Using BPDeviceTraits for errfunc.
 - Added compute_cost and compute_grads options in BPTraits.
 - Cleaning code.
+- Moved X_cv and Y_cv into BPTraits.
