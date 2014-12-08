@@ -3,7 +3,6 @@
 - Apply weight multiplier dropout for test time.
 - Implement input feature lost
 - implement octave plugin to access gradient descent.
-- Provide traits for methods with many arguments.
 - Test copy construction of BPTraits ?
 - Test the value from computeTrainCost and computeCvCost
 - check current perfs on errfunc call.

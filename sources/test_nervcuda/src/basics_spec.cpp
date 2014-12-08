@@ -526,7 +526,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     unsigned int nl = random_int(3,5);
     unsigned int nt = nl-1;
 
-    logDEBUG("Num samples: "<<nsamples<<", num layers: "<<nl);
+    // logDEBUG("Num samples: "<<nsamples<<", num layers: "<<nl);
 
     unsigned int* lsizes = new unsigned int[nl];
 
@@ -634,7 +634,7 @@ BOOST_AUTO_TEST_CASE( test_cost_function )
     }
 
     // Compare the grads arrays:
-    logDEBUG("Number of parameters: "<<np);
+    // logDEBUG("Number of parameters: "<<np);
     for(unsigned int j=0; j<np;++j) {
       double v1 = grads[j];
       double v2 = pred_grads[j];

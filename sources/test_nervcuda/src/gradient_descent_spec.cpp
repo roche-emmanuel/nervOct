@@ -446,7 +446,7 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
   // logDEBUG("Epsilon value is: "<<epsilon)
 
   // prepare a dataset:
-  TrainingSet<value_type> tr(3, 5, 4, 8, 500, 600);
+  TrainingSet<value_type> tr(3, 5, 4, 8, 70, 100);
   tr.maxiter(-1); // no limit on maximum number of iterations.
 
   // Create traits from that trainingset:
@@ -455,7 +455,7 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
   traits.momentum = 0.995;
 
   // enabled early stopping:
-  traits.validationWindowSize =10;
+  traits.validationWindowSize=10;
 
   // create gradient descent and run:
   GDd gd(traits);

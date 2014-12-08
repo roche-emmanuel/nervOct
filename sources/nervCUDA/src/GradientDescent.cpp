@@ -12,6 +12,8 @@
 
 using namespace nerv;
 
+#define THIS "GradientDescent" 
+
 template <typename T>
 void GDTraits<T>::init()
 {
@@ -162,13 +164,13 @@ void GradientDescent<T>::run()
   if (_miniBatchSize > 0)
   {
     ns = _miniBatchSize;
-    logDEBUG("Using mini batch size: " << _miniBatchSize);
+    trDEBUG(THIS,"Using mini batch size: " << _miniBatchSize);
   }
 
   bool earlyStopping = false;
   if (_validationWindowSize > 0)
   {
-    logDEBUG("Using early stopping with window size: " << _validationWindowSize)
+    trDEBUG(THIS,"Using early stopping with window size: " << _validationWindowSize)
     earlyStopping = true;
   }
   WindowedMean<value_type> mean(_validationWindowSize);
@@ -244,7 +246,7 @@ void GradientDescent<T>::run()
       value_type J = computeCvCost();
       if (J < bestCvCost)
       {
-        logDEBUG("Updating best Cv cost to " << J << " at iteration " << iter);
+        trDEBUG_V(THIS,"Updating best Cv cost to " << J << " at iteration " << iter);
         // Here we need to save the best cv cost achieved so far and also
         // save all the relevant parameters in case we need to restart from this point:
         bestCvCost = J;
@@ -265,7 +267,7 @@ void GradientDescent<T>::run()
         value_type dec = (cur_mean - new_mean) / cur_mean;
         if (dec < _minCvCostDec)
         {
-          logDEBUG("Invalid mean cv cost decrease ratio of: " << dec); //new_mean<<">"<<cur_mean);
+          trDEBUG_V(THIS,"Invalid mean cv cost decrease ratio of: " << dec); //new_mean<<">"<<cur_mean);
           // We count this as an error:
           invalid_count++;
           if (invalid_count > max_invalid_count)
@@ -278,11 +280,11 @@ void GradientDescent<T>::run()
               // we reduce the evaluation frequency (assuming it is a power of 2)
               evalFrequency /= 2;
               invalid_count = 0;
-              logDEBUG("Resetting from iteration " << iter << " with eval frequency of " << evalFrequency)
+              trDEBUG_V(THIS,"Resetting from iteration " << iter << " with eval frequency of " << evalFrequency)
             }
             else
             {
-              logDEBUG("Early stopping training with cv cost " << bestCvCost << " from iteration " << iter);
+              trDEBUG(THIS,"Early stopping training with cv cost " << bestCvCost << " from iteration " << iter);
               break;
             }
           }

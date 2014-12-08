@@ -153,3 +153,4 @@
 - Using BPDeviceTraits for nn_activation_device.
 - Using BPTraits for nn_predict.
 - Implemented BPComputeTraits operator=(BPTraits) method.
+- Improved test duration.
