@@ -8,6 +8,7 @@
 
 #include <nervcuda.h>
 #include <nerv/TrainingSet.h>
+#include <nerv/BPTraits.h>
 #include <GradientDescent.h>
 #include <windows.h>
 
@@ -28,8 +29,9 @@ BOOST_AUTO_TEST_CASE( test_nn_predict )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
-                              value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
+  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+  // typedef void (*PredictFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+  //                             value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
   // We should be able to retrieve the train function:
   PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict");
@@ -59,8 +61,23 @@ BOOST_AUTO_TEST_CASE( test_nn_predict )
     value_type *pred_hx = tr.createArray(ny);
 
     // Now compute the predictions:
-    nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
-    nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
+    BPTraits<double> traits;
+    traits.nl = tr.nl();
+    traits.lsizes = tr.lsizes();
+    traits.nsamples_train = tr.nsamples();
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.hx = hx;
+    traits.bias = bias;
+    traits.wmults = wmults;
+
+    // nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
+    // nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
+
+    nn_predict(traits);
+
+    traits.hx = pred_hx;
+    nn_predict_cpu(traits);
 
     // Now compate the hx arrays:
     for (unsigned int j = 0; j < ny; ++j)
@@ -82,8 +99,9 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
-                              value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
+  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+  // typedef void (*PredictFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+  //                             value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
   // We should be able to retrieve the train function:
   PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict_f");
@@ -113,8 +131,23 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
     value_type *pred_hx = tr.createArray(ny);
 
     // Now compute the predictions:
-    nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
-    nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
+    // Now compute the predictions:
+    BPTraits<value_type> traits;
+    traits.nl = tr.nl();
+    traits.lsizes = tr.lsizes();
+    traits.nsamples_train = tr.nsamples();
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.hx = hx;
+    traits.bias = bias;
+    traits.wmults = wmults;
+
+    // nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
+    // nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
+    
+    nn_predict(traits);
+    traits.hx = pred_hx;
+    nn_predict_cpu(traits);
 
     // Now compate the hx arrays:
     for (unsigned int j = 0; j < ny; ++j)

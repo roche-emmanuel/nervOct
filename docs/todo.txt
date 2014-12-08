@@ -7,8 +7,8 @@
 - Test copy construction of BPTraits ?
 - Test the value from computeTrainCost and computeCvCost
 - check current perfs on errfunc call.
-- Use deviceTraits in nn_activation_device
 - create BPComputeTraits operator=(BPDeviceTraits&)
+
 
 *** CUDA infos:
 

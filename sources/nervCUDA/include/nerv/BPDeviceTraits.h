@@ -82,6 +82,17 @@ struct BPDeviceTraits : public BPTraits<T>
     return ptr;
   }
 
+  // T* predictions() {
+  //   unsigned int offset = 0;
+  //   unsigned int nt = nl - 1;
+
+  //   for(unsigned int i=1;i<nt;++i) {
+  //     offset += lsizes[i];
+  //   }
+
+  //   return inputs + offset * nsamples;
+  // }
+
 protected:
   BufferList _buffers;
   bool owned_stream;

@@ -76,11 +76,11 @@ extern "C" {
   void gd_errfunc(BPTraits<double> &traits);
   void gd_errfunc_f(BPTraits<float> &traits);
 
-  void nn_predict(unsigned int nl, unsigned int *lsizes, unsigned int nsamples, double *params, double *X, double *hx, double bias, double *wmults);
-  void nn_predict_f(unsigned int nl, unsigned int *lsizes, unsigned int nsamples, float *params, float *X, float *hx, float bias, float *wmults);
+  void nn_predict(BPTraits<double>& traits);
+  void nn_predict_f(BPTraits<float>& traits);
 
-  void nn_predict_cpu(unsigned int nl, unsigned int *lsizes, unsigned int nsamples, double *params, double *X, double *hx, double bias, double *wmults);
-  void nn_predict_cpu_f(unsigned int nl, unsigned int *lsizes, unsigned int nsamples, float *params, float *X, float *hx, float bias, float *wmults);
+  void nn_predict_cpu(BPTraits<double>& traits);
+  void nn_predict_cpu_f(BPTraits<float>& traits);
 
 };
 

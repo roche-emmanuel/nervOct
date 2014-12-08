@@ -151,3 +151,4 @@
 - Moved X_cv and Y_cv into BPTraits.
 - Removed BPTraits vars from Gradient descent class.
 - Using BPDeviceTraits for nn_activation_device.
+- Using BPTraits for nn_predict.

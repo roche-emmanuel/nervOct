@@ -35,7 +35,7 @@ struct BPTraits : public BPTraitsBase<T>
   BPTraits()
     :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
        nsamples_train(0), nl(0), lsizes(nullptr), X_cv(nullptr), y_cv(nullptr),
-       nsamples_cv(0) {};
+       nsamples_cv(0), hx(nullptr) {};
 
   virtual ~BPTraits() {}
 
@@ -53,6 +53,8 @@ struct BPTraits : public BPTraitsBase<T>
   
   T *X_cv;
   T *y_cv;
+
+  T* hx; // to store result of prediction
 
   // Compute the number of parameters:
   unsigned int np() const
