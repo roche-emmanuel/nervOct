@@ -68,8 +68,6 @@ protected:
 
   unsigned int _nt; // number of theta matrices
   unsigned int _np; // number of parameters
-  unsigned int _nsamples; // number of samples.
-  unsigned int _nsamples_cv; // number of samples in cv datasets.
   unsigned int *_lsizes;
   int _maxiter; // max number of iterations.
 
@@ -82,11 +80,6 @@ protected:
   value_type _minCvCostDec; // minimal valid mean cv cost decrease
 
   // GPU buffers:
-  value_type *d_X_train;
-  value_type *d_y_train;
-  value_type *d_X_cv;
-  value_type *d_y_cv;
-
   value_type *d_theta; // weights buffer.
   value_type *d_theta_bak; // weights buffer.
   

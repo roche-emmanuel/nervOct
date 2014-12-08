@@ -96,7 +96,7 @@ void GDTraits<T>::validate() const
   THROW_IF(!yy, "Invalid y_train value.");
 
   unsigned int ns_cv = y_cv_size / lsizes[nl - 1];
-  THROW_IF(nsamples_cv != ns_cv, "Mismatch in computation of _nsamples_cv" << nsamples_cv << "!=" << ns_cv)
+  THROW_IF(nsamples_cv != ns_cv, "Mismatch in computation of nsamples_cv" << nsamples_cv << "!=" << ns_cv)
   THROW_IF(miniBatchSize > nsamples_train / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples_train / 2));
   THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
 }
@@ -127,11 +127,8 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
 
   _lsizes = traits.lsizes;
 
-  _nsamples = traits.nsamples_train;
-
   // Compute the number of parameters that are expected:
   _np = traits.np();
-  _nsamples_cv = traits.nsamples_cv;
 
   // keep a copy of the traits:
   _traits = traits;
@@ -139,23 +136,6 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Now that we checked that the input data is valid, we should allocate the GPU resources:
   // Upload all the buffers on the device:
   _d_traits = traits;
-
-  // Load the X matrix on the GPU directly:
-  d_X_train = _d_traits.X;
-
-  // load the yy matrix on the GPU:
-  d_y_train = _d_traits.yy;
-
-  // Prepare the cv datasets if applicable:
-  d_X_cv = NULL;
-  d_y_cv = NULL;
-
-  if (traits.validationWindowSize > 0)
-  {
-    // Load the Xcv matrix on the GPU directly:
-    d_X_cv = _d_traits.createDeviceBuffer(traits.X_cv_size, traits.X_cv);
-    d_y_cv = _d_traits.createDeviceBuffer(traits.y_cv_size, traits.y_cv);
-  }
 
   // velocity vector used to store the NAG velocity for each cycle:
   d_vel = _d_traits.createDeviceBuffer(_np);
@@ -172,13 +152,13 @@ void GradientDescent<T>::run()
   int iter = 0;
   value_type *current_cost = NULL;
 
-  value_type *X_train_ptr = d_X_train;
-  value_type *y_train_ptr = d_y_train;
+  value_type *X_train_ptr = _d_traits.X_train;
+  value_type *y_train_ptr = _d_traits.y_train;
 
   unsigned int mbOffset = 0;
 
   // Check if we should use all samples or not:
-  unsigned int ns = _nsamples;
+  unsigned int ns = _d_traits.nsamples_train;
   if (_miniBatchSize > 0)
   {
     ns = _miniBatchSize;
@@ -249,12 +229,12 @@ void GradientDescent<T>::run()
       // logDEBUG("Using mini-batch offset: "<<mbOffset);
 
       // check if we have enough samples left or if we should reset to the beginning:
-      if ((mbOffset + _miniBatchSize) > _nsamples)
+      if ((mbOffset + _miniBatchSize) > _d_traits.nsamples_train)
         mbOffset = 0;
 
       // update the pointers:
-      X_train_ptr = d_X_train + _lsizes[0] * mbOffset;
-      y_train_ptr = d_y_train + _lsizes[_nt] * mbOffset;
+      X_train_ptr = _d_traits.X_train + _lsizes[0] * mbOffset;
+      y_train_ptr = _d_traits.y_train + _lsizes[_nt] * mbOffset;
     }
 
     if (earlyStopping && (iter % evalFrequency == 0))
@@ -332,9 +312,9 @@ template <typename T>
 T GradientDescent<T>::computeTrainCost()
 {
   // compute the cost at d_theta location, on complete training set, and not accounting for regularization:
-  _d_traits.X = d_X_train;
-  _d_traits.yy = d_y_train;
-  _d_traits.nsamples = _nsamples;
+  _d_traits.X = _d_traits.X_train;
+  _d_traits.yy = _d_traits.y_train;
+  _d_traits.nsamples = _d_traits.nsamples_train;
   _d_traits.compute_cost = true;
   _d_traits.compute_grads = false;
   gd_errfunc_device(_d_traits);
@@ -347,9 +327,9 @@ T GradientDescent<T>::computeTrainCost()
 template <typename T>
 T GradientDescent<T>::computeCvCost()
 {
-  _d_traits.X = d_X_cv;
-  _d_traits.yy = d_y_cv;
-  _d_traits.nsamples = _nsamples_cv;
+  _d_traits.X = _d_traits.X_cv;
+  _d_traits.yy = _d_traits.y_cv;
+  _d_traits.nsamples = _d_traits.nsamples_cv;
   _d_traits.compute_cost = true;
   _d_traits.compute_grads = false;
   gd_errfunc_device(_d_traits);

@@ -119,6 +119,13 @@ protected:
     X = X_train;
     yy = y_train;
 
+    if(rhs.X_cv) {
+      X_cv = createDeviceBuffer(nx_cv(), rhs.X_cv);
+    }
+    if(rhs.y_cv) {
+      y_cv = createDeviceBuffer(ny_cv(), rhs.y_cv);
+    }
+
     params = createDeviceBuffer(np(), rhs.params);
     grads = createDeviceBuffer(np());
 
