@@ -2,10 +2,13 @@
 #include <nerv_kernels.h>
 
 template<typename T, unsigned int blockSize>
-int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-	T* d_params, T* d_X, T* d_inputs, T bias, T* wmults, cudaStream_t stream)
+int nn_activation_device(BPDeviceTraits<T>& d_traits)
 {
-	unsigned int nt = nl-1; // number of matrices evolved.
+	unsigned int nt = d_traits.nl-1; // number of matrices evolved.
+	unsigned int* lsizes = d_traits.lsizes;
+	unsigned int nsamples = d_traits.nsamples;
+	T* wmults = d_traits.wmults;
+	cudaStream_t stream = d_traits.stream;
 
 	// offset used to locate the theta_i matrix in the d_params array.
 	unsigned int theta_offset = 0;
@@ -15,13 +18,11 @@ int nn_activation_device(unsigned int nl, unsigned int* lsizes, unsigned int nsa
 
 	int next_input_offset = 0; //nsamples*lsizes[1];
 
-	// T wmult = 1.0;
-
 	BPComputeTraits<T> traits;
-	traits.params = d_params;
-	traits.inputs = d_inputs;
-	traits.X = d_X;
-	traits.bias = bias;
+	traits.params = d_traits.params;
+	traits.inputs = d_traits.inputs;
+	traits.X = d_traits.X;
+	traits.bias = d_traits.bias;
 	
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:
@@ -108,8 +109,18 @@ void _nn_predict(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
 	T* d_inputs = NULL;
 	checkCudaErrors(cudaMalloc(&d_inputs, size));
 
+	BPDeviceTraits<T> d_traits;
+	d_traits.nl = nl;
+	d_traits.lsizes = lsizes;
+	d_traits.nsamples = nsamples;
+	d_traits.params = d_params;
+	d_traits.X = d_X;
+	d_traits.inputs = d_inputs;
+	d_traits.bias = bias;
+	d_traits.wmults = wmults;
 
- 	int input_offset = nn_activation_device(nl,lsizes,nsamples,d_params,d_X,d_inputs,bias,wmults);
+ 	// int input_offset = nn_activation_device(nl,lsizes,nsamples,d_params,d_X,d_inputs,bias,wmults);
+ 	int input_offset = nn_activation_device(d_traits);
 
  	size = lsizes[nt]*nsamples * sizeof(T);
 	checkCudaErrors(cudaMemcpy(hx, d_inputs+input_offset, size, cudaMemcpyDeviceToHost));

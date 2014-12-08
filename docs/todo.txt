@@ -5,11 +5,10 @@
 - implement octave plugin to access gradient descent.
 - Provide traits for methods with many arguments.
 - Test copy construction of BPTraits ?
-- Add d_traits usage for errfunc_device.
 - Test the value from computeTrainCost and computeCvCost
 - check current perfs on errfunc call.
-- Move X/y_cv into BPTraits.
-
+- Use deviceTraits in nn_activation_device
+- create BPComputeTraits operator=(BPDeviceTraits&)
 
 *** CUDA infos:
 

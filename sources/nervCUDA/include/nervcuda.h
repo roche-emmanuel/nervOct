@@ -73,14 +73,8 @@ extern "C" {
   double compute_dot(double *vec1, double *vec2, unsigned int size);
   float compute_dot_f(float *vec1, float *vec2, unsigned int size);
 
-  // void gd_errfunc(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
-  //     double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
-
   void gd_errfunc(BPTraits<double> &traits);
   void gd_errfunc_f(BPTraits<float> &traits);
-
-  // void gd_errfunc_f(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
-  //                   float *nn_params, float *X, float *yy, float lambda, float &J, float *gradients, float *deltas, float *inputs);
 
   void nn_predict(unsigned int nl, unsigned int *lsizes, unsigned int nsamples, double *params, double *X, double *hx, double bias, double *wmults);
   void nn_predict_f(unsigned int nl, unsigned int *lsizes, unsigned int nsamples, float *params, float *X, float *hx, float bias, float *wmults);
@@ -94,8 +88,7 @@ template<typename T>
 void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-int nn_activation_device(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
-                         T *d_params, T *d_X, T *d_inputs, T bias = 1.0,  T *wmults = nullptr, cudaStream_t stream = 0);
+int nn_activation_device(BPDeviceTraits<T>& d_traits);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 void gd_errfunc_device(BPDeviceTraits<T>& d_traits);

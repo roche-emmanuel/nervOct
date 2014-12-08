@@ -21,8 +21,7 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
 	traits.bias = d_traits.bias;
 	traits.lambda = d_traits.lambda;
 
-  traits.input_offset = nn_activation_device(d_traits.nl, d_traits.lsizes, d_traits.nsamples, d_traits.params, 
-  	d_traits.X, d_traits.inputs, d_traits.bias, d_traits.wmults, stream);
+  traits.input_offset = nn_activation_device(d_traits);
 
   T* d_hx = d_traits.inputs + traits.input_offset;
 
