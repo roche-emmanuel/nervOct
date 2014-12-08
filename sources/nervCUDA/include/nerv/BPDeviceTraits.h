@@ -52,9 +52,9 @@ struct BPDeviceTraits : public BPTraits<T>
 
   T *regw; // array containing the L2 regularization weights.
   cudaStream_t stream;
-  
-  T* X_train;
-  T* y_train;
+
+  T *X_train;
+  T *y_train;
 
   T *createDeviceBuffer(unsigned int n, T *data = NULL)
   {
@@ -130,10 +130,12 @@ protected:
     X = X_train;
     yy = y_train;
 
-    if(rhs.X_cv) {
+    if (rhs.X_cv)
+    {
       X_cv = createDeviceBuffer(nx_cv(), rhs.X_cv);
     }
-    if(rhs.y_cv) {
+    if (rhs.y_cv)
+    {
       y_cv = createDeviceBuffer(ny_cv(), rhs.y_cv);
     }
 
@@ -197,6 +199,23 @@ struct BPComputeTraits : public BPTraitsBase<T>
       grad_offset(0),
       nrows(0), ncols(0), niter(0),
       wmult(1.0) {};
+
+  // BPComputeTraits(const BPComputeTraits &) = delete;
+  BPComputeTraits &operator=(const BPComputeTraits &) = delete;
+
+  BPComputeTraits &operator=(const BPTraits<T> &rhs)
+  {
+    params = rhs.params;
+    inputs = rhs.inputs;
+    deltas = rhs.deltas;
+    grads = rhs.grads;
+    yy = rhs.yy;
+    X = rhs.X;
+    bias = rhs.bias;
+    lambda = rhs.lambda;
+
+    return *this;
+  }
 
   unsigned int theta_offset;
 

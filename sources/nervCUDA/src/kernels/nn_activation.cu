@@ -19,10 +19,7 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 	int next_input_offset = 0; //nsamples*lsizes[1];
 
 	BPComputeTraits<T> traits;
-	traits.params = d_traits.params;
-	traits.inputs = d_traits.inputs;
-	traits.X = d_traits.X;
-	traits.bias = d_traits.bias;
+	traits = d_traits;
 	
   for(unsigned int i=0; i<nt;++i) {
   	// We compute the activation and input values for the given layer:

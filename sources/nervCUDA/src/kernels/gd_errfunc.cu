@@ -12,14 +12,7 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
 	cudaStream_t stream = d_traits.stream;
 
 	BPComputeTraits<T> traits;
-	traits.params = d_traits.params;
-	traits.inputs = d_traits.inputs;
-	traits.deltas = d_traits.deltas;
-	traits.grads = d_traits.grads;
-	traits.yy = d_traits.yy;
-	traits.X = d_traits.X;
-	traits.bias = d_traits.bias;
-	traits.lambda = d_traits.lambda;
+	traits = d_traits;
 
   traits.input_offset = nn_activation_device(d_traits);
 
