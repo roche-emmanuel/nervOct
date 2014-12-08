@@ -319,7 +319,12 @@ T GradientDescent<T>::computeTrainCost()
   _d_traits.nsamples = _d_traits.nsamples_train;
   _d_traits.compute_cost = true;
   _d_traits.compute_grads = false;
+  T prev_lambda = _d_traits.lambda;
+  _d_traits.lambda = 0.0;
+  
   gd_errfunc_device(_d_traits);
+  
+  _d_traits.lambda = prev_lambda;
   _d_traits.compute_cost = false;
   _d_traits.compute_grads = true;
 
@@ -334,7 +339,12 @@ T GradientDescent<T>::computeCvCost()
   _d_traits.nsamples = _d_traits.nsamples_cv;
   _d_traits.compute_cost = true;
   _d_traits.compute_grads = false;
+  T prev_lambda = _d_traits.lambda;
+  _d_traits.lambda = 0.0;
+
   gd_errfunc_device(_d_traits);
+
+  _d_traits.lambda = prev_lambda;
   _d_traits.compute_cost = false;
   _d_traits.compute_grads = true;
 

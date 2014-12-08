@@ -154,3 +154,4 @@
 - Using BPTraits for nn_predict.
 - Implemented BPComputeTraits operator=(BPTraits) method.
 - Improved test duration.
+- Added tests for computeTrainCost and computeCvCost.
