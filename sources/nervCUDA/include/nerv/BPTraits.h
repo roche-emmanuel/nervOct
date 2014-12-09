@@ -27,15 +27,26 @@ struct BPTraitsBase
   T *grads;
 };
 
+// template<typename T>
+// T* newArray(const std::vector<T>& vec) {
+//   size_t n = vec.size();
+//   T* arr = new T[n];
+//   memcpy(arr,&vec[0],n*sizeof(T));
+//   return arr;
+// }
+
+// template<typename T>
+// void deleteArray(T* arr) {
+//   delete [] arr;
+// }
+
 template<typename T>
 struct BPTraits : public BPTraitsBase<T>
 {
-  typedef std::vector<T *> ArrayList;
-
   BPTraits()
     :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
        nsamples_train(0), nl(0), lsizes(nullptr), X_cv(nullptr), y_cv(nullptr),
-       nsamples_cv(0), hx(nullptr) {};
+       nsamples_cv(0), hx(nullptr), dropouts(nullptr) {};
 
   virtual ~BPTraits() {}
 
@@ -47,10 +58,13 @@ struct BPTraits : public BPTraitsBase<T>
 
   bool compute_cost;
   bool compute_grads;
-  
+    
+  bool owned_lsizes;
+
   T cost;
   T *wmults;
-  
+  T* dropouts;
+
   T *X_cv;
   T *y_cv;
 

@@ -13,7 +13,7 @@ struct BPDeviceTraits : public BPTraits<T>
   typedef std::vector<T *> BufferList;
 
   BPDeviceTraits(bool withStream = false)
-    : regw(nullptr), stream(nullptr), owned_stream(withStream)
+    : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr), y_train(nullptr)
   {
     if (withStream)
     {
@@ -46,20 +46,11 @@ struct BPDeviceTraits : public BPTraits<T>
     }
   }
 
-  unsigned int nsamples;
-  bool compute_cost;
-  bool compute_grads;
-
-  T *regw; // array containing the L2 regularization weights.
-  cudaStream_t stream;
-
-  T *X_train;
-  T *y_train;
-
   T *createDeviceBuffer(unsigned int n, T *data = NULL)
   {
     T *ptr = NULL;
-    if(n==0) {
+    if (n == 0)
+    {
       throw std::runtime_error("ERROR: Invalid size if 0 when build device buffer.");
     }
 
@@ -97,6 +88,15 @@ struct BPDeviceTraits : public BPTraits<T>
   //   return inputs + offset * nsamples;
   // }
 
+public:
+  unsigned int nsamples;
+
+  T *regw; // array containing the L2 regularization weights.
+  cudaStream_t stream;
+
+  T *X_train;
+  T *y_train;
+
 protected:
   BufferList _buffers;
   bool owned_stream;
@@ -116,23 +116,29 @@ protected:
 
   void assign(const BPTraits<T> &rhs)
   {
-    bias = rhs.bias;
-    lambda = rhs.lambda;
-    nsamples = rhs.nsamples_train;
-    nsamples_train = rhs.nsamples_train;
-    nsamples_cv = rhs.nsamples_cv;
-    nl = rhs.nl;
-    lsizes = rhs.lsizes;
-    cost = rhs.cost;
-    compute_cost = rhs.compute_cost;
-    compute_grads = rhs.compute_grads;
-    wmults = rhs.wmults;
+    // use operator= from base class:
+    BPTraits<T>::operator=(rhs);
 
-    if(rhs.X) {
+    nsamples = rhs.nsamples_train;
+
+    // bias = rhs.bias;
+    // lambda = rhs.lambda;
+    // nsamples_train = rhs.nsamples_train;
+    // nsamples_cv = rhs.nsamples_cv;
+    // nl = rhs.nl;
+    // lsizes = rhs.lsizes;
+    // cost = rhs.cost;
+    // compute_cost = rhs.compute_cost;
+    // compute_grads = rhs.compute_grads;
+    // wmults = rhs.wmults;
+
+    if (rhs.X)
+    {
       X_train = createDeviceBuffer(nx(), rhs.X);
     }
 
-    if(rhs.yy) {
+    if (rhs.yy)
+    {
       y_train = createDeviceBuffer(ny(), rhs.yy);
     }
 

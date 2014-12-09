@@ -17,44 +17,29 @@ using namespace nerv;
 template <typename T>
 void GDTraits<T>::init()
 {
-  nsamples_train = 0;
-  maxiter = 0;
-  lambda = 0.0;
-
-  lsizes = nullptr;
-  nl = 0;
-
-  X = nullptr;
   X_train_size = 0;
-
-  yy = nullptr;
   y_train_size = 0;
-
-  X_cv = nullptr;
   X_cv_size = 0;
-
-  y_cv = nullptr;
   y_cv_size = 0;
 
-  params = nullptr;
+  maxiter = 0;
   nparams = 0;
 
   momentum = 0.0;
   epsilon = 0.0;
-  miniBatchSize = 0;
 
+  miniBatchSize = 0;
   validationWindowSize = 0;
-  bias = 1.0;
 }
 
 template <typename T>
-GDTraits<T>::GDTraits()
+GDTraits<T>::GDTraits() : BPTraits<T>()
 {
   init();
 }
 
 template <typename T>
-GDTraits<T>::GDTraits(const TrainingSet<T> &tr)
+GDTraits<T>::GDTraits(const TrainingSet<T> &tr) : BPTraits<T>()
 {
   init();
 
@@ -211,8 +196,13 @@ void GradientDescent<T>::run()
     _d_traits.X = X_train_ptr;
     _d_traits.yy = y_train_ptr;
     _d_traits.nsamples = ns;
+
     _d_traits.compute_cost = false;
     _d_traits.compute_grads = true;
+    
+    _d_traits.lambda = _traits.lambda;
+    _d_traits.dropouts = _traits.dropouts;
+    _d_traits.wmults = nullptr;
 
     gd_errfunc_device(_d_traits);
 
@@ -317,16 +307,15 @@ T GradientDescent<T>::computeTrainCost()
   _d_traits.X = _d_traits.X_train;
   _d_traits.yy = _d_traits.y_train;
   _d_traits.nsamples = _d_traits.nsamples_train;
+
   _d_traits.compute_cost = true;
   _d_traits.compute_grads = false;
-  T prev_lambda = _d_traits.lambda;
+
   _d_traits.lambda = 0.0;
-  
+  _d_traits.dropouts = nullptr;
+  _d_traits.wmults = _traits.dropouts;
+
   gd_errfunc_device(_d_traits);
-  
-  _d_traits.lambda = prev_lambda;
-  _d_traits.compute_cost = false;
-  _d_traits.compute_grads = true;
 
   return _d_traits.cost;
 }
@@ -337,16 +326,15 @@ T GradientDescent<T>::computeCvCost()
   _d_traits.X = _d_traits.X_cv;
   _d_traits.yy = _d_traits.y_cv;
   _d_traits.nsamples = _d_traits.nsamples_cv;
+
   _d_traits.compute_cost = true;
   _d_traits.compute_grads = false;
-  T prev_lambda = _d_traits.lambda;
+
   _d_traits.lambda = 0.0;
+  _d_traits.dropouts = nullptr;
+  _d_traits.wmults = _traits.dropouts;
 
   gd_errfunc_device(_d_traits);
-
-  _d_traits.lambda = prev_lambda;
-  _d_traits.compute_cost = false;
-  _d_traits.compute_grads = true;
 
   return _d_traits.cost;
 }

@@ -65,6 +65,10 @@ BOOST_AUTO_TEST_CASE( test_bpdevicetraits )
   BOOST_CHECK(dt.compute_grads == t1.compute_grads);
   BOOST_CHECK(dt.wmults == t1.wmults);
 
+  BPDeviceTraits<value_type> dt2;
+  BOOST_CHECK(dt2.X_train == nullptr);
+  BOOST_CHECK(dt2.y_train == nullptr);
+
   delete [] t1.lsizes;
 }
 

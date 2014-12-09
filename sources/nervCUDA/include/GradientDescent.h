@@ -23,19 +23,20 @@ public:
 
   virtual ~GDTraits() {};
 
-  unsigned int maxiter;
   unsigned int X_train_size;
   unsigned int y_train_size;
+  unsigned int X_cv_size;
+  unsigned int y_cv_size;
+
+  unsigned int maxiter;
   unsigned int nparams;
 
   T momentum;
-
   T epsilon;
+
   unsigned int miniBatchSize;
   unsigned int validationWindowSize;
 
-  unsigned int X_cv_size;
-  unsigned int y_cv_size;
 
   void validate() const;
 
