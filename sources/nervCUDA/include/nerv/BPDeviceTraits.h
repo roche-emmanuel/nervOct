@@ -59,6 +59,10 @@ struct BPDeviceTraits : public BPTraits<T>
   T *createDeviceBuffer(unsigned int n, T *data = NULL)
   {
     T *ptr = NULL;
+    if(n==0) {
+      throw std::runtime_error("ERROR: Invalid size if 0 when build device buffer.");
+    }
+
     size_t size = n * sizeof(T);
     checkCudaErrors(cudaMalloc(&ptr, size));
     if (data)
@@ -124,8 +128,13 @@ protected:
     compute_grads = rhs.compute_grads;
     wmults = rhs.wmults;
 
-    X_train = createDeviceBuffer(nx(), rhs.X);
-    y_train = createDeviceBuffer(ny(), rhs.yy);
+    if(rhs.X) {
+      X_train = createDeviceBuffer(nx(), rhs.X);
+    }
+
+    if(rhs.yy) {
+      y_train = createDeviceBuffer(ny(), rhs.yy);
+    }
 
     X = X_train;
     yy = y_train;

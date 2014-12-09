@@ -1,6 +1,8 @@
 #ifndef NERV_UTILS_H_
 #define NERV_UTILS_H_
 
+#include <nervcuda.h>
+
 #ifndef DEVICE_RESET
 #define DEVICE_RESET cudaDeviceReset();
 #endif
@@ -15,7 +17,7 @@ unsigned int nextPow2(unsigned int x);
 
 void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
 
-const char *_cudaGetErrorEnum(cudaError_t error);
+NERVCUDA_EXPORT const char * _cudaGetErrorEnum(cudaError_t error);
 
 template< typename T >
 void check(T result, char const *const func, const char *const file, int const line)

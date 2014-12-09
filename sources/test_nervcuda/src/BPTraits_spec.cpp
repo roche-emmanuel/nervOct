@@ -7,6 +7,7 @@
 #include <cuda_profiler_api.h>
 
 #include <GradientDescent.h>
+#include <nerv/BPDeviceTraits.h>
 
 #include <boost/chrono.hpp>
 
@@ -33,6 +34,36 @@ BOOST_AUTO_TEST_CASE( test_copy_bptraits )
   t3 = t1;
   BOOST_CHECK(t1.nl == t3.nl);
   BOOST_CHECK(t1.lsizes == t3.lsizes);
+
+  delete [] t1.lsizes;
+}
+
+BOOST_AUTO_TEST_CASE( test_bpdevicetraits )
+{
+  typedef double value_type;
+
+  BPTraits<value_type> t1;
+  t1.nl = 5;
+  t1.lsizes = new unsigned int[5];
+  t1.nsamples_train = 10;
+  t1.bias = 0.5;
+  t1.lambda = 0.5;
+  t1.cost = 1.1;
+
+  BPDeviceTraits<value_type> dt;
+  dt = t1;
+
+  BOOST_CHECK(t1.nl == dt.nl);
+  BOOST_CHECK(t1.lsizes == dt.lsizes);
+  BOOST_CHECK(dt.nsamples == t1.nsamples_train);
+  BOOST_CHECK(dt.nsamples_train == t1.nsamples_train);
+  BOOST_CHECK(dt.nsamples_cv == t1.nsamples_cv);
+  BOOST_CHECK(dt.bias == t1.bias);
+  BOOST_CHECK(dt.lambda == t1.lambda);
+  BOOST_CHECK(dt.cost == t1.cost);
+  BOOST_CHECK(dt.compute_cost == t1.compute_cost);
+  BOOST_CHECK(dt.compute_grads == t1.compute_grads);
+  BOOST_CHECK(dt.wmults == t1.wmults);
 
   delete [] t1.lsizes;
 }
