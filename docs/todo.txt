@@ -3,7 +3,6 @@
 - Apply weight multiplier dropout for test time.
 - Implement input feature lost
 - implement octave plugin to access gradient descent.
-- Test copy construction of BPTraits ?
 
 
 *** CUDA infos:

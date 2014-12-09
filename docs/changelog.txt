@@ -156,3 +156,4 @@
 - Improved test duration.
 - Added tests for computeTrainCost and computeCvCost.
 - Added test for gd_errfunc performances.
+- Added test for BPTraits copy construction.
