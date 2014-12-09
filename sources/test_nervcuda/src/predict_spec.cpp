@@ -161,4 +161,61 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
   BOOST_CHECK(FreeLibrary(h));
 }
 
+BOOST_AUTO_TEST_CASE( test_nn_predict_with_dropout )
+{
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+
+  // We should be able to retrieve the train function:
+  PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict");
+  BOOST_CHECK(nn_predict != nullptr);
+
+  unsigned int num = 10; // number of tests to perform.
+
+  for (unsigned int i = 0; i < num; ++i)
+  {
+    // Prepare a random training set:
+    unsigned int nsamples = 1000;
+
+    TrainingSet<value_type> tr(std::vector<unsigned int>{100,100,100,32},1000,TrainingSet<value_type>::TRAIN_DEBUG);
+
+    value_type bias = tr.random_real(0.0, 1.0);
+
+    // Prepare the weight multipliers:
+    value_type* dropouts = tr.createArray(tr.nt());
+    for(unsigned int j=0;j<tr.nt();++j) {
+      dropouts[j] = tr.random_real(0.0,1.0);
+    }
+
+    // Now compute the predictions:
+    BPTraits<double> traits;
+    traits.nl = tr.nl();
+    traits.lsizes = tr.lsizes();
+    traits.nsamples_train = tr.nsamples();
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.inputs = tr.createArray(traits.nd());
+    traits.bias = bias;
+    traits.dropouts = dropouts;
+
+    nn_predict(traits);
+
+
+    // // Now compate the hx arrays:
+    // for (unsigned int j = 0; j < ny; ++j)
+    // {
+    //   value_type v1 = hx[j];
+    //   value_type v2 = pred_hx[j];
+    //   BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2 * epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
+    // }
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

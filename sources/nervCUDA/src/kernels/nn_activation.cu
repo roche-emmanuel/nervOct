@@ -8,6 +8,8 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 	unsigned int* lsizes = d_traits.lsizes;
 	unsigned int nsamples = d_traits.nsamples;
 	T* wmults = d_traits.wmults;
+	T* dropouts = d_traits.dropouts;
+
 	cudaStream_t stream = d_traits.stream;
 
 	// offset used to locate the theta_i matrix in the d_params array.
@@ -37,6 +39,7 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 
 		dim3 dimBlock(blockSize, blockSize);
 		dim3 dimGrid((blockSize + ncols-1)/blockSize, (blockSize + nrows-1)/blockSize);
+		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 
 
 		traits.theta_offset = theta_offset;
@@ -51,8 +54,14 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
-		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
-		ComputeActivation<<<dimGrid, dimBlock,0,stream>>>(traits);
+		if(dropouts) {
+			traits.input_dropout = dropouts[0];
+			traits.layer_dropout = i==(nt-1) ? (T)1.0 : dropouts[i+1]; // we don't want to drop anything from the output layer.
+			ComputeActivationWithDropout<<<dimGrid, dimBlock,0,stream>>>(traits);
+		}
+		else {
+			ComputeActivation<<<dimGrid, dimBlock,0,stream>>>(traits);
+		}
 
 		// update the offsets:
 		theta_offset += lsizes[i+1]*(lsizes[i]+1);
@@ -72,8 +81,10 @@ void _nn_predict(BPTraits<T>& traits)
 
  	int input_offset = nn_activation_device(d_traits);
 
-	copyFromDevice(traits.hx, d_traits.inputs+input_offset, traits.ny());
-	// copyFromDevice(traits.hx, d_traits.predictions(), traits.ny());
+ 	if(traits.hx) {
+		copyFromDevice(traits.hx, d_traits.inputs+input_offset, traits.ny());
+		// copyFromDevice(traits.hx, d_traits.predictions(), traits.ny()); 		
+ 	}
 }
 
 template <typename T>

@@ -1,7 +1,6 @@
 *** TODOs:
 - Implement dropout
-- Apply weight multiplier dropout for test time.
-- Implement input feature lost
+- Add test for randState generation.
 - implement octave plugin to access gradient descent.
 
 

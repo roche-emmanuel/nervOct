@@ -1,8 +1,15 @@
 #ifndef NERV_BPDEVICETRAITS_H_
 #define NERV_BPDEVICETRAITS_H_
 
+#include <nervcuda.h>
 #include <nerv/BPTraits.h>
 #include <nerv/Utils.h>
+
+#include <curand_kernel.h>
+
+#include <ctime>
+
+NERVCUDA_EXPORT void init_rand_state_device(curandState* d_state, unsigned int size, unsigned long seed);
 
 namespace nerv
 {
@@ -13,7 +20,8 @@ struct BPDeviceTraits : public BPTraits<T>
   typedef std::vector<T *> BufferList;
 
   BPDeviceTraits(bool withStream = false)
-    : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr), y_train(nullptr)
+    : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr),
+      y_train(nullptr), randStates(nullptr)
   {
     if (withStream)
     {
@@ -97,6 +105,8 @@ public:
   T *X_train;
   T *y_train;
 
+  curandState *randStates;
+
 protected:
   BufferList _buffers;
   bool owned_stream;
@@ -112,6 +122,12 @@ protected:
     _buffers.clear();
 
     params = regw = inputs = yy = X = deltas = grads = nullptr;
+
+    if (randStates)
+    {
+      checkCudaErrors(cudaFree(randStates));
+      randStates = nullptr;
+    }
   }
 
   void assign(const BPTraits<T> &rhs)
@@ -161,9 +177,22 @@ protected:
     deltas = createDeviceBuffer(nd());
 
     buildL2RegWeights();
+
+    if (rhs.dropouts)
+    {
+      initRandStates();
+    }
   }
 
+  void initRandStates()
+  {
+    // we should allocate the curand states here:
+    unsigned int size = BLOCK_SIZE*BLOCK_SIZE;
+    checkCudaErrors(cudaMalloc(&randStates, size*sizeof(curandState)));
 
+    // Here we call the method to initialize the random states:
+    init_rand_state_device(randStates,size,(unsigned long)time(NULL));
+  }
 
   void buildL2RegWeights()
   {
@@ -213,7 +242,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
       delta_offset(0), next_delta_offset(0),
       grad_offset(0),
       nrows(0), ncols(0), niter(0),
-      wmult(1.0) {};
+      wmult(1.0), layer_dropout(1.0), input_dropout(1.0) {};
 
   // BPComputeTraits(const BPComputeTraits &) = delete;
   BPComputeTraits &operator=(const BPComputeTraits &) = delete;
@@ -247,6 +276,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
   unsigned int niter;
 
   T wmult;
+  T layer_dropout;
+  T input_dropout;
 };
 
 };

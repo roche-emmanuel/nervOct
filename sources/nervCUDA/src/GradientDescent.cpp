@@ -86,6 +86,18 @@ void GDTraits<T>::validate() const
   THROW_IF(nsamples_cv != ns_cv, "Mismatch in computation of nsamples_cv" << nsamples_cv << "!=" << ns_cv)
   THROW_IF(miniBatchSize > nsamples_train / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples_train / 2));
   THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
+
+  if(dropouts) {
+    for(unsigned int i=0;i<nl-1;++i) {
+      THROW_IF(dropouts[i]<0.0 || dropouts[i]>1.0, "Invalid value for dropout " << i << ":" << dropouts[i]);
+    }
+  }
+
+  if(wmults) {
+    for(unsigned int i=0;i<nl-1;++i) {
+      THROW_IF(wmults[i]<0.0 || wmults[i]>1.0, "Invalid value for wmult " << i << ":" << wmults[i]);
+    }
+  }
 }
 
 template <typename T>

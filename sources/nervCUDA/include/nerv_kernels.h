@@ -57,6 +57,8 @@ __global__ void CostFuncKernel(unsigned int nl, unsigned int *lsizes, unsigned i
 template <typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeActivation(BPComputeTraits<T> traits);
 
+template <typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void ComputeActivationWithDropout(BPComputeTraits<T> traits);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void InitLastDelta(BPComputeTraits<T> traits);

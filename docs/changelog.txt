@@ -159,3 +159,4 @@
 - Added test for BPTraits copy construction.
 - Added test for BPDeviceTraits.
 - Preparing usage of weight multipliers and dropout in gradient descent.
+- Added generation of rand state in BPDeviceTraits.
