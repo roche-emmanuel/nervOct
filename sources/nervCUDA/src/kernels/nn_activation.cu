@@ -12,14 +12,6 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 
 	cudaStream_t stream = d_traits.stream;
 
-	// offset used to locate the theta_i matrix in the d_params array.
-	unsigned int theta_offset = 0;
-
-	// Offset used for the z(i) matrix on iteration i
-	int input_offset = 0;
-
-	int next_input_offset = 0; //nsamples*lsizes[1];
-
 	BPComputeTraits<T> traits;
 	traits = d_traits;
 	
@@ -41,10 +33,6 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 		dim3 dimGrid((blockSize + ncols-1)/blockSize, (blockSize + nrows-1)/blockSize);
 		// logDEBUG("Using grid size: ("<<dimGrid.x<<" x "<<dimGrid.y<<")");
 
-
-		traits.theta_offset = theta_offset;
-		traits.input_offset = input_offset;
-		traits.next_input_offset = next_input_offset;
 		traits.nrows = nrows;
 		traits.ncols = ncols;
 		traits.niter = ncolT;
@@ -55,7 +43,9 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 		// Also we will need access to the theta_i matrix so we need to keep track of its global offset in the
 		// network parameters array.
 		if(dropouts) {
-			traits.input_dropout = dropouts[0];
+			// Update the bias weights to be used for this layer computation:
+			rand_weights_device(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols);
+
 			traits.layer_dropout = i==(nt-1) ? (T)1.0 : dropouts[i+1]; // we don't want to drop anything from the output layer.
 			ComputeActivationWithDropout<<<dimGrid, dimBlock,0,stream>>>(traits);
 		}
@@ -64,12 +54,13 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 		}
 
 		// update the offsets:
-		theta_offset += lsizes[i+1]*(lsizes[i]+1);
-		input_offset = next_input_offset;
-		next_input_offset += nrows*ncols;
+		traits.wbias_offset += ncols;
+		traits.theta_offset += lsizes[i+1]*(lsizes[i]+1);
+		traits.input_offset = traits.next_input_offset;
+		traits.next_input_offset += nrows*ncols;
   }
 
-  return input_offset;
+  return traits.input_offset;
 }
 
 

@@ -1,8 +1,12 @@
 *** TODOs:
 - Implement dropout
-- Add test for randState generation.
 - implement octave plugin to access gradient descent.
-
+- implement test for rand_weights_device
+- Implement X matrix dropout support.
+- use wbias in gradient computation.
+- test dropout with threshold = 0.0 and 1.0
+- Add debug mode for random variables on CUDA
+- test dropout with random threshold.
 
 *** CUDA infos:
 

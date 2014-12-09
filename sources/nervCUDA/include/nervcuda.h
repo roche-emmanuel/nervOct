@@ -85,6 +85,9 @@ extern "C" {
 };
 
 template<typename T>
+void rand_weights_device(curandState *d_state, T* weights, T threshold, unsigned int size);
+
+template<typename T>
 void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>

@@ -1,17 +1,30 @@
 #include <nervCUDA.h>
 #include <nerv_kernels.h>
 
+#include <curand_kernel.h>
+
+__device__ float random_float(curandState* states, int rid)
+{
+	curandState rState = states[rid];
+	float res = curand_uniform(&rState);
+	states[rid] = rState;
+	return res;
+}
+
+
 template <typename T, unsigned int blockSize>
 __global__ void ComputeActivationWithDropout(BPComputeTraits<T> traits)
 {
-
 	unsigned int nrows = traits.nrows;
 	unsigned int ncols = traits.ncols;
 	unsigned int ncolT = traits.niter;
+	curandState* states = traits.randStates;
+
+	// Compute the index to retrieve the rand state:
+	int rid = blockSize*threadIdx.y + threadIdx.x;
 
 	// Retrieve the dropout threshold:
 	T drop = traits.layer_dropout;
-	T input_drop = traits.input_dropout;
 
 	// Note that we assume here that the matrix coefficient are stored in row major order:
 	// eg Aelem(i,jl) = A[j*nrowA+i]
@@ -25,7 +38,9 @@ __global__ void ComputeActivationWithDropout(BPComputeTraits<T> traits)
 
   // we can already add the element on the first row of theta_i to this element value:
   // but note that this element should be multiplied with the desired bias:
-  T zval = traits.params[traits.theta_offset + row]* traits.bias;
+  // Here we can use the wbias array, to decide if the bias unit is activated
+  // for that sample or not:
+  T zval = traits.params[traits.theta_offset + row] * traits.bias * traits.wbias[traits.wbias_offset + col];
 
   // Here we compute the product theta_i * a_i^T
   for (int k = 0; k < (blockSize + ncolT - 1)/blockSize; k++) {
@@ -72,8 +87,15 @@ __global__ void ComputeActivationWithDropout(BPComputeTraits<T> traits)
   }
 
   if (row < nrows && col < ncols) {
-  	// compute the sigmoid of the value:
-  	zval = 1.0 / (1.0 + exp(-zval* traits.wmult));
+  	// check if we need to keep this unit activated or not
+  	// depending on the current dropout threshold:
+  	if(random_float(states,rid)<=drop) {
+	  	// compute the sigmoid of the value:
+	  	zval = 1.0 / (1.0 + exp(-zval* traits.wmult));
+  	}
+  	else {
+  		zval = 0.0; // desactivate this unit.
+  	}
 
   	// we just computed the value z_i(row,col), now we store it:
   	traits.inputs[traits.next_input_offset + nrows*col + row] = zval;

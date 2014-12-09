@@ -64,12 +64,40 @@ BOOST_AUTO_TEST_CASE( test_bpdevicetraits )
   BOOST_CHECK(dt.compute_cost == t1.compute_cost);
   BOOST_CHECK(dt.compute_grads == t1.compute_grads);
   BOOST_CHECK(dt.wmults == t1.wmults);
+  BOOST_CHECK(dt.randStates == nullptr);  
+  BOOST_CHECK(dt.wbias == nullptr);  
 
   BPDeviceTraits<value_type> dt2;
   BOOST_CHECK(dt2.X_train == nullptr);
   BOOST_CHECK(dt2.y_train == nullptr);
 
   delete [] t1.lsizes;
+}
+
+BOOST_AUTO_TEST_CASE( test_bpdevicetraits_dropouts )
+{
+  typedef double value_type;
+
+  BPTraits<value_type> t1;
+  t1.nl = 5;
+  t1.lsizes = new unsigned int[5];
+  t1.nsamples_train = 10;
+  t1.bias = 0.5;
+  t1.lambda = 0.5;
+  t1.cost = 1.1;
+  t1.dropouts = new value_type[4];
+
+  BPDeviceTraits<value_type> dt;
+
+  // RandState should not be initialized on construction:
+  BOOST_CHECK(dt.randStates == nullptr);  
+  BOOST_CHECK(dt.wbias == nullptr);  
+  dt = t1;
+  BOOST_CHECK(dt.randStates != nullptr);  
+  BOOST_CHECK(dt.wbias != nullptr);  
+
+  delete [] t1.lsizes;
+  delete [] t1.dropouts;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

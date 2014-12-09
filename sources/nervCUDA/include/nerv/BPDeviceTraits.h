@@ -9,7 +9,7 @@
 
 #include <ctime>
 
-NERVCUDA_EXPORT void init_rand_state_device(curandState* d_state, unsigned int size, unsigned long seed);
+NERVCUDA_EXPORT void init_rand_state_device(curandState *d_state, unsigned int size, unsigned long seed);
 
 namespace nerv
 {
@@ -21,7 +21,7 @@ struct BPDeviceTraits : public BPTraits<T>
 
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr),
-      y_train(nullptr), randStates(nullptr)
+      y_train(nullptr), randStates(nullptr), wbias(nullptr)
   {
     if (withStream)
     {
@@ -104,6 +104,7 @@ public:
 
   T *X_train;
   T *y_train;
+  T *wbias;
 
   curandState *randStates;
 
@@ -136,17 +137,6 @@ protected:
     BPTraits<T>::operator=(rhs);
 
     nsamples = rhs.nsamples_train;
-
-    // bias = rhs.bias;
-    // lambda = rhs.lambda;
-    // nsamples_train = rhs.nsamples_train;
-    // nsamples_cv = rhs.nsamples_cv;
-    // nl = rhs.nl;
-    // lsizes = rhs.lsizes;
-    // cost = rhs.cost;
-    // compute_cost = rhs.compute_cost;
-    // compute_grads = rhs.compute_grads;
-    // wmults = rhs.wmults;
 
     if (rhs.X)
     {
@@ -181,17 +171,20 @@ protected:
     if (rhs.dropouts)
     {
       initRandStates();
+
+      // Prepare an array to hold the bias weights:
+      wbias = createDeviceBuffer((nl - 1) * nsamples);
     }
   }
 
   void initRandStates()
   {
     // we should allocate the curand states here:
-    unsigned int size = BLOCK_SIZE*BLOCK_SIZE;
-    checkCudaErrors(cudaMalloc(&randStates, size*sizeof(curandState)));
+    unsigned int size = BLOCK_SIZE * BLOCK_SIZE;
+    checkCudaErrors(cudaMalloc(&randStates, size * sizeof(curandState)));
 
     // Here we call the method to initialize the random states:
-    init_rand_state_device(randStates,size,(unsigned long)time(NULL));
+    init_rand_state_device(randStates, size, (unsigned long)time(NULL));
   }
 
   void buildL2RegWeights()
@@ -242,12 +235,14 @@ struct BPComputeTraits : public BPTraitsBase<T>
       delta_offset(0), next_delta_offset(0),
       grad_offset(0),
       nrows(0), ncols(0), niter(0),
-      wmult(1.0), layer_dropout(1.0), input_dropout(1.0) {};
+      wmult(1.0), layer_dropout(1.0),
+      randStates(nullptr), 
+      wbias(nullptr), wbias_offset(0) {};
 
   // BPComputeTraits(const BPComputeTraits &) = delete;
   BPComputeTraits &operator=(const BPComputeTraits &) = delete;
 
-  BPComputeTraits &operator=(const BPTraits<T> &rhs)
+  BPComputeTraits &operator=(const BPDeviceTraits<T> &rhs)
   {
     params = rhs.params;
     inputs = rhs.inputs;
@@ -257,6 +252,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
     X = rhs.X;
     bias = rhs.bias;
     lambda = rhs.lambda;
+    randStates = rhs.randStates;
+    wbias = rhs.wbias;
 
     return *this;
   }
@@ -270,14 +267,18 @@ struct BPComputeTraits : public BPTraitsBase<T>
   unsigned int next_delta_offset;
 
   unsigned int grad_offset;
+  
+  unsigned int wbias_offset;
 
   unsigned int nrows;
   unsigned int ncols;
   unsigned int niter;
 
+  curandState *randStates;
+  T* wbias;
+
   T wmult;
   T layer_dropout;
-  T input_dropout;
 };
 
 };
