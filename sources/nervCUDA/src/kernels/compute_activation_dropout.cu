@@ -42,6 +42,7 @@ __global__ void ComputeActivationWithDropout
   // Here we can use the wbias array, to decide if the bias unit is activated
   // for that sample or not:
   T zval = traits.params[traits.theta_offset + row] * traits.wbias[traits.wbias_offset + col];
+  T val;
 
   // Here we compute the product theta_i * a_i^T
   for (int k = 0; k < (blockSize + ncolT - 1) / blockSize; k++)
@@ -50,14 +51,19 @@ __global__ void ComputeActivationWithDropout
     xx = k * blockSize + threadIdx.y;
     yy = blockIdx.y * blockSize + threadIdx.x;
 
+    val = 0.0;
+
     if (xx < ncolT && yy < nrows)
+    {
       // Note here that we should NOT use the first row of theta_i in those computation:
       // That row elemtn is already added to the zval value (matching the "virtual" 1 row
       // on top of the z_i matrix when used as activation.)
-      As[threadIdx.x][threadIdx.y] = traits.params[traits.theta_offset + (xx + 1) * nrows + yy];
-    else
-      As[threadIdx.x][threadIdx.y] = 0.0;
+      val = traits.params[traits.theta_offset + (xx + 1) * nrows + yy];
+    }
 
+    As[threadIdx.x][threadIdx.y] = val;
+
+    val = 0.0;
 
     if (traits.next_input_offset == 0)
     {
@@ -67,9 +73,11 @@ __global__ void ComputeActivationWithDropout
       yy = k * blockSize + threadIdx.y;
 
       if (xx < ncols && yy < ncolT)
-        Bs[threadIdx.y][threadIdx.x] = traits.X[yy * ncols + xx];
-      else
-        Bs[threadIdx.y][threadIdx.x] = 0.0;
+      {
+        val = traits.X[yy * ncols + xx];
+      }
+
+      Bs[threadIdx.y][threadIdx.x] = val;
     }
     else
     {
@@ -77,15 +85,19 @@ __global__ void ComputeActivationWithDropout
       yy = k * blockSize + threadIdx.x;
 
       if (yy < ncolT && xx < ncols)
-        Bs[threadIdx.x][threadIdx.y] = traits.inputs[traits.input_offset + xx * ncolT + yy];
-      else
-        Bs[threadIdx.x][threadIdx.y] = 0.0;
+      {
+        val = traits.inputs[traits.input_offset + xx * ncolT + yy];
+      }
+
+      Bs[threadIdx.x][threadIdx.y] = val;
     }
 
     __syncthreads();
 
     for (int n = 0; n < blockSize; ++n)
+    {
       zval += As[threadIdx.x][n] * Bs[n][threadIdx.y];
+    }
 
     __syncthreads();
   }
