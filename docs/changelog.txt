@@ -162,3 +162,4 @@
 - Added generation of rand state in BPDeviceTraits.
 - Started implementation of dropout: dropping computed activation and bias partially (need to update compute gradient)
 - Updated wbias to contain bias value directly.
+- Refactoring some kernels.
