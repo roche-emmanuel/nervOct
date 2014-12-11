@@ -95,6 +95,13 @@ void gd_errfunc_device(BPDeviceTraits<T>& d_traits)
 		traits.niter = nsamples;
 		count = traits.nrows*traits.ncols;
 
+		// Also setup the wbias offset to ensure that we start with the correct offset:
+		// basically, we have nsamples bias values for each layer, so we just need to multiply
+		// nsamples by the desired number of layers offset.
+		// When computing the gradients at index i (1<=i<=nt) we need to use the bias from layer (i-1),
+		// thus the offset is:
+		traits.wbias_offset = (i-1)*nsamples;
+		
 		// Compute the gradient:
 		dimBlock = dim3(blockSize, blockSize);
 		dimGrid = dim3((blockSize + traits.ncols-1)/blockSize, (blockSize + traits.nrows-1)/blockSize);

@@ -237,7 +237,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
       nrows(0), ncols(0), niter(0),
       wmult(1.0), layer_dropout(1.0),
       randStates(nullptr), 
-      wbias(nullptr), wbias_offset(0) {};
+      wbias(nullptr), wbias_offset(0),
+      wX(nullptr) {};
 
   // BPComputeTraits(const BPComputeTraits &) = delete;
   BPComputeTraits &operator=(const BPComputeTraits &) = delete;
@@ -254,6 +255,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
     lambda = rhs.lambda;
     randStates = rhs.randStates;
     wbias = rhs.wbias;
+    // wX = rhs.wX;
 
     return *this;
   }
@@ -276,6 +278,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
 
   curandState *randStates;
   T* wbias;
+  T* wX;
 
   T wmult;
   T layer_dropout;
