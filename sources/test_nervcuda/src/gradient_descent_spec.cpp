@@ -269,77 +269,66 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
 
     TrainingSet<double> tr(3, 5, 3, 6, 500, 1000);
 
-    unsigned int np = tr.np();
+    // unsigned int np = tr.np();
     unsigned int *lsizes = tr.lsizes();
     unsigned int nsamples = tr.nsamples();
     double lambda = tr.lambda();
     unsigned int nl = tr.nl();
     unsigned int nt = tr.nt();
 
-    // Prepare the input array:
-    unsigned int input_size = 0;
-    for (unsigned int j = 0; j < nt; ++j)
-    {
-      input_size += lsizes[j + 1];
-    }
-    input_size *= nsamples;
+    BPTraits<double> traits;
+    traits.nl = nl;
+    traits.lsizes = lsizes;
+    traits.nsamples_train = nsamples;
 
-    // Prepare the activation array:
-    unsigned int act_size = 0;
-    for (unsigned int j = 0; j < nl; ++j)
-    {
-      act_size += lsizes[j] + 1;
-    }
-    act_size *= nsamples;
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.yy = tr.y_train();
+    traits.lambda = lambda;
+    traits.compute_cost = true; // Note that this is disabled by default.
 
-    // also prepare an array to hold the predictions for the delta matrices:
-    unsigned int nd = 0;
-    for (unsigned int i = 1; i < nl; ++i)
-    {
-      nd += lsizes[i] * nsamples;
-    }
+    unsigned int np = traits.np();
+    unsigned int nd = traits.nd();
 
     // prepare the output gradient array:
     double *grads = tr.createArray(np);
     double *pred_grads = tr.createArray(np);
-    double *inputs = tr.createArray(input_size);
-    double *pred_act = tr.createArray(act_size);
-    double *pred_input = tr.createArray(input_size);
+
+    double *inputs = tr.createArray(nd);
+    double *pred_input = tr.createArray(nd);
+
     double *deltas = tr.createArray(nd);
     double *pred_deltas = tr.createArray(nd);
 
     cudaDeviceSynchronize();
 
     // Now we call the cost function method:
-    double J = 0.0;
-    BPTraits<double> traits;
-    traits.nl = nl;
-    traits.lsizes = lsizes;
-    traits.nsamples_train = nsamples;
-    traits.params = tr.params();
-    traits.X = tr.X_train();
-    traits.yy = tr.y_train();
-    traits.lambda = lambda;
     traits.grads = grads;
     traits.deltas = deltas;
     traits.inputs = inputs;
-    traits.compute_cost = true; // Note that this is disabled by default.
 
     // costfunc(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, J, grads, deltas, inputs);
     costfunc(traits);
-    J = traits.cost;
+    double J = traits.cost;
 
     // And we call the same on the CPU:
-    double pred_J = 0.0;
-    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
-    
     traits.deltas = pred_deltas;
     traits.inputs = pred_input;
     traits.grads = pred_grads;
+
+    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);    
     costfunc_cpu(traits);
-    pred_J = traits.cost;
+    double pred_J = traits.cost;
 
     BOOST_CHECK_MESSAGE(abs(J - pred_J) < 1e-10, "Mismatch in J value: " << J << "!=" << pred_J);
+
+    // Compare the content of the input array:
+    for (unsigned int j = 0; j < nd; ++j)
+    {
+      double v1 = inputs[j];
+      double v2 = pred_input[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 1e-10, "Mismatch on inputs element " << j << ": " << v1 << "!=" << v2);
+    }
 
     // Also compare the delta arrays:
     for (unsigned int j = 0; j < nd; ++j)
@@ -350,20 +339,11 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
     }
 
     // Compare the grads arrays:
-    // logDEBUG("Number of parameters: "<<np);
     for (unsigned int j = 0; j < np; ++j)
     {
       double v1 = grads[j];
       double v2 = pred_grads[j];
       BOOST_CHECK_MESSAGE(abs(v1 - v2) < 1e-10, "Mismatch on gradient element " << j << ": " << v1 << "!=" << v2);
-    }
-
-    // Compare the content of the input array:
-    for (unsigned int j = 0; j < input_size; ++j)
-    {
-      double v1 = inputs[j];
-      double v2 = pred_input[j];
-      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 1e-10, "Mismatch on inputs element " << j << ": " << v1 << "!=" << v2);
     }
   }
 

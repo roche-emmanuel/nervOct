@@ -171,3 +171,4 @@
 - Added test for nn_predict with dropout.
 - Preparing reconstruction on gd_errfunc_cpu method.
 - Completed refactoring of gd_errfunc_cpu method.
+- Cleaning code.
