@@ -22,3 +22,5 @@ nn_predict					@17
 nn_predict_f				@18
 nn_predict_cpu			@19
 nn_predict_cpu_f		@20
+rand_weights				@21
+rand_weights_f			@22

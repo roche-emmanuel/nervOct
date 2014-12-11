@@ -166,3 +166,4 @@
 - Refactoring compute_gradient kernel.
 - Merge dropout computation on compute_activation kernel.
 - Updating computation of wbias offset for compute_gradient kernel.
+- Added test for rand_weights_device.

@@ -7,9 +7,8 @@
 #define DEVICE_RESET cudaDeviceReset();
 #endif
 
-#define CHECK_KERNEL()
-// checkCudaErrors( cudaPeekAtLastError() ); \
-// checkCudaErrors( cudaDeviceSynchronize() );
+#define CHECK_KERNEL() checkCudaErrors( cudaPeekAtLastError() ); \
+checkCudaErrors( cudaDeviceSynchronize() );
 
 extern "C" bool isPow2(unsigned int x);
 

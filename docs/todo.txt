@@ -1,7 +1,6 @@
 *** TODOs:
 - Implement dropout
 - implement octave plugin to access gradient descent.
-- implement test for rand_weights_device
 - Implement X matrix dropout support (with wX member)
 - use wbias in gradient computation.
 - test dropout with threshold = 0.0 and 1.0

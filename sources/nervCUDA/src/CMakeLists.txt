@@ -14,6 +14,9 @@ FILE(GLOB_RECURSE PUBLIC_HEADERS "../include/*.h")
 
 FILE(GLOB_RECURSE SOURCE_FILES "*.cpp" "*.cu" )
 
+# set(CUDA_NVCC_FLAGS "-arch=compute_20; -code=sm_20; -rdc=true; -lcudadevrt")
+# set(CUDA_NVCC_FLAGS "-rdc=true;") # This is producing link errors.
+
 # ADD_MSVC_PRECOMPILED_HEADER("nervmbp.h" "nervmbp.cpp" SOURCE_FILES)
 
 # ADD_LIBRARY (${TARGET_NAME} SHARED ${PUBLIC_HEADERS} ${SOURCE_FILES} "${TARGET_NAME}.def")

@@ -9,28 +9,70 @@
 
 #define BLOCK_SIZE 1024
 
-template<typename T>
-__global__ void RandWeights( curandState *d_state, T* weights, T threshold, unsigned int n, T value )
+template<typename T, unsigned int blockSize = 32>
+__global__ void RandWeights( curandState *d_states, T *weights, T threshold, unsigned int n, T value )
 {
-  unsigned int id = blockIdx.x*BLOCK_SIZE + threadIdx.x;
-  if(id<n) {
-  	curandState rState = d_state[id];
-  	float val = curand_uniform(&rState);
-  	d_state[id] = rState;
-  	weights[id] = val<=threshold ? value : 0.0;
+  unsigned int id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+  if (id < n)
+  {
+    // Compute the index to retrieve the rand state:
+    int rid = blockSize * threadIdx.y + threadIdx.x;
+
+    curandState rState = d_states[rid];
+    float val = curand_uniform(&rState);
+    d_states[rid] = rState;
+
+    weights[id] = val <= threshold ? value : 0.0;
   }
 }
 
 template<typename T>
-void rand_weights_device(curandState *d_state, T* weights, T threshold, unsigned int size, T value)
+void rand_weights_device(curandState *d_state, T *weights, T threshold, unsigned int size, T value)
 {
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
-  dim3 dimGrid((BLOCK_SIZE + size-1)/BLOCK_SIZE, 1, 1);	
+  dim3 dimGrid((BLOCK_SIZE + size - 1) / BLOCK_SIZE, 1, 1);
 
-	RandWeights<<<dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);		
-
+  RandWeights <<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
+  // CHECK_KERNEL();
 }
 
-// explicit instanciation:
-template void rand_weights_device(curandState *d_state, double* weights, double threshold, unsigned int size, double value);
-template void rand_weights_device(curandState *d_state, float* weights, float threshold, unsigned int size, float value);
+template <typename T>
+void _rand_weights(T *weights, T threshold, unsigned int n, T value)
+{
+  unsigned int size = n * sizeof(T);
+  T *d_weights = NULL;
+  checkCudaErrors(cudaMalloc(&d_weights, size));
+  checkCudaErrors(cudaMemcpy(d_weights, weights, size, cudaMemcpyHostToDevice));
+
+  // We also need to prepare the curandState buffer:
+  size = 1024;
+  curandState *d_states = NULL;
+  checkCudaErrors(cudaMalloc(&d_states, size * sizeof(curandState)));
+
+  // Here we call the method to initialize the random states:
+  init_rand_state_device(d_states, size, (unsigned long)time(NULL));
+
+  // Now call the device kernel:
+  rand_weights_device(d_states, d_weights, threshold, n, value);
+
+  // copy the results back:
+  copyFromDevice(weights, d_weights, n);
+
+  // Release the GPU buffers:
+  checkCudaErrors(cudaFree(d_weights));
+  checkCudaErrors(cudaFree(d_states));
+}
+
+extern "C" {
+
+  void rand_weights(double *weights, double threshold, unsigned int size, double value)
+  {
+    _rand_weights(weights, threshold, size, value);
+  }
+
+  void rand_weights_f(float *weights, float threshold, unsigned int size, float value)
+  {
+    _rand_weights(weights, threshold, size, value);
+  }
+
+}

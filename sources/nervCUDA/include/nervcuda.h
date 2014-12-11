@@ -25,6 +25,21 @@
 
 using namespace nerv;
 
+namespace nerv {
+
+template<typename T>
+T random_real(T mini, T maxi)
+{
+  return mini + (maxi - mini) * (T)rand() / (T)RAND_MAX;
+}
+
+inline unsigned int random_uint(unsigned int mini, unsigned int maxi)
+{
+  return mini + (unsigned int)floor(0.5 + (maxi - mini) * (double)rand() / (double)RAND_MAX);
+}
+
+}
+
 extern "C" {
 
   void matmult(unsigned int nrowA, unsigned int ncolA, const double *A,
@@ -82,6 +97,8 @@ extern "C" {
   void nn_predict_cpu(BPTraits<double>& traits);
   void nn_predict_cpu_f(BPTraits<float>& traits);
 
+  void rand_weights(double* weights, double threshold, unsigned int size, double value);
+  void rand_weights_f(float* weights, float threshold, unsigned int size, float value);
 };
 
 template<typename T>
