@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
   BOOST_CHECK(costfunc != nullptr);
-  CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "costFuncCPU");
+  CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "gd_errfunc_cpu");
   BOOST_CHECK(costfunc_cpu != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:

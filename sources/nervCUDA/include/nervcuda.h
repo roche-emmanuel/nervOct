@@ -25,7 +25,8 @@
 
 using namespace nerv;
 
-namespace nerv {
+namespace nerv
+{
 
 template<typename T>
 T random_real(T mini, T maxi)
@@ -91,32 +92,37 @@ extern "C" {
   void gd_errfunc(BPTraits<double> &traits);
   void gd_errfunc_f(BPTraits<float> &traits);
 
-  void nn_predict(BPTraits<double>& traits);
-  void nn_predict_f(BPTraits<float>& traits);
+  void gd_errfunc_cpu(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+                      double *params, double *X, double *yy, double lambda,
+                      double *activation, unsigned int ninputs, double *inputs, 
+                      double &J, double *gradients, double *deltas);
 
-  void nn_predict_cpu(BPTraits<double>& traits);
-  void nn_predict_cpu_f(BPTraits<float>& traits);
+  void nn_predict(BPTraits<double> &traits);
+  void nn_predict_f(BPTraits<float> &traits);
 
-  void rand_weights(double* weights, double threshold, unsigned int size, double value);
-  void rand_weights_f(float* weights, float threshold, unsigned int size, float value);
+  void nn_predict_cpu(BPTraits<double> &traits);
+  void nn_predict_cpu_f(BPTraits<float> &traits);
 
-  void rand_weights_debug(double* weights, double threshold, unsigned int size, double value);
-  void rand_weights_debug_f(float* weights, float threshold, unsigned int size, float value);
+  void rand_weights(double *weights, double threshold, unsigned int size, double value);
+  void rand_weights_f(float *weights, float threshold, unsigned int size, float value);
+
+  void rand_weights_debug(double *weights, double threshold, unsigned int size, double value);
+  void rand_weights_debug_f(float *weights, float threshold, unsigned int size, float value);
 };
 
 template<typename T>
-void rand_weights_device(curandState *d_state, T* weights, T threshold, unsigned int size, T value);
+void rand_weights_device(curandState *d_state, T *weights, T threshold, unsigned int size, T value);
 template<typename T>
-void rand_weights_device_debug(curandState *d_state, T* weights, T threshold, unsigned int size, T value);
+void rand_weights_device_debug(curandState *d_state, T *weights, T threshold, unsigned int size, T value);
 
 template<typename T>
 void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-int nn_activation_device(BPDeviceTraits<T>& d_traits);
+int nn_activation_device(BPDeviceTraits<T> &d_traits);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
-void gd_errfunc_device(BPDeviceTraits<T>& d_traits);
+void gd_errfunc_device(BPDeviceTraits<T> &d_traits);
 
 template<typename T>
 T compute_dot_device(T *d_vec1, T *d_vec2, T *d_redtmp, unsigned int size);

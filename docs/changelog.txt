@@ -169,3 +169,4 @@
 - Added test for rand_weights_device.
 - Added test for rand_weights_device_debug
 - Added test for nn_predict with dropout.
+- Preparing reconstruction on gd_errfunc_cpu method.
