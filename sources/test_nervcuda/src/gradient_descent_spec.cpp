@@ -251,13 +251,14 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
   //                          double * nn_params, double * X, double * yy, double lambda, double & J, double * gradients, double * deltas, double * inputs);
   typedef void (*CostFunc)(BPTraits<double>& traits);
 
-  typedef void (*CostFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
-                              double * nn_params, double * X, double * yy, double lambda, double * activation, unsigned int ninputs, double * inputs, double & J, double * gradients, double * deltas);
+  // typedef void (*CostFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+  //                             double * nn_params, double * X, double * yy, double lambda, double * activation, unsigned int ninputs, double * inputs, double & J, double * gradients, double * deltas);
 
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
   BOOST_CHECK(costfunc != nullptr);
-  CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "gd_errfunc_cpu");
+  // CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "gd_errfunc_cpu");
+  CostFunc costfunc_cpu = (CostFunc) GetProcAddress(h, "gd_errfunc_cpu");
   BOOST_CHECK(costfunc_cpu != nullptr);
 
   // Now we use the mult mat method to compute a few matrices multiplication:
@@ -330,7 +331,13 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
 
     // And we call the same on the CPU:
     double pred_J = 0.0;
-    costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
+    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
+    
+    traits.deltas = pred_deltas;
+    traits.inputs = pred_input;
+    traits.grads = pred_grads;
+    costfunc_cpu(traits);
+    pred_J = traits.cost;
 
     BOOST_CHECK_MESSAGE(abs(J - pred_J) < 1e-10, "Mismatch in J value: " << J << "!=" << pred_J);
 

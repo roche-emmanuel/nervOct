@@ -118,7 +118,10 @@ void _nn_predict_cpu(BPTraits<T> &traits)
   }
 
   // Prepare the input array:
-  T *inputs = new T[ni];
+  T *inputs = traits.inputs;
+  if(!inputs) {
+  	inputs = new T[ni];
+  }
 
   // offset used to locate the theta_i matrix in the d_params array.
   unsigned int theta_offset = 0;
@@ -199,10 +202,14 @@ void _nn_predict_cpu(BPTraits<T> &traits)
   }
 
   // Now we need to copy the last input data in the hx matrix:
-  memcpy(hx, inputs + input_offset, lsizes[nt]*nsamples * sizeof(T));
+  if(hx) {
+	  memcpy(hx, inputs + input_offset, lsizes[nt]*nsamples * sizeof(T));
+  }
 
-  // Delete
-  delete [] inputs;
+  // Delete if we have ownership:
+  if(!traits.inputs) {
+  	delete [] inputs;	
+  }
 }
 
 extern "C" {
