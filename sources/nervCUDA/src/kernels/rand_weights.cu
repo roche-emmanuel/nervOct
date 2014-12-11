@@ -26,6 +26,17 @@ __global__ void RandWeights( curandState *d_states, T *weights, T threshold, uns
   }
 }
 
+template<typename T, unsigned int blockSize = 32>
+__global__ void RandWeightsDebug( curandState *d_states, T *weights, T threshold, unsigned int n, T value )
+{
+  unsigned int id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
+  if (id < n)
+  {
+    float val = (float)abs(sin((T)id));
+    weights[id] = val <= threshold ? value : 0.0;
+  }
+}
+
 template<typename T>
 void rand_weights_device(curandState *d_state, T *weights, T threshold, unsigned int size, T value)
 {
@@ -33,6 +44,16 @@ void rand_weights_device(curandState *d_state, T *weights, T threshold, unsigned
   dim3 dimGrid((BLOCK_SIZE + size - 1) / BLOCK_SIZE, 1, 1);
 
   RandWeights <<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
+  // CHECK_KERNEL();
+}
+
+template<typename T>
+void rand_weights_device_debug(curandState *d_state, T *weights, T threshold, unsigned int size, T value)
+{
+  dim3 dimBlock(BLOCK_SIZE, 1, 1);
+  dim3 dimGrid((BLOCK_SIZE + size - 1) / BLOCK_SIZE, 1, 1);
+
+  RandWeightsDebug<<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
   // CHECK_KERNEL();
 }
 
@@ -63,6 +84,33 @@ void _rand_weights(T *weights, T threshold, unsigned int n, T value)
   checkCudaErrors(cudaFree(d_states));
 }
 
+template <typename T>
+void _rand_weights_debug(T *weights, T threshold, unsigned int n, T value)
+{
+  unsigned int size = n * sizeof(T);
+  T *d_weights = NULL;
+  checkCudaErrors(cudaMalloc(&d_weights, size));
+  checkCudaErrors(cudaMemcpy(d_weights, weights, size, cudaMemcpyHostToDevice));
+
+  // We also need to prepare the curandState buffer:
+  size = 1024;
+  curandState *d_states = NULL;
+  checkCudaErrors(cudaMalloc(&d_states, size * sizeof(curandState)));
+
+  // Here we call the method to initialize the random states:
+  init_rand_state_device(d_states, size, (unsigned long)time(NULL));
+
+  // Now call the device kernel:
+  rand_weights_device_debug(d_states, d_weights, threshold, n, value);
+
+  // copy the results back:
+  copyFromDevice(weights, d_weights, n);
+
+  // Release the GPU buffers:
+  checkCudaErrors(cudaFree(d_weights));
+  checkCudaErrors(cudaFree(d_states));
+}
+
 extern "C" {
 
   void rand_weights(double *weights, double threshold, unsigned int size, double value)
@@ -73,6 +121,16 @@ extern "C" {
   void rand_weights_f(float *weights, float threshold, unsigned int size, float value)
   {
     _rand_weights(weights, threshold, size, value);
+  }
+
+  void rand_weights_debug(double *weights, double threshold, unsigned int size, double value)
+  {
+    _rand_weights_debug(weights, threshold, size, value);
+  }
+
+  void rand_weights_debug_f(float *weights, float threshold, unsigned int size, float value)
+  {
+    _rand_weights_debug(weights, threshold, size, value);
   }
 
 }

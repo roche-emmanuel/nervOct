@@ -22,12 +22,14 @@ BOOST_AUTO_TEST_CASE( test_copy_bptraits )
   BPTraits<value_type> t1;
   t1.nl = 5;
   t1.lsizes = new unsigned int[5];
+  BOOST_CHECK(t1.debug == false);
 
   BPTraits<value_type> t2 = t1;
 
   BOOST_CHECK(t1.nl == t2.nl);
   BOOST_CHECK(t1.lsizes == t2.lsizes);
   BOOST_CHECK(nullptr == t2.hx);
+  BOOST_CHECK(t2.debug == false);
 
   BPTraits<value_type> t3;
 

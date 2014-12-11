@@ -99,10 +99,15 @@ extern "C" {
 
   void rand_weights(double* weights, double threshold, unsigned int size, double value);
   void rand_weights_f(float* weights, float threshold, unsigned int size, float value);
+
+  void rand_weights_debug(double* weights, double threshold, unsigned int size, double value);
+  void rand_weights_debug_f(float* weights, float threshold, unsigned int size, float value);
 };
 
 template<typename T>
 void rand_weights_device(curandState *d_state, T* weights, T threshold, unsigned int size, T value);
+template<typename T>
+void rand_weights_device_debug(curandState *d_state, T* weights, T threshold, unsigned int size, T value);
 
 template<typename T>
 void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0);
