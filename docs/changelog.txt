@@ -164,3 +164,4 @@
 - Updated wbias to contain bias value directly.
 - Refactoring some kernels.
 - Refactoring compute_gradient kernel.
+- Merge dropout computation on compute_activation kernel.

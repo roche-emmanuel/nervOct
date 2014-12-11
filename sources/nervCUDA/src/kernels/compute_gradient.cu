@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <nerv_kernels.h>
 
-template<typename T, unsigned int blockSize>
+template<typename T, bool withDropout, unsigned int blockSize>
 __global__ void ComputeGradient(BPComputeTraits<T> traits)
 //unsigned int theta_offset, int input_offset,  unsigned int delta_offset, unsigned int grad_offset,
 // unsigned int nrows, unsigned int ncols, unsigned int niter, T* X, T* nn_params, T* inputs, T* deltas, T* grads, T lambda, T bias)
@@ -50,7 +50,19 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
       {
         // Here we use the matrix X instead of z_T:
         // B(r,c)= X(r,c-1) if c>0;
-        val = (xx == 0 ? traits.bias : traits.X[niter * (xx - 1) + yy]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.
+        if(xx==0) {
+          if (withDropout)
+          {
+            val = traits.wbias[traits.wbias_offset + yy];
+          }
+          else
+          {
+            val = traits.bias;
+          }
+        }
+        else {
+        	val = traits.X[niter * (xx - 1) + yy];
+        }
       }
 
       Bs[threadIdx.x][threadIdx.y] = val;
@@ -64,7 +76,21 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
       if (yy < niter && xx < ncols)
       {
         // B(r,c)==1 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
-        val = (xx == 0 ? traits.bias : traits.inputs[input_offset + (ncols - 1) * yy + xx - 1]); //inputs[input_offset + (ncols-1)*yy + xx-1 ]; // memory access is coalesced, nothing to change.
+        if (xx == 0)
+        {
+          if (withDropout)
+          {
+            val = traits.wbias[traits.wbias_offset + yy];
+          }
+          else
+          {
+            val = traits.bias;
+          }
+        }
+        else
+        {
+          val = traits.inputs[input_offset + (ncols - 1) * yy + xx - 1];
+        }
       }
 
       Bs[threadIdx.y][threadIdx.x] = val;

@@ -1,7 +1,17 @@
 #include <nervCUDA.h>
 #include <nerv_kernels.h>
 
-template <typename T, unsigned int blockSize>
+#include <curand_kernel.h>
+
+__device__ float random_float(curandState *states, int rid)
+{
+  curandState rState = states[rid];
+  float res = curand_uniform(&rState);
+  states[rid] = rState;
+  return res;
+}
+
+template <typename T, bool withDropout, unsigned int blockSize>
 __global__ void ComputeActivation(BPComputeTraits<T> traits)
 {
 
@@ -21,7 +31,19 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
 
   // we can already add the element on the first row of theta_i to this element value:
   // but note that this element should be multiplied with the desired bias:
-  T zval = traits.params[traits.theta_offset + row] * traits.bias;
+  T zval = traits.params[traits.theta_offset + row];
+
+  if (withDropout)
+  {
+    // when dropout is enabled we use the weighted bias array:
+    zval *= traits.wbias[traits.wbias_offset + col];
+  }
+  else
+  {
+    // Otherwise we use the fixed bias value:
+    zval *= traits.bias;
+  }
+
   T val;
 
   // Here we compute the product theta_i * a_i^T
@@ -87,6 +109,18 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
     // compute the sigmoid of the value:
     zval = 1.0 / (1.0 + exp(-zval * traits.wmult));
 
+    if (withDropout)
+    {
+      // We might want to drop this unit completely.
+      // Compute the index to retrieve the rand state:
+      int rid = blockSize * threadIdx.y + threadIdx.x;
+
+      if (random_float(traits.randStates, rid) > traits.layer_dropout)
+      {
+        zval = 0.0;
+      }
+    }
+
     // we just computed the value z_i(row,col), now we store it:
     traits.inputs[traits.next_input_offset + nrows * col + row] = zval;
   }
@@ -95,3 +129,5 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
 
 template __global__ void ComputeActivation<double>(BPComputeTraits<double> traits);
 template __global__ void ComputeActivation<float>(BPComputeTraits<float> traits);
+template __global__ void ComputeActivation<double,true>(BPComputeTraits<double> traits);
+template __global__ void ComputeActivation<float,true>(BPComputeTraits<float> traits);

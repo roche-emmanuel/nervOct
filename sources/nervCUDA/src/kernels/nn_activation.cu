@@ -47,7 +47,7 @@ int nn_activation_device(BPDeviceTraits<T>& d_traits)
 			rand_weights_device(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
 
 			traits.layer_dropout = i==(nt-1) ? (T)1.0 : dropouts[i+1]; // we don't want to drop anything from the output layer.
-			ComputeActivationWithDropout<<<dimGrid, dimBlock,0,stream>>>(traits);
+			ComputeActivation<T,true><<<dimGrid, dimBlock,0,stream>>>(traits);
 		}
 		else {
 			ComputeActivation<<<dimGrid, dimBlock,0,stream>>>(traits);
