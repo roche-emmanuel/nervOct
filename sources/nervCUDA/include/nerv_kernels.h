@@ -54,7 +54,7 @@ __global__ void MatMultTpA(unsigned int nrowC, unsigned int niter, unsigned int 
 __global__ void CostFuncKernel(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
                                double *nn_params, double *X, double *yy, double lambda);
 
-template <typename T, bool withDropout = false, unsigned int blockSize = BLOCK_SIZE>
+template <typename T, bool withDropout = false, bool debugMode = false, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeActivation(BPComputeTraits<T> traits);
 
 template <typename T, unsigned int blockSize = BLOCK_SIZE>

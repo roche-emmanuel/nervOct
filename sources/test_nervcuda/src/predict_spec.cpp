@@ -175,22 +175,33 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_dropout )
   PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict");
   BOOST_CHECK(nn_predict != nullptr);
 
+  PredictFunc nn_predict_cpu = (PredictFunc) GetProcAddress(h, "nn_predict_cpu");
+  BOOST_CHECK(nn_predict_cpu != nullptr);
+
   unsigned int num = 10; // number of tests to perform.
 
   for (unsigned int i = 0; i < num; ++i)
   {
     // Prepare a random training set:
-    unsigned int nsamples = 1000;
-
     TrainingSet<value_type> tr(std::vector<unsigned int>{100,100,100,32},1000,TrainingSet<value_type>::TRAIN_DEBUG);
+    // TrainingSet<value_type> tr(std::vector<unsigned int>{50,30,20,10},1000,TrainingSet<value_type>::TRAIN_DEBUG);
+    // TrainingSet<value_type> tr(std::vector<unsigned int>{5,4,3},10,TrainingSet<value_type>::TRAIN_DEBUG);
 
     value_type bias = tr.random_real(0.0, 1.0);
+
+    // Prepare the matrices for hx and pred_hx:
+    unsigned int ny = tr.y_train_size();
+    value_type *hx = tr.createArray(ny);
+    value_type *pred_hx = tr.createArray(ny);
 
     // Prepare the weight multipliers:
     value_type* dropouts = tr.createArray(tr.nt());
     for(unsigned int j=0;j<tr.nt();++j) {
       dropouts[j] = tr.random_real(0.0,1.0);
     }
+
+    // dropouts[0] = 1.0;
+    // dropouts[1] = 0.9;
 
     // Now compute the predictions:
     BPTraits<double> traits;
@@ -202,17 +213,24 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_dropout )
     traits.inputs = tr.createArray(traits.nd());
     traits.bias = bias;
     traits.dropouts = dropouts;
+    traits.hx = hx;
+
+    // Ensure that we perform prediction with debug mode activated:
+    traits.debug = true;
 
     nn_predict(traits);
 
+    // Now compute the cpu version:
+    traits.hx = pred_hx;
+    nn_predict_cpu(traits);
 
-    // // Now compate the hx arrays:
-    // for (unsigned int j = 0; j < ny; ++j)
-    // {
-    //   value_type v1 = hx[j];
-    //   value_type v2 = pred_hx[j];
-    //   BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2 * epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
-    // }
+    // Now compare the hx arrays:
+    for (unsigned int j = 0; j < ny; ++j)
+    {
+      value_type v1 = hx[j];
+      value_type v2 = pred_hx[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 100 * epsilon, "Mismatch (with dropout) on hx element " << j << ": " << v1 << "!=" << v2);
+    }
   }
 
   BOOST_CHECK(FreeLibrary(h));

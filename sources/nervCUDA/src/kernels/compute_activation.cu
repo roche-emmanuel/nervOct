@@ -11,7 +11,7 @@ __device__ float random_float(curandState *states, int rid)
   return res;
 }
 
-template <typename T, bool withDropout, unsigned int blockSize>
+template <typename T, bool withDropout, bool debugMode, unsigned int blockSize>
 __global__ void ComputeActivation(BPComputeTraits<T> traits)
 {
 
@@ -112,12 +112,23 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
     if (withDropout)
     {
       // We might want to drop this unit completely.
-      // Compute the index to retrieve the rand state:
-      int rid = blockSize * threadIdx.y + threadIdx.x;
-
-      if (random_float(traits.randStates, rid) > traits.layer_dropout)
+      if (debugMode)
       {
-        zval = 0.0;
+        // Compute a fake random value:
+        if(abs(sin((T)(nrows*col+row))) > traits.layer_dropout) {
+          zval = 0.0;
+        }
+      }
+      else
+      {
+        // Compute a real random value:
+        // Compute the index to retrieve the rand state:
+        int rid = blockSize * threadIdx.y + threadIdx.x;
+
+        if (random_float(traits.randStates, rid) > traits.layer_dropout)
+        {
+          zval = 0.0;
+        }
       }
     }
 
@@ -129,5 +140,7 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
 
 template __global__ void ComputeActivation<double>(BPComputeTraits<double> traits);
 template __global__ void ComputeActivation<float>(BPComputeTraits<float> traits);
-template __global__ void ComputeActivation<double,true>(BPComputeTraits<double> traits);
-template __global__ void ComputeActivation<float,true>(BPComputeTraits<float> traits);
+template __global__ void ComputeActivation<double, true>(BPComputeTraits<double> traits);
+template __global__ void ComputeActivation<float, true>(BPComputeTraits<float> traits);
+template __global__ void ComputeActivation<double, true, true>(BPComputeTraits<double> traits);
+template __global__ void ComputeActivation<float, true, true>(BPComputeTraits<float> traits);

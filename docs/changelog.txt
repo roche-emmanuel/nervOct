@@ -168,3 +168,4 @@
 - Updating computation of wbias offset for compute_gradient kernel.
 - Added test for rand_weights_device.
 - Added test for rand_weights_device_debug
+- Added test for nn_predict with dropout.
