@@ -757,4 +757,124 @@ BOOST_AUTO_TEST_CASE( test_compute_cv_cost )
 
 }
 
+BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  BOOST_CHECK(h != nullptr);
+  
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+
+  typedef void (*CostFunc)(BPTraits<value_type>& traits);
+
+  // We should be able to retrieve the train function:
+  CostFunc costfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
+  BOOST_CHECK(costfunc != nullptr);
+  // CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "gd_errfunc_cpu");
+  CostFunc costfunc_cpu = (CostFunc) GetProcAddress(h, "gd_errfunc_cpu");
+  BOOST_CHECK(costfunc_cpu != nullptr);
+
+  // Now we use the mult mat method to compute a few matrices multiplication:
+  unsigned int num = 10; // number of tests to perform.
+
+  for (unsigned int i = 0; i < num; ++i)
+  {
+
+    TrainingSet<value_type> tr(3, 5, 3, 6, 500, 1000);
+
+    // unsigned int np = tr.np();
+    unsigned int *lsizes = tr.lsizes();
+    unsigned int nsamples = tr.nsamples();
+    value_type lambda = tr.lambda();
+    unsigned int nl = tr.nl();
+    unsigned int nt = tr.nt();
+
+    BPTraits<value_type> traits;
+    traits.nl = nl;
+    traits.lsizes = lsizes;
+    traits.nsamples_train = nsamples;
+
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.yy = tr.y_train();
+    traits.lambda = lambda;
+    traits.compute_cost = true; // Note that this is disabled by default.
+
+    unsigned int np = traits.np();
+    unsigned int nd = traits.nd();
+
+    // Prepare an array to contain the dropout values:
+    value_type* dropouts = tr.createArray(nt);
+    for(unsigned int j=0;j<tr.nt();++j) {
+      dropouts[j] = 1.0; //tr.random_real(0.0,1.0);
+    }
+
+    // dropouts[0] = 1.0;
+    // dropouts[1] = 0.9;
+
+    traits.dropouts = dropouts;
+
+    // ensure that we use debug mode for the dropout computation:
+    traits.debug = true;
+
+    // prepare the output gradient array:
+    value_type *grads = tr.createArray(np);
+    value_type *pred_grads = tr.createArray(np);
+
+    value_type *inputs = tr.createArray(nd);
+    value_type *pred_input = tr.createArray(nd);
+
+    value_type *deltas = tr.createArray(nd);
+    value_type *pred_deltas = tr.createArray(nd);
+
+    cudaDeviceSynchronize();
+
+    // Now we call the cost function method:
+    traits.grads = grads;
+    traits.deltas = deltas;
+    traits.inputs = inputs;
+
+    // costfunc(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, J, grads, deltas, inputs);
+    costfunc(traits);
+    value_type J = traits.cost;
+
+    // And we call the same on the CPU:
+    traits.deltas = pred_deltas;
+    traits.inputs = pred_input;
+    traits.grads = pred_grads;
+
+    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);    
+    costfunc_cpu(traits);
+    value_type pred_J = traits.cost;
+
+    BOOST_CHECK_MESSAGE(abs(J - pred_J) < 100*epsilon, "Mismatch in J value: " << J << "!=" << pred_J);
+
+    // Compare the content of the input array:
+    for (unsigned int j = 0; j < nd; ++j)
+    {
+      value_type v1 = inputs[j];
+      value_type v2 = pred_input[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10*epsilon, "Mismatch on inputs element " << j << ": " << v1 << "!=" << v2);
+    }
+
+    // Also compare the delta arrays:
+    for (unsigned int j = 0; j < nd; ++j)
+    {
+      value_type v1 = deltas[j];
+      value_type v2 = pred_deltas[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10*epsilon, "Mismatch on deltas element " << j << ": " << v1 << "!=" << v2);
+    }
+
+    // Compare the grads arrays:
+    for (unsigned int j = 0; j < np; ++j)
+    {
+      value_type v1 = grads[j];
+      value_type v2 = pred_grads[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10*epsilon, "Mismatch on gradient element " << j << ": " << v1 << "!=" << v2);
+    }
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

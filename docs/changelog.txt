@@ -172,3 +172,4 @@
 - Preparing reconstruction on gd_errfunc_cpu method.
 - Completed refactoring of gd_errfunc_cpu method.
 - Cleaning code.
+- Preparing test for errfunc with dropout.
