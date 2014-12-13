@@ -7,12 +7,6 @@
 #include <iomanip>
 #include <algorithm>
 
-#ifdef logDEBUG
-#undef logDEBUG
-#endif
-
-#define logDEBUG(msg) std::cout << std::setprecision(16) << msg << std::endl;
-
 using namespace nerv;
 
 ConjugateGradientGPU::ConjugateGradientGPU(unsigned int nl, unsigned int nsamples, unsigned int nparams, 

@@ -13,8 +13,6 @@
 #undef min
 #endif
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
-
 int random_int(int mini, int maxi) {
   return mini + (int)floor(0.5 + (maxi-mini)*(double)rand()/(double)RAND_MAX);
 }

@@ -10,6 +10,26 @@
 #define CHECK_KERNEL() checkCudaErrors( cudaPeekAtLastError() ); \
 checkCudaErrors( cudaDeviceSynchronize() );
 
+#include <iostream>
+#include <sstream>
+
+#ifndef logDEBUG
+// #define logDEBUG(msg) std::cout << std::setprecision(16) << msg << std::endl;
+#define logDEBUG(msg) std::cout << "[DEBUG] " << msg << std::endl;
+#endif
+
+#ifndef logERROR
+#define logERROR(msg) std::cout << "[ERROR] " << msg << std::endl;
+#endif
+
+#ifndef THROW
+#define THROW(msg) { std::ostringstream os; os << msg; logERROR("Throwing exception: " << msg); throw std::runtime_error(os.str()); }
+#endif
+
+#ifndef THROW_IF
+#define THROW_IF(cond,msg) if(cond) THROW(msg)
+#endif
+
 extern "C" bool isPow2(unsigned int x);
 
 unsigned int nextPow2(unsigned int x);

@@ -17,6 +17,12 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
+#ifdef __CUDACC__
+#include <nerv/Utils.h>
+#else
+#include <sgtCore.h>
+#endif
+
 #define BLOCK_SIZE 32
 #define MAX_THREADS_PER_BLOCK 1024
 

@@ -3,8 +3,6 @@
 #include <iostream>
 #include "ConjugateGradientCPU.h"
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
-
 extern "C" {
 
 void cgtrainCPU(unsigned int nl, unsigned int nsamples, unsigned int nparams, 

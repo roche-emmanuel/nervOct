@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
-
 extern "C" {
 
 void reductionCPU(double* inputs, unsigned int n, double& output)

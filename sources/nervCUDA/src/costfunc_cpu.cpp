@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
-
 extern "C" {
 
 void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 

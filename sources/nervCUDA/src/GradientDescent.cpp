@@ -1,12 +1,14 @@
-#include <nervCUDA.h>
 
 #include <sgtcore.h>
+
+#include <nervCUDA.h>
+#include <GradientDescent.h>
+
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 #include <limits>
 
-#include <GradientDescent.h>
 
 #define LOG2 0.6931471805599453
 

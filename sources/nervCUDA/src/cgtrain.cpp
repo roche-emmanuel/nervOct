@@ -3,8 +3,6 @@
 #include <iostream>
 #include "ConjugateGradientGPU.h"
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
-
 extern "C" {
 
 void cgtrain(unsigned int nl, unsigned int nsamples, unsigned int nparams, 

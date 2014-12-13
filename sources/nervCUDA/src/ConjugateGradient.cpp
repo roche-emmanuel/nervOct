@@ -6,8 +6,6 @@
 #include <algorithm>
 #include <limits>
 
-#define logDEBUG(msg) std::cout << std::setprecision(16) << msg << std::endl;
-
 using namespace nerv;
 
 ConjugateGradient::ConjugateGradient(unsigned int nl, unsigned int nsamples, unsigned int nparams, 

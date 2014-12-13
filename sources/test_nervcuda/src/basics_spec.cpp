@@ -8,8 +8,6 @@
 
 #include <boost/chrono.hpp>
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
-
 BOOST_AUTO_TEST_SUITE( basic_suite )
 
 
