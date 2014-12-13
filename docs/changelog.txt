@@ -174,3 +174,4 @@
 - Cleaning code.
 - Preparing test for errfunc with dropout.
 - Preparing test with dropout support.
+- Added implementation and test for dropout.

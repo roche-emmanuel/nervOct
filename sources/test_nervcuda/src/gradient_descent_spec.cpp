@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <limits>
+#include <iomanip>
 
 #include <nervcuda.h>
 #include <nerv/TrainingSet.h>
@@ -800,16 +801,19 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
     traits.lambda = lambda;
     traits.compute_cost = true; // Note that this is disabled by default.
 
+    // Also inject some random bias:
+    traits.bias = tr.random_real(0.0,1.0);
+    
     unsigned int np = traits.np();
     unsigned int nd = traits.nd();
 
     // Prepare an array to contain the dropout values:
     value_type* dropouts = tr.createArray(nt);
     for(unsigned int j=0;j<tr.nt();++j) {
-      dropouts[j] = 1.0; //tr.random_real(0.0,1.0);
+      dropouts[j] = tr.random_real(0.0,1.0);
     }
 
-    dropouts[0] = 0.5;
+    // dropouts[0] = 0.5;
     // dropouts[1] = 0.9;
 
     traits.dropouts = dropouts;
@@ -847,7 +851,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
     costfunc_cpu(traits);
     value_type pred_J = traits.cost;
 
-    BOOST_CHECK_MESSAGE(abs(J - pred_J) < 100*epsilon, "Mismatch in J value: " << J << "!=" << pred_J);
+    BOOST_CHECK_MESSAGE(abs(J - pred_J) < 1e-10, "Mismatch in J value: "<< std::setprecision(16)  << J << "!=" << pred_J);
 
     // Compare the content of the input array:
     for (unsigned int j = 0; j < nd; ++j)

@@ -1,9 +1,7 @@
 *** TODOs:
-- Implement dropout
 - implement octave plugin to access gradient descent.
 - Implement X matrix dropout support (with wX member)
-- test dropout with threshold = 0.0 and 1.0
-- test dropout with random threshold.
+- test gradient descent with dropout.
 
 *** CUDA infos:
 
