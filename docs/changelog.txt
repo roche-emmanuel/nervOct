@@ -184,3 +184,4 @@
 - Using wX in compute traits instead of X.
 - Added some debug macros.
 - Added proper logging mechanism.
+- Added support for wX usage in DeviceTraits.

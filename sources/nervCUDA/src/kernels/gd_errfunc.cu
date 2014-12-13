@@ -11,10 +11,15 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
   unsigned int *lsizes = d_traits.lsizes;
   cudaStream_t stream = d_traits.stream;
 
+  // we must call nn_activation_device before constructing
+  // any BPComputeTraits since this method is responsible
+  // for assigning the proper value to the wX buffer that 
+  // will be accessed by the ComputeTraits.
+  unsigned int input_offset = nn_activation_device(d_traits);
+
   BPComputeTraits<T> traits;
   traits = d_traits;
-
-  traits.input_offset = nn_activation_device(d_traits);
+  traits.input_offset = input_offset;
 
   T *d_hx = d_traits.inputs + traits.input_offset;
 

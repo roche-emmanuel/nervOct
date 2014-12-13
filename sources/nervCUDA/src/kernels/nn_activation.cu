@@ -12,6 +12,9 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
 
   cudaStream_t stream = d_traits.stream;
 
+  // Assign the wX buffer before creating any ComputeTraits:
+  d_traits.wX = d_traits.X;
+  
   BPComputeTraits<T> traits;
   traits = d_traits;
 
