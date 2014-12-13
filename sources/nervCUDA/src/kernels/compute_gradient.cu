@@ -122,5 +122,6 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
 
 // Explicit instanciation:
 template __global__ void ComputeGradient(BPComputeTraits<double> traits);
-
 template __global__ void ComputeGradient(BPComputeTraits<float> traits);
+template __global__ void ComputeGradient<double,true>(BPComputeTraits<double> traits);
+template __global__ void ComputeGradient<float,true>(BPComputeTraits<float> traits);

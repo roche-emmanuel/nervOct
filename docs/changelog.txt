@@ -173,3 +173,4 @@
 - Completed refactoring of gd_errfunc_cpu method.
 - Cleaning code.
 - Preparing test for errfunc with dropout.
+- Preparing test with dropout support.

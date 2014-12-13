@@ -114,7 +114,15 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
     traits.input_offset -= lsizes[i - 1] * nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
     // logDEBUG("GPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset<<", nsamples="<<nsamples);
 
-    ComputeGradient <<< dimGrid, dimBlock, 0, stream>>>(traits);
+    // We just need to check the wbias buffer to decide if we are using dropout or not.
+    if (traits.wbias)
+    {
+      ComputeGradient<T, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
+    }
+    else
+    {
+      ComputeGradient <<< dimGrid, dimBlock, 0, stream>>>(traits);
+    }
 
     // update the gradient offset by removing the size of the next gradient matrix to be computed:
     // except for the last iteration where the value is not available:
@@ -338,6 +346,8 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
     input_offset -= lsizes[i - 1] * nsamples; // we remove the size of the next delta matrix to be computed. which is also the size of the next z matrix we will use.
     // logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset);
 
+    double bias;
+
     // Compute the gradient:
     for (unsigned int c = 0; c < ncols; ++c)
     {
@@ -348,6 +358,13 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
         double val = 0.0;
         for (unsigned int n = 0; n < nsamples; ++n)
         {
+          bias = traits.bias;
+          if (traits.dropouts && (abs(sin(n)) > traits.dropouts[i-1]))
+          {
+            // Flags the bias value with 0.0 if we should ignore that unit:
+            bias = 0.0;
+          }
+
           // val += delta(r,n)*act(n,c);
           // if c==0 then act[i-1](n,c)==1 otherwise act[i-1](n,c)=z[i-2]_T(n,c-1)=z[i-2](c-1,n)
           // val += deltas[delta_offset + nrows*n + r]; //*(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
@@ -355,19 +372,12 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
           {
             // Here we have to use the X matrix instead of the z_T.
             // we still want to write the value act(n,c)=x(n,c-1) if c>0
-            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? 1.0 : X[niter * (c - 1) + n]);
+            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : X[niter * (c - 1) + n]);
           }
           else
           {
-            if (c == 0)
-            {
-              val += deltas[delta_offset + nrows * n + r];
-            }
-            else
-            {
-              int index = input_offset + (ncols - 1) * n + c - 1;
-              val += deltas[delta_offset + nrows * n + r] * (c == 0 ? 1.0 : inputs[index]);
-            }
+            int index = input_offset + (ncols - 1) * n + c - 1;
+            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : inputs[index]);
           }
           // val += 1.0; //(c==0 ? 1.0 : inputs[input_offset + (ncols-1)*n + c-1 ]);
         }

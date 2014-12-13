@@ -809,7 +809,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
       dropouts[j] = 1.0; //tr.random_real(0.0,1.0);
     }
 
-    // dropouts[0] = 1.0;
+    dropouts[0] = 0.5;
     // dropouts[1] = 0.9;
 
     traits.dropouts = dropouts;
