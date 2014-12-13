@@ -15,6 +15,12 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
   BPComputeTraits<T> traits;
   traits = d_traits;
 
+  RandDeviceTraits<T> r_traits;
+  r_traits.randStates = traits.randStates;
+  r_traits.size = nsamples;
+  r_traits.value = traits.bias;
+  r_traits.debug = d_traits.debug;
+
   for (unsigned int i = 0; i < nt; ++i)
   {
     // We compute the activation and input values for the given layer:
@@ -47,31 +53,21 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
     {
       traits.layer_dropout = i == (nt - 1) ? (T)1.0 : dropouts[i + 1]; // we don't want to drop anything from the output layer.
 
-      RandDeviceTraits<T> r_traits;
-      r_traits.randStates = traits.randStates;
       r_traits.target = traits.wbias + traits.wbias_offset;
       r_traits.threshold = dropouts[i];
-      r_traits.size = ncols;
-      r_traits.value = traits.bias;
 
+      rand_weights_device(r_traits);
 
       // Update the bias weights to be used for this layer computation:
       if (d_traits.debug)
       {
-        r_traits.debug = true;
-        
-        // rand_weights_device_debug(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
-        rand_weights_device(r_traits);
         ComputeActivation<T, true, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
       else
       {
         // use really random weights:
-        // rand_weights_device(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
-        rand_weights_device(r_traits);
         ComputeActivation<T, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
-
     }
     else
     {
@@ -131,8 +127,9 @@ void _nn_predict_cpu(BPTraits<T> &traits)
 
   // Prepare the input array:
   T *inputs = traits.inputs;
-  if(!inputs) {
-  	inputs = new T[ni];
+  if (!inputs)
+  {
+    inputs = new T[ni];
   }
 
   // offset used to locate the theta_i matrix in the d_params array.
@@ -214,13 +211,15 @@ void _nn_predict_cpu(BPTraits<T> &traits)
   }
 
   // Now we need to copy the last input data in the hx matrix:
-  if(hx) {
-	  memcpy(hx, inputs + input_offset, lsizes[nt]*nsamples * sizeof(T));
+  if (hx)
+  {
+    memcpy(hx, inputs + input_offset, lsizes[nt]*nsamples * sizeof(T));
   }
 
   // Delete if we have ownership:
-  if(!traits.inputs) {
-  	delete [] inputs;	
+  if (!traits.inputs)
+  {
+    delete [] inputs;
   }
 }
 
