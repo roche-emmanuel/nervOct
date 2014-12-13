@@ -177,3 +177,4 @@
 - Added implementation and test for dropout.
 - Added test for gradient descent with dropout.
 - Added RandDeviceTraits.
+- Refactoring rand_weights methods to use RandTraits.

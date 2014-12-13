@@ -6,6 +6,23 @@
 namespace nerv
 {
 
+template<typename T>
+struct RandTraits
+{
+  RandTraits()
+    : target(nullptr), size(0), threshold(0.0),
+      debug(false), value(0.0), values(nullptr) {}
+
+  virtual ~RandTraits() {}
+
+  T* target;
+  unsigned int size;
+  T threshold;
+  bool debug;
+  T value;
+  T* values;
+};
+
 template <typename T>
 struct BPTraitsBase
 {

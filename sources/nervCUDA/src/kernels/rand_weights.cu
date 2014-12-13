@@ -58,8 +58,13 @@ void rand_weights_device_debug(curandState *d_state, T *weights, T threshold, un
 }
 
 template <typename T>
-void _rand_weights(T *weights, T threshold, unsigned int n, T value)
+void _rand_weights(RandTraits<T>& traits) //T *weights, T threshold, unsigned int n, T value)
 {
+  T* weights = traits.target;
+  T threshold = traits.threshold;
+  unsigned int n = traits.size;
+  T value = traits.value;
+
   unsigned int size = n * sizeof(T);
   T *d_weights = NULL;
   checkCudaErrors(cudaMalloc(&d_weights, size));
@@ -85,8 +90,13 @@ void _rand_weights(T *weights, T threshold, unsigned int n, T value)
 }
 
 template <typename T>
-void _rand_weights_debug(T *weights, T threshold, unsigned int n, T value)
+void _rand_weights_debug(RandTraits<T>& traits) //T *weights, T threshold, unsigned int n, T value)
 {
+  T* weights = traits.target;
+  T threshold = traits.threshold;
+  unsigned int n = traits.size;
+  T value = traits.value;
+  
   unsigned int size = n * sizeof(T);
   T *d_weights = NULL;
   checkCudaErrors(cudaMalloc(&d_weights, size));
@@ -113,24 +123,24 @@ void _rand_weights_debug(T *weights, T threshold, unsigned int n, T value)
 
 extern "C" {
 
-  void rand_weights(double *weights, double threshold, unsigned int size, double value)
+  void rand_weights(RandTraits<double>& traits)
   {
-    _rand_weights(weights, threshold, size, value);
+    _rand_weights(traits);
   }
 
-  void rand_weights_f(float *weights, float threshold, unsigned int size, float value)
+  void rand_weights_f(RandTraits<float>& traits)
   {
-    _rand_weights(weights, threshold, size, value);
+    _rand_weights(traits);
   }
 
-  void rand_weights_debug(double *weights, double threshold, unsigned int size, double value)
+  void rand_weights_debug(RandTraits<double>& traits)
   {
-    _rand_weights_debug(weights, threshold, size, value);
+    _rand_weights_debug(traits);
   }
 
-  void rand_weights_debug_f(float *weights, float threshold, unsigned int size, float value)
+  void rand_weights_debug_f(RandTraits<float>& traits)
   {
-    _rand_weights_debug(weights, threshold, size, value);
+    _rand_weights_debug(traits);
   }
 
 }

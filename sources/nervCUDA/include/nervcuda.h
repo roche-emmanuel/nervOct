@@ -100,11 +100,11 @@ extern "C" {
   void nn_predict_cpu(BPTraits<double> &traits);
   void nn_predict_cpu_f(BPTraits<float> &traits);
 
-  void rand_weights(double *weights, double threshold, unsigned int size, double value);
-  void rand_weights_f(float *weights, float threshold, unsigned int size, float value);
+  void rand_weights(RandTraits<double>& traits);
+  void rand_weights_f(RandTraits<float>& traits);
 
-  void rand_weights_debug(double *weights, double threshold, unsigned int size, double value);
-  void rand_weights_debug_f(float *weights, float threshold, unsigned int size, float value);
+  void rand_weights_debug(RandTraits<double>& traits);
+  void rand_weights_debug_f(RandTraits<float>& traits);
 };
 
 template<typename T>
