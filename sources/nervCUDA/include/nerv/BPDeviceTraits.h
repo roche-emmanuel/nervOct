@@ -256,7 +256,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
     lambda = rhs.lambda;
     randStates = rhs.randStates;
     wbias = rhs.wbias;
-    wX = rhs.X;
+    wX = rhs.wX;
+    THROW_IF(!wX,"Invalid wX buffer for BPComputeTraits.");
 
     return *this;
   }
