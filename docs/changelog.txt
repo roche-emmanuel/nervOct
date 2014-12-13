@@ -179,3 +179,4 @@
 - Added RandDeviceTraits.
 - Refactoring rand_weights methods to use RandTraits.
 - Using randTraits to select debug mode functions.
+- Refactoring rand traits usage.

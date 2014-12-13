@@ -53,14 +53,14 @@ void rand_weights_device_debug(curandState *d_state, T *weights, T threshold, un
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
   dim3 dimGrid((BLOCK_SIZE + size - 1) / BLOCK_SIZE, 1, 1);
 
-  RandWeightsDebug<<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
+  RandWeightsDebug <<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
   // CHECK_KERNEL();
 }
 
 template <typename T>
-void _rand_weights(RandTraits<T>& traits) //T *weights, T threshold, unsigned int n, T value)
+void _rand_weights(RandTraits<T> &traits) //T *weights, T threshold, unsigned int n, T value)
 {
-  T* weights = traits.target;
+  T *weights = traits.target;
   T threshold = traits.threshold;
   unsigned int n = traits.size;
   T value = traits.value;
@@ -79,7 +79,12 @@ void _rand_weights(RandTraits<T>& traits) //T *weights, T threshold, unsigned in
   init_rand_state_device(d_states, size, (unsigned long)time(NULL));
 
   // Now call the device kernel:
-  rand_weights_device(d_states, d_weights, threshold, n, value);
+  if(traits.debug) {
+    rand_weights_device_debug(d_states, d_weights, threshold, n, value);
+  }
+  else {
+    rand_weights_device(d_states, d_weights, threshold, n, value);
+  }
 
   // copy the results back:
   copyFromDevice(weights, d_weights, n);
@@ -89,10 +94,11 @@ void _rand_weights(RandTraits<T>& traits) //T *weights, T threshold, unsigned in
   checkCudaErrors(cudaFree(d_states));
 }
 
+#if 0
 template <typename T>
-void _rand_weights_debug(RandTraits<T>& traits) //T *weights, T threshold, unsigned int n, T value)
+void _rand_weights_debug(RandTraits<T> &traits) //T *weights, T threshold, unsigned int n, T value)
 {
-  T* weights = traits.target;
+  T *weights = traits.target;
   T threshold = traits.threshold;
   unsigned int n = traits.size;
   T value = traits.value;
@@ -120,26 +126,17 @@ void _rand_weights_debug(RandTraits<T>& traits) //T *weights, T threshold, unsig
   checkCudaErrors(cudaFree(d_weights));
   checkCudaErrors(cudaFree(d_states));
 }
+#endif
 
 extern "C" {
 
-  void rand_weights(RandTraits<double>& traits)
+  void rand_weights(RandTraits<double> &traits)
   {
-    if(traits.debug) {
-      _rand_weights_debug(traits);
-    }
-    else {
-      _rand_weights(traits);
-    }
+    _rand_weights(traits);
   }
 
-  void rand_weights_f(RandTraits<float>& traits)
+  void rand_weights_f(RandTraits<float> &traits)
   {
-    if(traits.debug) {
-      _rand_weights_debug(traits);
-    }
-    else {
-      _rand_weights(traits);
-    }
+    _rand_weights(traits);
   }
 }
