@@ -58,8 +58,10 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
       // Update the bias weights to be used for this layer computation:
       if (d_traits.debug)
       {
+        r_traits.debug = true;
+        
         // rand_weights_device_debug(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
-        rand_weights_device_debug(r_traits);
+        rand_weights_device(r_traits);
         ComputeActivation<T, true, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
       else
