@@ -12,17 +12,27 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
 
   cudaStream_t stream = d_traits.stream;
 
+  RandDeviceTraits<T> r_traits;
+  r_traits.randStates = d_traits.randStates;
+  r_traits.size = nsamples;
+  r_traits.value = d_traits.bias;
+  r_traits.debug = d_traits.debug;
+
   // Assign the wX buffer before creating any ComputeTraits:
-  d_traits.wX = d_traits.X;
-  
+  if (!dropouts)
+  {
+    d_traits.wX = d_traits.X;
+  }
+  else {
+    // Assign a random drop for the wX buffer:
+    
+    // rand_weights_device(r_traits);
+    d_traits.wX = d_traits.X; 
+  }
+
   BPComputeTraits<T> traits;
   traits = d_traits;
 
-  RandDeviceTraits<T> r_traits;
-  r_traits.randStates = traits.randStates;
-  r_traits.size = nsamples;
-  r_traits.value = traits.bias;
-  r_traits.debug = d_traits.debug;
 
   for (unsigned int i = 0; i < nt; ++i)
   {
