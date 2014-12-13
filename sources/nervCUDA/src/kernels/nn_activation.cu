@@ -47,16 +47,26 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
     {
       traits.layer_dropout = i == (nt - 1) ? (T)1.0 : dropouts[i + 1]; // we don't want to drop anything from the output layer.
 
+      RandDeviceTraits<T> r_traits;
+      r_traits.randStates = traits.randStates;
+      r_traits.target = traits.wbias + traits.wbias_offset;
+      r_traits.threshold = dropouts[i];
+      r_traits.size = ncols;
+      r_traits.value = traits.bias;
+
+
       // Update the bias weights to be used for this layer computation:
       if (d_traits.debug)
       {
-        rand_weights_device_debug(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
+        // rand_weights_device_debug(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
+        rand_weights_device_debug(r_traits);
         ComputeActivation<T, true, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
       else
       {
         // use really random weights:
-        rand_weights_device(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
+        // rand_weights_device(traits.randStates, traits.wbias + traits.wbias_offset, dropouts[i], ncols, traits.bias);
+        rand_weights_device(r_traits);
         ComputeActivation<T, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
 

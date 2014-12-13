@@ -38,22 +38,22 @@ __global__ void RandWeightsDebug( curandState *d_states, T *weights, T threshold
 }
 
 template<typename T>
-void rand_weights_device(curandState *d_state, T *weights, T threshold, unsigned int size, T value)
+void rand_weights_device(RandDeviceTraits<T>& traits) //curandState *d_state, T *weights, T threshold, unsigned int size, T value)
 {
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
-  dim3 dimGrid((BLOCK_SIZE + size - 1) / BLOCK_SIZE, 1, 1);
+  dim3 dimGrid((BLOCK_SIZE + traits.size - 1) / BLOCK_SIZE, 1, 1);
 
-  RandWeights <<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
+  RandWeights <<< dimGrid, dimBlock>>>(traits.randStates, traits.target, traits.threshold, traits.size, traits.value);
   // CHECK_KERNEL();
 }
 
 template<typename T>
-void rand_weights_device_debug(curandState *d_state, T *weights, T threshold, unsigned int size, T value)
+void rand_weights_device_debug(RandDeviceTraits<T>& traits) //curandState *d_state, T *weights, T threshold, unsigned int size, T value)
 {
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
-  dim3 dimGrid((BLOCK_SIZE + size - 1) / BLOCK_SIZE, 1, 1);
+  dim3 dimGrid((BLOCK_SIZE + traits.size - 1) / BLOCK_SIZE, 1, 1);
 
-  RandWeightsDebug <<< dimGrid, dimBlock>>>(d_state, weights, threshold, size, value);
+  RandWeightsDebug <<< dimGrid, dimBlock>>>(traits.randStates, traits.target, traits.threshold, traits.size, traits.value);
   // CHECK_KERNEL();
 }
 
@@ -78,12 +78,19 @@ void _rand_weights(RandTraits<T> &traits) //T *weights, T threshold, unsigned in
   // Here we call the method to initialize the random states:
   init_rand_state_device(d_states, size, (unsigned long)time(NULL));
 
+  RandDeviceTraits<T> d_traits;
+  d_traits.randStates = d_states;
+  d_traits.target = d_weights;
+  d_traits.threshold = threshold;
+  d_traits.size = n;
+  d_traits.value = value;
+
   // Now call the device kernel:
   if(traits.debug) {
-    rand_weights_device_debug(d_states, d_weights, threshold, n, value);
+    rand_weights_device_debug(d_traits); //d_states, d_weights, threshold, n, value);
   }
   else {
-    rand_weights_device(d_states, d_weights, threshold, n, value);
+    rand_weights_device(d_traits); //d_states, d_weights, threshold, n, value);
   }
 
   // copy the results back:
