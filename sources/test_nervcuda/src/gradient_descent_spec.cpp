@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
 
   // typedef void (*CostFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
   //                          double * nn_params, double * X, double * yy, double lambda, double & J, double * gradients, double * deltas, double * inputs);
-  typedef void (*CostFunc)(BPTraits<double>& traits);
+  typedef void (*CostFunc)(BPTraits<double> &traits);
 
   // typedef void (*CostFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
   //                             double * nn_params, double * X, double * yy, double lambda, double * activation, unsigned int ninputs, double * inputs, double & J, double * gradients, double * deltas);
@@ -317,7 +317,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc )
     traits.inputs = pred_input;
     traits.grads = pred_grads;
 
-    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);    
+    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
     costfunc_cpu(traits);
     double pred_J = traits.cost;
 
@@ -443,7 +443,7 @@ BOOST_AUTO_TEST_CASE( test_early_stopping )
   traits.momentum = 0.995;
 
   // enabled early stopping:
-  traits.validationWindowSize=10;
+  traits.validationWindowSize = 10;
 
   // create gradient descent and run:
   GDd gd(traits);
@@ -651,7 +651,7 @@ BOOST_AUTO_TEST_CASE( test_compute_train_cost )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*CostFunc)(BPTraits<value_type>& traits);
+  typedef void (*CostFunc)(BPTraits<value_type> &traits);
 
   // We should be able to retrieve the train function:
   CostFunc errfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
@@ -693,8 +693,8 @@ BOOST_AUTO_TEST_CASE( test_compute_train_cost )
   traits.compute_grads = false;
 
   errfunc(traits);
-  
-  BOOST_CHECK_MESSAGE(abs(traits.cost-Jtrain)<=epsilon, "Mismatch in J train values:" << traits.cost << "!=" << Jtrain);
+
+  BOOST_CHECK_MESSAGE(abs(traits.cost - Jtrain) <= epsilon, "Mismatch in J train values:" << traits.cost << "!=" << Jtrain);
   BOOST_CHECK(FreeLibrary(h));
 
 }
@@ -710,7 +710,7 @@ BOOST_AUTO_TEST_CASE( test_compute_cv_cost )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*CostFunc)(BPTraits<value_type>& traits);
+  typedef void (*CostFunc)(BPTraits<value_type> &traits);
 
   // We should be able to retrieve the train function:
   CostFunc errfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
@@ -743,7 +743,7 @@ BOOST_AUTO_TEST_CASE( test_compute_cv_cost )
   BPTraits<value_type> traits;
   traits.nl = tr.nl();
   traits.lsizes = tr.lsizes();
-  traits.nsamples_train = tr.X_cv_size()/tr.lsizes()[0];
+  traits.nsamples_train = tr.X_cv_size() / tr.lsizes()[0];
   traits.params = tr.params();
   traits.X = tr.X_cv();
   traits.yy = tr.y_cv();
@@ -752,8 +752,8 @@ BOOST_AUTO_TEST_CASE( test_compute_cv_cost )
   traits.compute_grads = false;
 
   errfunc(traits);
-  
-  BOOST_CHECK_MESSAGE(abs(traits.cost-J)<=epsilon, "Mismatch in J cv values:" << traits.cost << "!=" << J);
+
+  BOOST_CHECK_MESSAGE(abs(traits.cost - J) <= epsilon, "Mismatch in J cv values:" << traits.cost << "!=" << J);
   BOOST_CHECK(FreeLibrary(h));
 
 }
@@ -762,11 +762,11 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
 {
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
-  
+
   typedef double value_type;
   value_type epsilon = std::numeric_limits<value_type>::epsilon();
 
-  typedef void (*CostFunc)(BPTraits<value_type>& traits);
+  typedef void (*CostFunc)(BPTraits<value_type> &traits);
 
   // We should be able to retrieve the train function:
   CostFunc costfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
@@ -802,15 +802,16 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
     traits.compute_cost = true; // Note that this is disabled by default.
 
     // Also inject some random bias:
-    traits.bias = tr.random_real(0.0,1.0);
-    
+    traits.bias = tr.random_real(0.0, 1.0);
+
     unsigned int np = traits.np();
     unsigned int nd = traits.nd();
 
     // Prepare an array to contain the dropout values:
-    value_type* dropouts = tr.createArray(nt);
-    for(unsigned int j=0;j<tr.nt();++j) {
-      dropouts[j] = tr.random_real(0.0,1.0);
+    value_type *dropouts = tr.createArray(nt);
+    for (unsigned int j = 0; j < tr.nt(); ++j)
+    {
+      dropouts[j] = tr.random_real(0.0, 1.0);
     }
 
     // dropouts[0] = 0.5;
@@ -847,18 +848,18 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
     traits.inputs = pred_input;
     traits.grads = pred_grads;
 
-    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);    
+    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
     costfunc_cpu(traits);
     value_type pred_J = traits.cost;
 
-    BOOST_CHECK_MESSAGE(abs(J - pred_J) < 1e-10, "Mismatch in J value: "<< std::setprecision(16)  << J << "!=" << pred_J);
+    BOOST_CHECK_MESSAGE(abs(J - pred_J) < 1e-10, "Mismatch in J value: " << std::setprecision(16)  << J << "!=" << pred_J);
 
     // Compare the content of the input array:
     for (unsigned int j = 0; j < nd; ++j)
     {
       value_type v1 = inputs[j];
       value_type v2 = pred_input[j];
-      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10*epsilon, "Mismatch on inputs element " << j << ": " << v1 << "!=" << v2);
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10 * epsilon, "Mismatch on inputs element " << j << ": " << v1 << "!=" << v2);
     }
 
     // Also compare the delta arrays:
@@ -866,7 +867,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
     {
       value_type v1 = deltas[j];
       value_type v2 = pred_deltas[j];
-      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10*epsilon, "Mismatch on deltas element " << j << ": " << v1 << "!=" << v2);
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10 * epsilon, "Mismatch on deltas element " << j << ": " << v1 << "!=" << v2);
     }
 
     // Compare the grads arrays:
@@ -874,11 +875,97 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
     {
       value_type v1 = grads[j];
       value_type v2 = pred_grads[j];
-      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10*epsilon, "Mismatch on gradient element " << j << ": " << v1 << "!=" << v2);
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 10 * epsilon, "Mismatch on gradient element " << j << ": " << v1 << "!=" << v2);
     }
   }
 
   BOOST_CHECK(FreeLibrary(h));
+}
+
+
+BOOST_AUTO_TEST_CASE( test_gd_with_dropout )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef float value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3, 5, 100, 150, 1000, 2000, 3, 128);
+
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // We make a copy of the initial parameters
+  // So that we can test with the same initial settings the
+  // behavior with and without dropout:
+  unsigned int np = tr.np();
+  value_type *params2 = tr.createArray(np);
+  memcpy(params2, tr.params(), np * sizeof(value_type));
+  value_type *params3 = tr.createArray(np);
+  memcpy(params3, tr.params(), np * sizeof(value_type));
+
+  // Create traits from that trainingset:
+  GDf::Traits traits(tr);
+  traits.epsilon = (value_type)0.001;
+  traits.momentum = (value_type)0.995;
+
+  // enabled early stopping:
+  traits.validationWindowSize = 100;
+  traits.miniBatchSize = 32;
+
+  // create gradient descent and run:
+  GDf gd(traits);
+
+  // try to run the gradient descent:
+  gd.run();
+
+  // compute the cost on train and cv datasets:
+  value_type Jcv1 = gd.computeCvCost();
+  logDEBUG("Final cv cost is " << Jcv1);
+
+  // Now sue the same process but with dropout:
+  value_type *dropouts = tr.createArray(tr.nt());
+  for (unsigned int j = 0; j < tr.nt(); ++j)
+  {
+    dropouts[j] = 1.0;
+  }
+
+  traits.dropouts = dropouts;
+  traits.params = params2;
+
+  // create another gradient descent and run:
+  GDf gd_ndrop(traits);
+
+  // try to run the gradient descent:
+  gd_ndrop.run();
+
+  value_type Jcv2 = gd_ndrop.computeCvCost();
+  logDEBUG("Final cv cost without dropout is " << Jcv2);
+
+  // There was no actual dropout applied so we expect exactly the same result:
+  BOOST_CHECK_MESSAGE(abs(Jcv2 - Jcv1) <= epsilon, "Mismatch in cv cost when using trivial dropout:" << Jcv2 << "!=" << Jcv1);
+
+  for (unsigned int j = 0; j < tr.nt(); ++j)
+  {
+    dropouts[j] = 0.5;
+  }
+
+  dropouts[0] = 1.0; // no dropout on the inputs for now.
+
+  traits.dropouts = dropouts;
+  traits.params = params3;
+
+  // create another gradient descent and run:
+  GDf gd_drop(traits);
+
+  // try to run the gradient descent:
+  gd_drop.run();
+
+  value_type Jcv3 = gd_drop.computeCvCost();
+  logDEBUG("Final cv cost with dropout is " << Jcv3);
+
+  BOOST_CHECK_MESSAGE(Jcv3 < Jcv1, "No improvement in cv cost when using dropout:" << Jcv3 << ">=" << Jcv1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
