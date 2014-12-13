@@ -2,8 +2,24 @@
 #define NERV_KERNELS_H_
 
 #include <nervcuda.h>
+#include <iostream>
+#include <sstream>
 
-#define logDEBUG(msg) std::cout << msg << std::endl;
+#ifndef logDEBUG
+#define logDEBUG(msg) std::cout << "[DEBUG] " << msg << std::endl;
+#endif
+
+#ifndef logERROR
+#define logERROR(msg) std::cout << "[ERROR] " << msg << std::endl;
+#endif
+
+#ifndef THROW
+#define THROW(msg) { std::ostringstream os; os << msg; logERROR("Throwing exception: " << msg); throw std::runtime_error(os.str()); }
+#endif
+
+#ifndef THROW_IF
+#define THROW_IF(cond,msg) if(cond) THROW(msg)
+#endif
 
 
 // Utility class used to avoid linker errors with extern

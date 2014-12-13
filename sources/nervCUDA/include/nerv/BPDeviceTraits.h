@@ -21,7 +21,7 @@ struct BPDeviceTraits : public BPTraits<T>
 
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr),
-      y_train(nullptr), randStates(nullptr), wbias(nullptr)
+      y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr)
   {
     if (withStream)
     {
@@ -105,6 +105,7 @@ public:
   T *X_train;
   T *y_train;
   T *wbias;
+  T* wX;
 
   curandState *randStates;
 

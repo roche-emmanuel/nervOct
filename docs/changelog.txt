@@ -182,3 +182,4 @@
 - Refactoring rand traits usage.
 - Preparing to add X dropout.
 - Using wX in compute traits instead of X.
+- Added some debug macros.
