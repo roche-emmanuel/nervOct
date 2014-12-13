@@ -61,7 +61,7 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
           }
         }
         else {
-        	val = traits.X[niter * (xx - 1) + yy];
+        	val = traits.wX[niter * (xx - 1) + yy];
         }
       }
 

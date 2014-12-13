@@ -76,7 +76,7 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
 
       if (xx < ncols && yy < ncolT)
       {
-        val = traits.X[yy * ncols + xx];
+        val = traits.wX[yy * ncols + xx];
       }
 
       Bs[threadIdx.y][threadIdx.x] = val;

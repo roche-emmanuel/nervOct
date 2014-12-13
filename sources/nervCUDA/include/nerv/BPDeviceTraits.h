@@ -255,7 +255,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
     lambda = rhs.lambda;
     randStates = rhs.randStates;
     wbias = rhs.wbias;
-    // wX = rhs.wX;
+    wX = rhs.X;
 
     return *this;
   }

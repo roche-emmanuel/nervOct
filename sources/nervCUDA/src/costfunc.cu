@@ -16,7 +16,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 	traits.deltas = d_deltas;
 	traits.grads = d_grads;
 	traits.yy = d_yy;
-	traits.X = d_X;
+	traits.wX = d_X;
 	traits.lambda = lambda;
 
   for(unsigned int i=0; i<nt;++i) {

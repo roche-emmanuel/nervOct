@@ -181,3 +181,4 @@
 - Using randTraits to select debug mode functions.
 - Refactoring rand traits usage.
 - Preparing to add X dropout.
+- Using wX in compute traits instead of X.
