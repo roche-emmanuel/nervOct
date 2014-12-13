@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE( test_rand_weights_debug )
   typedef void (*Func)(RandTraits<value_type> &traits);
 
   // We should be able to retrieve the train function:
-  Func rand_weights = (Func) GetProcAddress(h, "rand_weights_debug");
+  Func rand_weights = (Func) GetProcAddress(h, "rand_weights");
   BOOST_CHECK(rand_weights != nullptr);
 
   unsigned int num = 10; // number of tests to perform.
@@ -171,6 +171,9 @@ BOOST_AUTO_TEST_CASE( test_rand_weights_debug )
     traits.threshold = threshold;
     traits.size = n;
     traits.value = val;
+
+    // enable debug mode:
+    traits.debug = true;
 
     // generate the weights:
     rand_weights(traits);

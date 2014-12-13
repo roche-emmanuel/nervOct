@@ -96,7 +96,7 @@ void _rand_weights_debug(RandTraits<T>& traits) //T *weights, T threshold, unsig
   T threshold = traits.threshold;
   unsigned int n = traits.size;
   T value = traits.value;
-  
+
   unsigned int size = n * sizeof(T);
   T *d_weights = NULL;
   checkCudaErrors(cudaMalloc(&d_weights, size));
@@ -125,22 +125,21 @@ extern "C" {
 
   void rand_weights(RandTraits<double>& traits)
   {
-    _rand_weights(traits);
+    if(traits.debug) {
+      _rand_weights_debug(traits);
+    }
+    else {
+      _rand_weights(traits);
+    }
   }
 
   void rand_weights_f(RandTraits<float>& traits)
   {
-    _rand_weights(traits);
+    if(traits.debug) {
+      _rand_weights_debug(traits);
+    }
+    else {
+      _rand_weights(traits);
+    }
   }
-
-  void rand_weights_debug(RandTraits<double>& traits)
-  {
-    _rand_weights_debug(traits);
-  }
-
-  void rand_weights_debug_f(RandTraits<float>& traits)
-  {
-    _rand_weights_debug(traits);
-  }
-
 }

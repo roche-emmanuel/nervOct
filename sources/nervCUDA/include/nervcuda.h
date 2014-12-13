@@ -102,9 +102,6 @@ extern "C" {
 
   void rand_weights(RandTraits<double>& traits);
   void rand_weights_f(RandTraits<float>& traits);
-
-  void rand_weights_debug(RandTraits<double>& traits);
-  void rand_weights_debug_f(RandTraits<float>& traits);
 };
 
 template<typename T>
