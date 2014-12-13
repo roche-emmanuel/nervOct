@@ -10,10 +10,10 @@
 #define BLOCK_SIZE 1024
 
 template<typename T, bool debugMode, unsigned int blockSize = 32>
-__global__ void RandWeights( curandState *d_states, T *weights, T threshold, unsigned int n, T value )
+__global__ void RandWeights(RandDeviceTraits<T> traits)
 {
   unsigned int id = blockIdx.x * BLOCK_SIZE + threadIdx.x;
-  if (id < n)
+  if (id < traits.size)
   {
     float val;
     if (debugMode)
@@ -25,38 +25,38 @@ __global__ void RandWeights( curandState *d_states, T *weights, T threshold, uns
       // Compute the index to retrieve the rand state:
       int rid = blockSize * threadIdx.y + threadIdx.x;
 
-      curandState rState = d_states[rid];
+      curandState rState = traits.randStates[rid];
       val = curand_uniform(&rState);
-      d_states[rid] = rState;
+      traits.randStates[rid] = rState;
     }
 
-    weights[id] = val <= threshold ? value : 0.0;
+    traits.target[id] = val <= traits.threshold ? traits.value : 0.0;
   }
 }
 
 template<typename T>
-void rand_weights_device(RandDeviceTraits<T> &traits) //curandState *d_state, T *weights, T threshold, unsigned int size, T value)
+void rand_weights_device(RandDeviceTraits<T> &traits)
 {
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
   dim3 dimGrid((BLOCK_SIZE + traits.size - 1) / BLOCK_SIZE, 1, 1);
 
   if(traits.debug) {
-    RandWeights<T,true><<< dimGrid, dimBlock>>>(traits.randStates, traits.target, traits.threshold, traits.size, traits.value);
+    RandWeights<T,true><<< dimGrid, dimBlock>>>(traits);
   }
   else {
-    RandWeights<T,false><<< dimGrid, dimBlock>>>(traits.randStates, traits.target, traits.threshold, traits.size, traits.value);
+    RandWeights<T,false><<< dimGrid, dimBlock>>>(traits);
   }
   // CHECK_KERNEL();
 }
 
 template <typename T>
-void _rand_weights(RandTraits<T> &traits) //T *weights, T threshold, unsigned int n, T value)
+void _rand_weights(RandTraits<T> &traits)
 {
   RandDeviceTraits<T> d_traits;
   d_traits = traits;
 
   // Now call the device kernel:
-  rand_weights_device(d_traits); //d_states, d_weights, threshold, n, value);
+  rand_weights_device(d_traits);
 
   // copy the results back:
   copyFromDevice(traits.target, d_traits.target, traits.size);
