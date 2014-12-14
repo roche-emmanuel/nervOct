@@ -7,44 +7,12 @@
 
 #include <nerv/TrainingSet.h>
 #include <nerv/WindowedMean.h>
-#include <nerv/BPTraits.h>
+#include <nerv/GDTraits.h>
 
 namespace nerv
 {
 
 // Basic implementation of gradient decsent on GPU.
-
-template<typename T>
-struct GDTraits : public BPTraits<T>
-{
-public:
-  GDTraits();
-  GDTraits(const TrainingSet<T> &tr);
-
-  virtual ~GDTraits() {};
-
-  unsigned int X_train_size;
-  unsigned int y_train_size;
-  unsigned int X_cv_size;
-  unsigned int y_cv_size;
-
-  unsigned int maxiter;
-  unsigned int nparams;
-
-  T momentum;
-  T epsilon;
-
-  unsigned int miniBatchSize;
-  unsigned int validationWindowSize;
-
-
-  void validate() const;
-
-protected:
-  void init();
-
-};
-
 template<typename T>
 class GradientDescent
 {

@@ -14,31 +14,7 @@
 
 using namespace nerv;
 
-#define THIS "GradientDescent" 
-
-template <typename T>
-void GDTraits<T>::init()
-{
-  X_train_size = 0;
-  y_train_size = 0;
-  X_cv_size = 0;
-  y_cv_size = 0;
-
-  maxiter = 0;
-  nparams = 0;
-
-  momentum = 0.0;
-  epsilon = 0.0;
-
-  miniBatchSize = 0;
-  validationWindowSize = 0;
-}
-
-template <typename T>
-GDTraits<T>::GDTraits() : BPTraits<T>()
-{
-  init();
-}
+#define THIS "GradientDescent"
 
 template <typename T>
 GDTraits<T>::GDTraits(const TrainingSet<T> &tr) : BPTraits<T>()
@@ -61,7 +37,7 @@ GDTraits<T>::GDTraits(const TrainingSet<T> &tr) : BPTraits<T>()
   y_cv = tr.y_cv();
   y_cv_size = tr.y_cv_size();
 
-  nsamples_cv = tr.X_cv_size()/lsizes[0];
+  nsamples_cv = tr.X_cv_size() / lsizes[0];
 
   params = tr.params();
   nparams = tr.np();
@@ -89,15 +65,19 @@ void GDTraits<T>::validate() const
   THROW_IF(miniBatchSize > nsamples_train / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples_train / 2));
   THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
 
-  if(dropouts) {
-    for(unsigned int i=0;i<nl-1;++i) {
-      THROW_IF(dropouts[i]<0.0 || dropouts[i]>1.0, "Invalid value for dropout " << i << ":" << dropouts[i]);
+  if (dropouts)
+  {
+    for (unsigned int i = 0; i < nl - 1; ++i)
+    {
+      THROW_IF(dropouts[i] < 0.0 || dropouts[i] > 1.0, "Invalid value for dropout " << i << ":" << dropouts[i]);
     }
   }
 
-  if(wmults) {
-    for(unsigned int i=0;i<nl-1;++i) {
-      THROW_IF(wmults[i]<0.0 || wmults[i]>1.0, "Invalid value for wmult " << i << ":" << wmults[i]);
+  if (wmults)
+  {
+    for (unsigned int i = 0; i < nl - 1; ++i)
+    {
+      THROW_IF(wmults[i] < 0.0 || wmults[i] > 1.0, "Invalid value for wmult " << i << ":" << wmults[i]);
     }
   }
 }
@@ -163,13 +143,13 @@ void GradientDescent<T>::run()
   if (_miniBatchSize > 0)
   {
     ns = _miniBatchSize;
-    trDEBUG(THIS,"Using mini batch size: " << _miniBatchSize);
+    trDEBUG(THIS, "Using mini batch size: " << _miniBatchSize);
   }
 
   bool earlyStopping = false;
   if (_validationWindowSize > 0)
   {
-    trDEBUG(THIS,"Using early stopping with window size: " << _validationWindowSize)
+    trDEBUG(THIS, "Using early stopping with window size: " << _validationWindowSize)
     earlyStopping = true;
   }
   WindowedMean<value_type> mean(_validationWindowSize);
@@ -213,7 +193,7 @@ void GradientDescent<T>::run()
 
     _d_traits.compute_cost = false;
     _d_traits.compute_grads = true;
-    
+
     _d_traits.lambda = _traits.lambda;
     _d_traits.dropouts = _traits.dropouts;
     _d_traits.wmults = nullptr;
@@ -250,7 +230,7 @@ void GradientDescent<T>::run()
       value_type J = computeCvCost();
       if (J < bestCvCost)
       {
-        trDEBUG_V(THIS,"Updating best Cv cost to " << J << " at iteration " << iter);
+        trDEBUG_V(THIS, "Updating best Cv cost to " << J << " at iteration " << iter);
         // Here we need to save the best cv cost achieved so far and also
         // save all the relevant parameters in case we need to restart from this point:
         bestCvCost = J;
@@ -271,7 +251,7 @@ void GradientDescent<T>::run()
         value_type dec = (cur_mean - new_mean) / cur_mean;
         if (dec < _minCvCostDec)
         {
-          trDEBUG_V(THIS,"Invalid mean cv cost decrease ratio of: " << dec); //new_mean<<">"<<cur_mean);
+          trDEBUG_V(THIS, "Invalid mean cv cost decrease ratio of: " << dec); //new_mean<<">"<<cur_mean);
           // We count this as an error:
           invalid_count++;
           if (invalid_count > max_invalid_count)
@@ -284,11 +264,11 @@ void GradientDescent<T>::run()
               // we reduce the evaluation frequency (assuming it is a power of 2)
               evalFrequency /= 2;
               invalid_count = 0;
-              trDEBUG_V(THIS,"Resetting from iteration " << iter << " with eval frequency of " << evalFrequency)
+              trDEBUG_V(THIS, "Resetting from iteration " << iter << " with eval frequency of " << evalFrequency)
             }
             else
             {
-              trDEBUG(THIS,"Early stopping training with cv cost " << bestCvCost << " from iteration " << iter);
+              trDEBUG(THIS, "Early stopping training with cv cost " << bestCvCost << " from iteration " << iter);
               break;
             }
           }
@@ -371,4 +351,21 @@ unsigned int GradientDescent<T>::restoreState(WindowedMean<T> &mean)
   mean = _bestMean;
   // logDEBUG("Restored mean is: "<<mean.getMean());
   return _bestIter;
+}
+
+
+extern "C" {
+
+  void run_gradient_descent(GDTraits<double> &traits)
+  {
+    GradientDescent<double> gd(traits);
+    gd.run();
+  }
+
+  void run_gradient_descent_f(GDTraits<float> &traits)
+  {
+    GradientDescent<float> gd(traits);
+    gd.run();
+  }
+
 }

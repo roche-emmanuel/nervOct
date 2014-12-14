@@ -27,6 +27,7 @@
 #define MAX_THREADS_PER_BLOCK 1024
 
 #include <nerv/BPTraits.h>
+#include <nerv/GDTraits.h>
 #include <nerv/BPDeviceTraits.h>
 #include <nerv/RandDeviceTraits.h>
 
@@ -99,6 +100,9 @@ extern "C" {
   void gd_errfunc(BPTraits<double> &traits);
   void gd_errfunc_f(BPTraits<float> &traits);
 
+  void run_gradient_descent(GDTraits<double> &traits);
+  void run_gradient_descent_f(GDTraits<float> &traits);
+
   void gd_errfunc_cpu(BPTraits<double>& traits);
 
   void nn_predict(BPTraits<double> &traits);
@@ -109,6 +113,7 @@ extern "C" {
 
   void rand_weights(RandTraits<double>& traits);
   void rand_weights_f(RandTraits<float>& traits);
+
 };
 
 template<typename T>

@@ -968,4 +968,57 @@ BOOST_AUTO_TEST_CASE( test_gd_with_dropout )
   BOOST_CHECK_MESSAGE(Jcv3 < Jcv1, "No improvement in cv cost when using dropout:" << Jcv3 << ">=" << Jcv1);
 }
 
+BOOST_AUTO_TEST_CASE( test_run_gradient_descent )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  BOOST_CHECK(h != nullptr);
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+
+  typedef void (*RunFunc)(BPTraits<value_type> &traits);
+
+  // We should be able to retrieve the train function:
+  RunFunc runfunc = (RunFunc) GetProcAddress(h, "run_gradient_descent");
+  BOOST_CHECK(runfunc != nullptr);
+
+  typedef void (*CostFunc)(BPTraits<value_type> &traits);
+
+  // We should be able to retrieve the train function:
+  CostFunc errfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
+  BOOST_CHECK(errfunc != nullptr);
+  
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3, 5, 3, 6, 200, 300);
+  tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  // Create traits from that trainingset:
+  GDTraits<value_type> traits(tr);
+  
+  traits.epsilon = 0.001;
+  traits.momentum = 0.995;
+  traits.bias = 0.0;
+
+  // enabled early stopping:
+  traits.validationWindowSize = 10;
+  traits.miniBatchSize = 10;
+
+  traits.compute_cost = true;
+  traits.compute_grads = false;
+  errfunc(traits);
+  value_type cost1 = traits.cost;
+
+  run_gradient_descent(traits);
+
+  // Check that the gradient descent was run properly:
+  traits.compute_cost = true;
+  traits.compute_grads = false;
+  errfunc(traits);
+  value_type cost2 = traits.cost;
+
+  BOOST_CHECK_MESSAGE(cost2 < cost1, "No improvement in train cost:" << cost2 << ">=" << cost1);
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

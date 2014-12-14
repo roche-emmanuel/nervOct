@@ -192,3 +192,4 @@
 - Added test for debug rad weights with input values buffer.
 - Added initial octave plugin for gradient descent support.
 - Added retrieval of lsizes value.
+- Added run_gradient_descent function and initial test.

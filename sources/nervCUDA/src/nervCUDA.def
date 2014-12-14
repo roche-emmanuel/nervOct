@@ -24,4 +24,6 @@ nn_predict_cpu			@19
 nn_predict_cpu_f		@20
 rand_weights				@21
 rand_weights_f			@22
+run_gradient_descent @23
+run_gradient_descent_f @24
 gd_errfunc_cpu			@25
