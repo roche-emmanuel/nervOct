@@ -187,3 +187,4 @@
 - Added support for wX usage in DeviceTraits.
 - Getting ready for X random dropout.
 - Added implementaion for input features dropout.
+- Added test for threshold 0.0 and 1.0 on values rand_weights.
