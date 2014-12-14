@@ -3,6 +3,8 @@
 #include <sstream>
 #include <windows.h>
 
+#include <nerv/GDTraits.h>
+
 #define CHECK(cond, msg) if(!(cond)) { \
     std::ostringstream os; \
     os << msg; \
@@ -12,10 +14,11 @@
 
 #define logDEBUG(msg) octave_stdout << msg << std::endl;
 
+using namespace nerv;
+
 class NERVManager {
 protected:
-  // typedef void (* MultMatFunc)(unsigned int nrowA, unsigned int ncolA, const double* A,
-  //   unsigned int nrowB, unsigned int ncolB, const double* B, double* C, bool tpA, bool tpB);
+  typedef void (* RunGDFunc)(GDTraits<double>& traits);
 
 public:
   NERVManager() {
@@ -25,11 +28,11 @@ public:
       error("ERROR: cannot load nervCUDA library! err=%d",GetLastError());
     }
 
-    // // Try loading the functions of interest:
-    // _multMat = (MultMatFunc) GetProcAddress(_h, "matmult");
-    // if(!_multMat) {
-    //   error("ERROR: cannot find matmult method! err=%d",GetLastError());
-    // }
+    // Try loading the functions of interest:
+    _run_gd = (RunGDFunc) GetProcAddress(_h, "run_gradient_descent");
+    if(!_run_gd) {
+      error("ERROR: cannot find run_gradient_descent method! err=%d",GetLastError());
+    }
   }
 
   ~NERVManager() {
@@ -40,17 +43,13 @@ public:
     }
   }
 
-  // inline void multMat(const Matrix& A, const Matrix& B, Matrix& C, bool tpA = false, bool tpB = false) {
-  //   if(tpA && tpB) {
-  //     error("Dual transpose in multMat not supported yet.");
-  //   }
-
-  //   _multMat(A.dim1(),A.dim2(),A.data(),B.dim1(),B.dim2(),B.data(),(double*)C.data(),tpA,tpB);
-  // }
+  inline void run_gradient_descent(GDTraits<double>& traits) {
+    _run_gd(traits);
+  }
 
 protected:
   HMODULE _h;
-  // MultMatFunc _multMat;
+  RunGDFunc _run_gd;
 };
 
 NERVManager g_nerv;
@@ -75,6 +74,10 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   CHECK(lsizes_val.is_defined(), "nn_gradient_descent: lsizes value is not defined");
 
   // Prepare a BPTraits object:
+  GDTraits<double> traits;
+
+  // Call the gradient descent method:
+  g_nerv.run_gradient_descent(traits);
 
   return result;
 }

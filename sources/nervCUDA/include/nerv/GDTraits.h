@@ -7,6 +7,7 @@
 namespace nerv
 {
 
+// forward declaration:
 template<typename T>
 class TrainingSet;
 

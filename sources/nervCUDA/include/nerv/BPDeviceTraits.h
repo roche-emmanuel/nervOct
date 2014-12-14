@@ -20,12 +20,12 @@ struct BPDeviceTraits : public BPTraits<T>
   typedef std::vector<T *> BufferList;
 
   BPDeviceTraits(bool withStream = false)
-    : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr),
+    : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr)
   {
     if (withStream)
     {
-      checkCudaErrors(cudaStreamCreate(&stream));
+      allocateStream();
     }
   };
 
@@ -85,6 +85,13 @@ struct BPDeviceTraits : public BPTraits<T>
     return ptr;
   }
 
+  void allocateStream()
+  {
+    THROW_IF(stream, "Stream already allocated.")
+    owned_stream = true;
+    checkCudaErrors(cudaStreamCreate(&stream));
+  }
+
   // T* predictions() {
   //   unsigned int offset = 0;
   //   unsigned int nt = nl - 1;
@@ -105,8 +112,8 @@ public:
   T *X_train;
   T *y_train;
   T *wbias;
-  T* wX;
-  T* rX; // Buffer used to hold the rand features computation when dropout is activated.
+  T *wX;
+  T *rX; // Buffer used to hold the rand features computation when dropout is activated.
 
   curandState *randStates;
 
@@ -239,7 +246,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
       grad_offset(0),
       nrows(0), ncols(0), niter(0),
       wmult(1.0), layer_dropout(1.0),
-      randStates(nullptr), 
+      randStates(nullptr),
       wbias(nullptr), wbias_offset(0),
       wX(nullptr) {};
 
@@ -259,7 +266,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
     randStates = rhs.randStates;
     wbias = rhs.wbias;
     wX = rhs.wX;
-    THROW_IF(!wX,"Invalid wX buffer for BPComputeTraits.");
+    THROW_IF(!wX, "Invalid wX buffer for BPComputeTraits.");
 
     return *this;
   }
@@ -273,7 +280,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
   unsigned int next_delta_offset;
 
   unsigned int grad_offset;
-  
+
   unsigned int wbias_offset;
 
   unsigned int nrows;
@@ -281,8 +288,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
   unsigned int niter;
 
   curandState *randStates;
-  T* wbias;
-  T* wX;
+  T *wbias;
+  T *wX;
 
   T wmult;
   T layer_dropout;

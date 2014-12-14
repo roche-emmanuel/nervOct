@@ -84,10 +84,10 @@ void GDTraits<T>::validate() const
 
 template <typename T>
 GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
-  : _d_traits(true)
 {
   traits.validate();
 
+  _d_traits.allocateStream();
   THROW_IF(_d_traits.stream == 0, "Invalid stream.");
 
   _bestIter = 0;

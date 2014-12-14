@@ -56,7 +56,7 @@ build_octave_plugin()
 	compiler="g++"
 	file=`cygpath -w "$nervpath/sources/oct_$plugname/$plugname.cpp"`
 
-	$compiler -c -I`cygpath -w "$octave_path/include/octave-3.8.2"` -I`cygpath -w "$octave_path/include/octave-3.8.2/octave"` -I`cygpath -w "$octave_path/include"` -mieee-fp -g -O2 -pthread $file -o $plugname.o
+	$compiler -std=c++11 -c -I`cygpath -w "$nervpath/sources/nervCUDA/include"` -I`cygpath -w "$octave_path/include/octave-3.8.2"` -I`cygpath -w "$octave_path/include/octave-3.8.2/octave"` -I`cygpath -w "$octave_path/include"` -mieee-fp -g -O2 -pthread $file -o $plugname.o
 	$compiler -shared -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc -o $plugname.oct $plugname.o -L`cygpath -w "$octave_path/lib/octave/3.8.2"` -L`cygpath -w "$octave_path/lib"` -loctinterp -loctave -Wl,--export-all-symbols
 
 	rm -Rf *.o
