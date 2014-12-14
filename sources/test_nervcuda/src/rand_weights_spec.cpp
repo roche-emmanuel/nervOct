@@ -229,7 +229,6 @@ BOOST_AUTO_TEST_CASE( test_rand_weights_values )
     unsigned int n = random_uint(1000, 1500);
 
     value_type *weights = new value_type[n];
-    value_type val = random_real((value_type)0.0, (value_type)1.0);
 
     // prepare the input values:
     value_type *values = new value_type[n];
@@ -269,6 +268,77 @@ BOOST_AUTO_TEST_CASE( test_rand_weights_values )
     }
 
     delete [] weights;
+    delete [] values;
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_rand_weights_ratio_values )
+{
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*Func)(RandTraits<value_type> &traits);
+
+  // We should be able to retrieve the train function:
+  Func rand_weights = (Func) GetProcAddress(h, "rand_weights");
+  BOOST_CHECK(rand_weights != nullptr);
+
+  unsigned int num = 10; // number of tests to perform.
+
+  for (unsigned int i = 0; i < num; ++i)
+  {
+    unsigned int n = random_uint(1000000, 1500000);
+    BOOST_CHECK(n >= 1000000);
+    BOOST_CHECK(n <= 1500000);
+
+    value_type *weights = new value_type[n];
+    value_type threshold = random_real((value_type)0.0, (value_type)1.0);
+
+    // prepare the input values:
+    value_type *values = new value_type[n];
+    for (unsigned int j = 0; j < n; ++j)
+    {
+      values[j] = random_real((value_type)0.0, (value_type)1.0);
+    }
+
+    RandTraits<value_type> traits;
+    traits.target = weights;
+    traits.threshold = threshold;
+    traits.size = n;
+    traits.values = values;
+
+    // generate the weights:
+    rand_weights(traits);
+
+    // count the number of zero values:
+    value_type zeros = 0.0;
+    value_type nzeros = 0.0;
+
+    for (unsigned int j = 0; j < n; ++j)
+    {
+      if (weights[j] == 0.0)
+      {
+        zeros += 1.0;
+      }
+      else
+      {
+        nzeros += 1.0;
+      };
+    }
+
+    BOOST_CHECK(zeros + nzeros == (value_type)n);
+
+    // Now estimate the ratio of non zeros value:
+    value_type ratio = nzeros / (zeros + nzeros);
+    BOOST_CHECK_MESSAGE(abs(ratio - threshold) <= 0.01, "Invalid non zeros ratio: " << ratio << "!=" << threshold << " for n=" << n);
+
+    delete [] weights;
+    delete [] values;
   }
 
   BOOST_CHECK(FreeLibrary(h));
