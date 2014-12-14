@@ -41,8 +41,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nnDebugInitializeWeights...\n')
 % test nnDebugInitializeWeights
 
-fprintf('Testing nnSparseInitializeWeights...\n')
-test nnSparseInitializeWeights
+% fprintf('Testing nnSparseInitializeWeights...\n')
+% test nnSparseInitializeWeights
 
 % fprintf('Testing nnCostFunction...\n')
 % test nnCostFunction
@@ -68,8 +68,8 @@ test nnSparseInitializeWeights
 % fprintf('Testing nnPrepareDebugTraining...\n')
 % test nnPrepareDebugTraining
 
-fprintf('Testing nnInitNetwork...\n')
-test nnInitNetwork
+% fprintf('Testing nnInitNetwork...\n')
+% test nnInitNetwork
 
 % fprintf('Testing nnBuildLabelMatrix...\n')
 % test nnBuildLabelMatrix
@@ -106,5 +106,8 @@ test nnInitNetwork
 
 % fprintf('Testing Training...\n')
 % test tests_training
+
+fprintf('Testing Gradient descent...\n')
+test tests_nn_gradient_descent
 
 more on;
