@@ -814,7 +814,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
       dropouts[j] = tr.random_real(0.0, 1.0);
     }
 
-    // dropouts[0] = 0.5;
+    // dropouts[0] = 0.5; 
     // dropouts[1] = 0.9;
 
     traits.dropouts = dropouts;
@@ -951,7 +951,7 @@ BOOST_AUTO_TEST_CASE( test_gd_with_dropout )
     dropouts[j] = 0.5;
   }
 
-  dropouts[0] = 1.0; // no dropout on the inputs for now.
+  dropouts[0] = (value_type)0.8; // 20 % dropouts on inputs.
 
   traits.dropouts = dropouts;
   traits.params = params3;

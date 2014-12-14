@@ -14,8 +14,6 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
 
   RandDeviceTraits<T> r_traits;
   r_traits.randStates = d_traits.randStates;
-  r_traits.size = nsamples;
-  r_traits.value = d_traits.bias;
   r_traits.debug = d_traits.debug;
 
   // Assign the wX buffer before creating any ComputeTraits:
@@ -23,12 +21,26 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
   {
     d_traits.wX = d_traits.X;
   }
-  else {
+  else
+  {
     // Assign a random drop for the wX buffer:
+    THROW_IF(!d_traits.rX,"Invalid rX buffer.");
+
+    r_traits.target = d_traits.rX;
+    r_traits.size = lsizes[0] * nsamples;
+    r_traits.values = d_traits.X;
+    r_traits.threshold = dropouts[0];
+
+    rand_weights_device(r_traits);
     
-    // rand_weights_device(r_traits);
-    d_traits.wX = d_traits.X; 
+    r_traits.values = nullptr;
+
+    d_traits.wX = d_traits.rX; 
   }
+
+  // Ensure we have the proper generic settings for the rand weights computation:
+  r_traits.size = nsamples;
+  r_traits.value = d_traits.bias;
 
   BPComputeTraits<T> traits;
   traits = d_traits;
@@ -166,6 +178,8 @@ void _nn_predict_cpu(BPTraits<T> &traits)
     if (wmults)
       mult = wmults[i];
 
+    T xw;
+
     for (unsigned int c = 0; c < ncols; ++c)
     {
       for (unsigned int r = 0; r < nrows; ++r)
@@ -187,7 +201,13 @@ void _nn_predict_cpu(BPTraits<T> &traits)
           // we need to transpose the value:
           if (i == 0)
           {
-            val += params[theta_offset + nrows * (j + 1) + r] * X[nsamples * j + c];
+            xw = 1.0;
+            if(traits.dropouts && (abs(sin(nsamples * j + c)) > traits.dropouts[0]))
+            {
+              xw = 0.0;
+            }
+
+            val += params[theta_offset + nrows * (j + 1) + r] * X[nsamples * j + c] * xw;
           }
           else
           {

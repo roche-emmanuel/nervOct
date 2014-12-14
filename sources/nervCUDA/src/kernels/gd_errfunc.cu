@@ -13,7 +13,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
 
   // we must call nn_activation_device before constructing
   // any BPComputeTraits since this method is responsible
-  // for assigning the proper value to the wX buffer that 
+  // for assigning the proper value to the wX buffer that
   // will be accessed by the ComputeTraits.
   unsigned int input_offset = nn_activation_device(d_traits);
 
@@ -352,6 +352,7 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
     // logDEBUG("CPU: Gradient at i="<<i<<" of size "<< nrows <<" x " << ncols<<", offset="<<grad_offset<<", input_offset="<<input_offset);
 
     double bias;
+    double xw;
 
     // Compute the gradient:
     for (unsigned int c = 0; c < ncols; ++c)
@@ -364,10 +365,16 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
         for (unsigned int n = 0; n < nsamples; ++n)
         {
           bias = traits.bias;
-          if (traits.dropouts && (abs(sin(n)) > traits.dropouts[i-1]))
+          if (traits.dropouts && (abs(sin(n)) > traits.dropouts[i - 1]))
           {
             // Flags the bias value with 0.0 if we should ignore that unit:
             bias = 0.0;
+          }
+
+          xw = 1.0;
+          if (traits.dropouts && (abs(sin(niter * (c - 1) + n))) > traits.dropouts[0])
+          {
+            xw = 0.0;
           }
 
           // val += delta(r,n)*act(n,c);
@@ -377,7 +384,8 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
           {
             // Here we have to use the X matrix instead of the z_T.
             // we still want to write the value act(n,c)=x(n,c-1) if c>0
-            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : X[niter * (c - 1) + n]);
+            // Here we also need to check if we want to use the X value in case dropout is enabled:
+            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : X[niter * (c - 1) + n] * xw);
           }
           else
           {

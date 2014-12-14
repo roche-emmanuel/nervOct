@@ -30,7 +30,14 @@ __global__ void RandWeights(RandDeviceTraits<T> traits)
       traits.randStates[rid] = rState;
     }
 
-    traits.target[id] = val <= traits.threshold ? traits.value : 0.0;
+    if (traits.values)
+    {
+      traits.target[id] = val <= traits.threshold ? traits.values[id] : 0.0;
+    }
+    else
+    {
+      traits.target[id] = val <= traits.threshold ? traits.value : 0.0;
+    }
   }
 }
 
@@ -40,11 +47,13 @@ void rand_weights_device(RandDeviceTraits<T> &traits)
   dim3 dimBlock(BLOCK_SIZE, 1, 1);
   dim3 dimGrid((BLOCK_SIZE + traits.size - 1) / BLOCK_SIZE, 1, 1);
 
-  if(traits.debug) {
-    RandWeights<T,true><<< dimGrid, dimBlock>>>(traits);
+  if (traits.debug)
+  {
+    RandWeights<T, true> <<< dimGrid, dimBlock>>>(traits);
   }
-  else {
-    RandWeights<T,false><<< dimGrid, dimBlock>>>(traits);
+  else
+  {
+    RandWeights<T, false> <<< dimGrid, dimBlock>>>(traits);
   }
   // CHECK_KERNEL();
 }

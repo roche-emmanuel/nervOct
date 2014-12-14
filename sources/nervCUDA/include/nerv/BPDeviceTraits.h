@@ -21,7 +21,7 @@ struct BPDeviceTraits : public BPTraits<T>
 
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(withStream), X_train(nullptr),
-      y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr)
+      y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr)
   {
     if (withStream)
     {
@@ -106,6 +106,7 @@ public:
   T *y_train;
   T *wbias;
   T* wX;
+  T* rX; // Buffer used to hold the rand features computation when dropout is activated.
 
   curandState *randStates;
 
@@ -175,6 +176,7 @@ protected:
 
       // Prepare an array to hold the bias weights:
       wbias = createDeviceBuffer((nl - 1) * nsamples);
+      rX = createDeviceBuffer(lsizes[0] * nsamples);
     }
   }
 

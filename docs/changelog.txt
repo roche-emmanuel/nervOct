@@ -186,3 +186,4 @@
 - Added proper logging mechanism.
 - Added support for wX usage in DeviceTraits.
 - Getting ready for X random dropout.
+- Added implementaion for input features dropout.
