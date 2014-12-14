@@ -191,3 +191,4 @@
 - Added test for ratio on rand weights with values buffer.
 - Added test for debug rad weights with input values buffer.
 - Added initial octave plugin for gradient descent support.
+- Added retrieval of lsizes value.

@@ -1,13 +1,14 @@
 #include <octave/oct.h>
+#include <octave/ov-struct.h>
 #include <sstream>
 #include <windows.h>
 
 #define CHECK(cond, msg) if(!(cond)) { \
-  std::ostringstream os; \
-  os << msg; \
-  error(os.str().c_str()); \
-  return result; \
-}
+    std::ostringstream os; \
+    os << msg; \
+    error(os.str().c_str()); \
+    return result; \
+  }
 
 #define logDEBUG(msg) octave_stdout << msg << std::endl;
 
@@ -19,10 +20,18 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
 
   // we expect to receive 1 arguments:
   int nargin = args.length();
-  CHECK(nargin==5,"nn_gradient_descent: Invalid number of arguments: " << nargin);
+  CHECK(nargin == 1, "nn_gradient_descent: Invalid number of arguments: " << nargin);
 
   // Check the argument types:
-  // CHECK(args(0).is_matrix_type(),"nn_gradient_descent: nn_params (arg 0) should be a matrix type");
+  CHECK(args(0).is_map(), "nn_gradient_descent: desc (arg 0) should be a structure type");
+
+  // Try retrieving the structure:
+  octave_scalar_map desc = args(0).scalar_map_value();
+
+  // The desc structure should contain an lsizes element.
+  octave_value lsizes_val = desc.contents("lsizes");
+  CHECK(lsizes_val.is_defined(), "nn_gradient_descent: lsizes value is not defined");
 
   return result;
 }
+
