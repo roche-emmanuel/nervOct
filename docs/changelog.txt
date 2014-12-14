@@ -189,3 +189,4 @@
 - Added implementaion for input features dropout.
 - Added test for threshold 0.0 and 1.0 on values rand_weights.
 - Added test for ratio on rand weights with values buffer.
+- Added test for debug rad weights with input values buffer.

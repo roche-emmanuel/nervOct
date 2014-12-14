@@ -1,6 +1,5 @@
 *** TODOs:
 - implement octave plugin to access gradient descent.
-- Add test for rand weights with input buffer.
 
 *** CUDA infos:
 
