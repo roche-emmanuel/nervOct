@@ -242,6 +242,7 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   CHECK_RET(params_val.is_matrix_type(), "nn_gradient_descent: params is not a matrix type");
 
   Matrix params = params_val.matrix_value();
+  params.make_unique();
 
   // The desc structure should contain an y_train element.
   octave_value y_train_val = desc.contents("y_train");
@@ -267,6 +268,8 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
 
   // Call the gradient descent method:
   g_nerv.run_gradient_descent(lsizes, X_train, y_train, params, desc);
+
+  result.append(params);
 
   return result;
 }

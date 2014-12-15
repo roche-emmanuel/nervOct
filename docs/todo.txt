@@ -1,6 +1,5 @@
 *** TODOs:
 - implement rescale weights functions to be used with dropout
-- return newly computed params from nn_gradient_descent.
 
 *** CUDA infos:
 

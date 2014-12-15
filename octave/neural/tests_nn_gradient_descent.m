@@ -293,3 +293,27 @@
 %!	desc.y_cv = rand(50,1);
 %!	nn_gradient_descent(desc);
 
+% ==> Should return updated structure
+%!test
+%!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 0;
+%!	desc.miniBatchSize = 10;
+%!	desc.validationWindowSize = 10;
+%!	desc.X_cv = rand(50,3);
+%!	desc.y_cv = rand(50,1);
+%!	p0 = desc.params;
+%!	n0 = numel(p0);
+%!	p1 = nn_gradient_descent(desc);
+%!  %p1 = desc.params;
+%! 	n1 = numel(p1);
+%!	assert(n0==n1,'Mismatch in number of parameters: %d!=%d',n0,n1)
+%!	for i=1:n1,
+%!		assert(p0(i)!=p1(i),'No change in value at index %d: %f==%f',i,p0(i),p1(i));
+%!	end
+
+
