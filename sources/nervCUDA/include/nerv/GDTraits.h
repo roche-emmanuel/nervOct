@@ -7,6 +7,11 @@
 namespace nerv
 {
 
+enum GradientDescentCode {
+  GD_SUCCESS,
+  GD_EXCEPTION_OCCURED
+};
+
 // forward declaration:
 template<typename T>
 class TrainingSet;

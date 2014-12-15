@@ -19,8 +19,146 @@
 
 %!error <nn_gradient_descent: lsizes value is not defined> no_lsizes()
 
+
+% ==> Should throw if lsizes is not a matrix:
+
+%!function no_lsizes_mat()
+%!  desc.lsizes = 10;
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: lsizes is not a matrix type> no_lsizes_mat()
+
+
+% ==> Should throw an error if no X_train is provided in input structure:
+
+%!function no_X_train()
+%!  desc.lsizes = [4,3,2];
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: X_train value is not defined> no_X_train()
+
+
+% ==> Should throw an error if X_train is not a matrix:
+
+%!function no_X_train_mat()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = 10;
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: X_train is not a matrix type> no_X_train_mat()
+
+
+% ==> Should throw an error if no params is provided in input structure:
+
+%!function no_params()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,4);
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: params value is not defined> no_params()
+
+
+% ==> Should throw an error if params is not a matrix:
+
+%!function no_params_mat()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,4);
+%!  desc.params = 10;
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: params is not a matrix type> no_params_mat()
+
+
+% ==> Should throw an error if no y_train is provided in input structure:
+
+%!function no_y_train()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,4);
+%!  desc.params = rand(10,1);
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: y_train value is not defined> no_y_train()
+
+
+% ==> Should throw an error if y_train is not a matrix:
+
+%!function no_y_train_mat()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,4);
+%!  desc.params = rand(10,1);
+%!  desc.y_train = 10;
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: y_train is not a matrix type> no_y_train_mat()
+
+
+%%%% advanced checks: 
+
+% ==> Should throw an error if X_train ncols doesn't match the lsizes(1) value:
+
+%!function no_X_train_match()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,5);
+%!  desc.y_train = rand(10,2);
+%!  desc.params = rand(10,1);
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: Feature matrix doesn't match lsizes: 5!=4> no_X_train_match()
+
+
+% ==> Should throw an error if params size doesn't match expected size from lsizes:
+
+%!function no_params_match()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,4);
+%!  desc.y_train = rand(10,2);
+%!  desc.params = rand(10,1);
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: params doesn't match expected size: 10!=23> no_params_match()
+
+
+% ==> Should throw an error if we don't have the same number of samples according to
+% X_train and y_train:
+
+%!function no_nsamples_match()
+%!  desc.lsizes = [4,3,2];
+%!  desc.X_train = rand(10,4);
+%!  desc.y_train = rand(9,2);
+%!  desc.params = rand(23,1);
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: mismatch in nsamples_train: 10!=9> no_nsamples_match()
+
+
+% ==> Should throw an error if y_trian doesn't match the lsizes specs:
+
+%!function no_y_train_match()
+%!  desc.lsizes = [4,5,2];
+%!  desc.X_train = rand(10,4);
+%!  desc.y_train = rand(10,3);
+%!  desc.params = rand(37,1);
+%!	nn_gradient_descent(desc)
+%!endfunction
+
+%!error <nn_gradient_descent: y_train doesn't match lsizes: 3!=2> no_y_train_match()
+
+
 % ==> Should work if the input argument is a structure:
 %!test
 %!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
 %!	nn_gradient_descent(desc);
 

@@ -100,8 +100,8 @@ extern "C" {
   void gd_errfunc(BPTraits<double> &traits);
   void gd_errfunc_f(BPTraits<float> &traits);
 
-  void run_gradient_descent(GDTraits<double> &traits);
-  void run_gradient_descent_f(GDTraits<float> &traits);
+  int run_gradient_descent(GDTraits<double> &traits);
+  int run_gradient_descent_f(GDTraits<float> &traits);
 
   void gd_errfunc_cpu(BPTraits<double>& traits);
 

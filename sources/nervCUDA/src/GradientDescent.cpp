@@ -356,16 +356,36 @@ unsigned int GradientDescent<T>::restoreState(WindowedMean<T> &mean)
 
 extern "C" {
 
-  void run_gradient_descent(GDTraits<double> &traits)
+  int run_gradient_descent(GDTraits<double> &traits)
   {
-    GradientDescent<double> gd(traits);
-    gd.run();
+    try
+    {
+      GradientDescent<double> gd(traits);
+      gd.run();
+    }
+    catch (...) //std::runtime_error &e)
+    {
+      // error("Exception occured: %s", e.what());
+      return GD_EXCEPTION_OCCURED;
+    }
+
+    return GD_SUCCESS;
   }
 
-  void run_gradient_descent_f(GDTraits<float> &traits)
+  int run_gradient_descent_f(GDTraits<float> &traits)
   {
-    GradientDescent<float> gd(traits);
-    gd.run();
+    try
+    {
+      GradientDescent<float> gd(traits);
+      gd.run();
+    }
+    catch (...) //std::runtime_error &e)
+    {
+      // error("Exception occured: %s", e.what());
+      return GD_EXCEPTION_OCCURED;
+    }
+
+    return GD_SUCCESS;
   }
 
 }

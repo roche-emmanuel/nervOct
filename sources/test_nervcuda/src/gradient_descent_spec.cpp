@@ -976,7 +976,7 @@ BOOST_AUTO_TEST_CASE( test_run_gradient_descent )
   typedef double value_type;
   value_type epsilon = std::numeric_limits<value_type>::epsilon();
 
-  typedef void (*RunFunc)(BPTraits<value_type> &traits);
+  typedef int (*RunFunc)(BPTraits<value_type> &traits);
 
   // We should be able to retrieve the train function:
   RunFunc runfunc = (RunFunc) GetProcAddress(h, "run_gradient_descent");
@@ -1008,7 +1008,8 @@ BOOST_AUTO_TEST_CASE( test_run_gradient_descent )
   errfunc(traits);
   value_type cost1 = traits.cost;
 
-  run_gradient_descent(traits);
+  int res = run_gradient_descent(traits);
+  BOOST_CHECK(res == GD_SUCCESS);
 
   // Check that the gradient descent was run properly:
   traits.compute_cost = true;

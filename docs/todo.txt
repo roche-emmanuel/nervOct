@@ -2,6 +2,7 @@
 - retrieve run_gradient_descent in octave plugin.
 - implement octave plugin to access gradient descent.
 - retrieve all traits in ocave plugin.
+- return error code in run_gradient_descent.
 
 
 *** CUDA infos:
