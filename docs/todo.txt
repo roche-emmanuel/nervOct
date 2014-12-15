@@ -1,5 +1,4 @@
 *** TODOs:
-- implement rescale weights functions to be used with dropout
 - test real training conditions.
 - implement selectBestRandomNetwork
 

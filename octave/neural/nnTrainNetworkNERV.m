@@ -25,12 +25,13 @@ desc.lsizes = network.layer_sizes;
 desc.X_train = X;
 desc.y_train = yy;
 desc.params = network.weights;
-desc.epsilon = 0.00001;
-desc.momentum = 0.99;
+desc.epsilon = training.learning_rate;
+desc.momentum = training.momentum;
 desc.maxiter = training.max_iterations;
 desc.evalFrequency = 32;
 desc.miniBatchSize = 32;
 desc.lambda = training.regularization_param;
+
 if isfield(training,'dropouts')
 fprintf('Setting up dropout...\n');
 desc.dropouts = training.dropouts;
@@ -49,6 +50,11 @@ if training.early_stopping,
 end
 
 [weights, costs, iters, Jcv] = nn_gradient_descent(desc);
+
+if isfield(training,'dropouts')
+fprintf('Rescaling weights...\n');
+weights = nnRescaleParameters(weights, desc.lsizes, desc.dropouts)
+end
 
 network.weights = weights;
 network.costs = costs;

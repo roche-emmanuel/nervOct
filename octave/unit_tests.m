@@ -86,8 +86,8 @@ addpath([pname '/neural']);
 % fprintf('Testing nnTrainNetworkCUDA...\n')
 % test nnTrainNetworkCUDA
 
-fprintf('Testing nnTrainNetworkNERV...\n')
-test nnTrainNetworkNERV
+% fprintf('Testing nnTrainNetworkNERV...\n')
+% test nnTrainNetworkNERV
 
 % fprintf('Testing nnPredict...\n')
 % test nnPredict
@@ -112,5 +112,11 @@ test nnTrainNetworkNERV
 
 % fprintf('Testing Gradient descent...\n')
 % test tests_nn_gradient_descent
+
+% fprintf('Testing nnSelectRandomNetwork...\n')
+% test nnSelectRandomNetwork
+
+fprintf('Testing nnRescaleParameters...\n')
+test nnRescaleParameters
 
 more on;

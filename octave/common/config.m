@@ -91,4 +91,13 @@ cfg.use_sparse_init = false;
 % Number of neurons with active weights when using sparse initialization:
 cfg.sparse_init_lot_size = 15;
 
+% Number of trials performed by default when generating random netwoks:
+cfg.default_num_random_trials = 10;
+
+% Default learning rate:
+cfg.default_learning_rate = 0.00001;
+
+% Default momentum:
+cfg.default_momentum = 0.99;
+
 end
