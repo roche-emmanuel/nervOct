@@ -162,7 +162,7 @@ void GradientDescent<T>::run()
 
   // number of cycles after which to evaluation is performed on the cross validation set
   // when using early stopping:
-  unsigned int evalFrequency = 128;
+  unsigned int evalFrequency = _traits.evalFrequency;
 
   // current number of invalid value for Jcv when using early stopping:
   unsigned int invalid_count = 0;
@@ -232,6 +232,10 @@ void GradientDescent<T>::run()
       // perform evaluation of the current theta value:
       // logDEBUG("Performing cv evaluation at iteration "<<iter<<"...");
       value_type J = computeCvCost();
+      if(_traits.cvCostCB) {
+        _traits.cvCostCB(J,iter, _traits.userdata);
+      }
+
       if (J < bestCvCost)
       {
         trDEBUG_V(THIS, "Updating best Cv cost to " << J << " at iteration " << iter);

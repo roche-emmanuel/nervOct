@@ -293,7 +293,7 @@
 %!	desc.y_cv = rand(50,1);
 %!	nn_gradient_descent(desc);
 
-% ==> Should return updated structure
+% ==> Should return updated params
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
@@ -302,6 +302,7 @@
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
 %!	desc.maxiter = 0;
+%!	desc.evalFrequency = 32;
 %!	desc.miniBatchSize = 10;
 %!	desc.validationWindowSize = 10;
 %!	desc.X_cv = rand(50,3);
@@ -315,5 +316,34 @@
 %!	for i=1:n1,
 %!		assert(p0(i)!=p1(i),'No change in value at index %d: %f==%f',i,p0(i),p1(i));
 %!	end
+
+
+% ==> Should return cost and iter arrays
+%!test
+%!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 0;
+%!	desc.evalFrequency = 32;
+%!	desc.miniBatchSize = 10;
+%!	desc.validationWindowSize = 10;
+%!	desc.X_cv = rand(50,3);
+%!	desc.y_cv = rand(50,1);
+%!	[weights, costs, iters] = nn_gradient_descent(desc);
+%!	assert(numel(costs)>0,'No element in costs.')
+%!	assert(numel(costs)==numel(iters),'Mismatch between costs and iters: %d!=%d',numel(costs),numel(iters))
+%!
+%! 	% Now we can draw the evolution of the costs:
+%!	figure; hold on;
+%!	h = gcf();	
+%!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
+%!	legend('Jcv');
+%!	title('Learning progress');
+%!	xlabel('Number of epochs');
+%!	ylabel('Cv Cost');
+%!	hold off;
 
 

@@ -23,6 +23,8 @@
 
 using namespace nerv;
 
+typedef std::map<unsigned int,double> CostMap;
+
 class NERVManager
 {
 protected:
@@ -48,7 +50,7 @@ public:
   }
 
   inline void run_gradient_descent(const Matrix &lsizes_mat, const Matrix &X_train, const Matrix &y_train,
-                                   const Matrix &params, octave_scalar_map &desc)
+                                   const Matrix &params, octave_scalar_map &desc, CostMap& costMap)
   {
     // Here we can already check that the feature matrix dimensions match
     // the lsizes description:
@@ -121,6 +123,13 @@ public:
       traits.maxiter = (unsigned int)val.double_value();
     }
 
+    val = desc.contents("evalFrequency");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: evalFrequency is not a double type");
+      traits.evalFrequency = (unsigned int)val.double_value();
+    }
+
     val = desc.contents("debug");
     if (val.is_defined())
     {
@@ -161,17 +170,18 @@ public:
     }
 
     // If we requested a validationWindow, then we also msut retrieve the cv datasets:
-    if(traits.validationWindowSize>0) {
+    if (traits.validationWindowSize > 0)
+    {
       val = desc.contents("X_cv");
       CHECK(val.is_defined(), "nn_gradient_descent: X_cv value is not defined");
       CHECK(val.is_matrix_type(), "nn_gradient_descent: X_cv is not a matrix type");
 
       Matrix X_cv = val.matrix_value();
       // Check that this matrix matches the lsizes:
-      CHECK(X_cv.dim2()==lsizes[0],"nn_gradient_descent: X_cv size doesn't match lsizes: "<<X_cv.dim2()<<"!="<<lsizes[0]);
+      CHECK(X_cv.dim2() == lsizes[0], "nn_gradient_descent: X_cv size doesn't match lsizes: " << X_cv.dim2() << "!=" << lsizes[0]);
 
       traits.X_cv_size = X_cv.numel();
-      traits.X_cv = (double*)X_cv.data();
+      traits.X_cv = (double *)X_cv.data();
 
       traits.nsamples_cv = X_cv.dim1();
 
@@ -181,14 +191,26 @@ public:
 
       Matrix y_cv = val.matrix_value();
       // Check that this matrix matches the lsizes:
-      CHECK(y_cv.dim2()==lsizes[nt],"nn_gradient_descent: y_cv size doesn't match lsizes: "<<y_cv.dim2()<<"!="<<lsizes[nt]);
+      CHECK(y_cv.dim2() == lsizes[nt], "nn_gradient_descent: y_cv size doesn't match lsizes: " << y_cv.dim2() << "!=" << lsizes[nt]);
 
       // Check that X/Y cv do match:
-      CHECK(y_cv.dim1()==X_cv.dim1(),"nn_gradient_descent: X_cv and y_cv sizes do not match: "<<X_cv.dim1()<<"!="<<y_cv.dim1());
+      CHECK(y_cv.dim1() == X_cv.dim1(), "nn_gradient_descent: X_cv and y_cv sizes do not match: " << X_cv.dim1() << "!=" << y_cv.dim1());
 
       traits.y_cv_size = y_cv.numel();
-      traits.y_cv = (double*)y_cv.data();
+      traits.y_cv = (double *)y_cv.data();
     }
+
+    // Prepare a couple of vectors to hold the cv cost and iteration numbers:
+    // Assign a callback to read the cv costs:
+    auto costCB = [] (double cost, unsigned int iter, void* userdata)
+    {
+      // logDEBUG("Received cost value "<<cost<<" at iter "<<iter);
+      CostMap& themap = *(CostMap*)(userdata);
+      themap[iter] = cost;
+    };
+
+    traits.userdata = (void*)&costMap;
+    traits.cvCostCB = costCB;
 
     // perform actual gradient descent:
     int res = _run_gd(traits);
@@ -266,10 +288,28 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   CHECK_RET(X_train.dim1() == y_train.dim1(), "nn_gradient_descent: mismatch in nsamples_train: " << X_train.dim1() << "!=" << y_train.dim1());
   CHECK_RET(y_train.dim2() == lsizes(nt), "nn_gradient_descent: y_train doesn't match lsizes: " << y_train.dim2() << "!=" << lsizes(nt));
 
+  // Prepare the cost map:
+  CostMap costsmap;
+  
   // Call the gradient descent method:
-  g_nerv.run_gradient_descent(lsizes, X_train, y_train, params, desc);
+  g_nerv.run_gradient_descent(lsizes, X_train, y_train, params, desc, costsmap);
+
+  // build the matrices to hold the cost data:
+  size_t n = costsmap.size();
+
+  Matrix costs = Matrix(n,1);
+  Matrix iters = Matrix(n,1);
+  double* cptr = (double*)costs.data();
+  double* iptr = (double*)iters.data();
+
+  for(CostMap::iterator it = costsmap.begin(); it!=costsmap.end(); ++it) {
+    (*iptr++) = (double)(it->first);
+    (*cptr++) = it->second;
+  }
 
   result.append(params);
+  result.append(costs);
+  result.append(iters);
 
   return result;
 }

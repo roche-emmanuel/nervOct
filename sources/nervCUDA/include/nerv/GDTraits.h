@@ -20,6 +20,8 @@ template<typename T>
 struct GDTraits : public BPTraits<T>
 {
 public:
+  typedef void (* CvCostFunc)(T cost, unsigned int iter, void* data);
+
   GDTraits()
   {
     init();
@@ -37,11 +39,16 @@ public:
   unsigned int maxiter;
   unsigned int nparams;
 
+  unsigned int evalFrequency;
+
   T momentum;
   T epsilon;
 
   unsigned int miniBatchSize;
   unsigned int validationWindowSize;
+
+  CvCostFunc cvCostCB;
+  void* userdata;
 
   void validate() const;
 
@@ -62,6 +69,11 @@ protected:
 
     miniBatchSize = 0;
     validationWindowSize = 0;
+
+    cvCostCB = nullptr;
+    userdata = nullptr;
+
+    evalFrequency = 128;
   }
 };
 

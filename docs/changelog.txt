@@ -199,3 +199,4 @@
 - using value of _maxiter <= 0 as trigger in gradient descent.
 - Retrieving all trait parameters from octave plugin for nn_gradient_descent.
 - Returning newly computed params from nn_gradient_descent.
+- Added trait for eval frequency and callback to retrieve cv cost at runtime.
