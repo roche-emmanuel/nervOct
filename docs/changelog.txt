@@ -196,3 +196,4 @@
 - testing traits before device traits init in gradient descent.
 - Building octave plugin for nn_gradient_descent.
 - Retrieving most parameters in nn_gradient_descent.
+- using value of _maxiter <= 0 as trigger in gradient descent.

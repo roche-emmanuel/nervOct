@@ -166,7 +166,7 @@ void GradientDescent<T>::run()
 
 
   // Run the iteration loop:
-  while (_maxiter < 0 || iter < _maxiter)
+  while (_maxiter <= 0 || iter < _maxiter)
   {
     // logDEBUG("Performing iteration "<<iter<<"...");
 
