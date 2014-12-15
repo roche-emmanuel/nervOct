@@ -1,7 +1,7 @@
 *** TODOs:
 - implement rescale weights functions to be used with dropout
-- Implement callback to read cost values during training.
-- manually specify te evalfrequency value.
+- test real training conditions.
+- implement selectBestRandomNetwork
 
 *** CUDA infos:
 

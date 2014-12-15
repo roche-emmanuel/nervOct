@@ -23,7 +23,7 @@
 
 using namespace nerv;
 
-typedef std::map<unsigned int,double> CostMap;
+typedef std::map<unsigned int, double> CostMap;
 
 class NERVManager
 {
@@ -50,7 +50,7 @@ public:
   }
 
   inline void run_gradient_descent(const Matrix &lsizes_mat, const Matrix &X_train, const Matrix &y_train,
-                                   const Matrix &params, octave_scalar_map &desc, CostMap& costMap)
+                                   const Matrix &params, octave_scalar_map &desc, CostMap &costMap, double &cvCost)
   {
     // Here we can already check that the feature matrix dimensions match
     // the lsizes description:
@@ -202,18 +202,25 @@ public:
 
     // Prepare a couple of vectors to hold the cv cost and iteration numbers:
     // Assign a callback to read the cv costs:
-    auto costCB = [] (double cost, unsigned int iter, void* userdata)
+    auto costCB = [] (double cost, unsigned int iter, void *userdata)
     {
       // logDEBUG("Received cost value "<<cost<<" at iter "<<iter);
-      CostMap& themap = *(CostMap*)(userdata);
+      CostMap &themap = *(CostMap *)(userdata);
       themap[iter] = cost;
     };
 
-    traits.userdata = (void*)&costMap;
+    traits.userdata = (void *)&costMap;
     traits.cvCostCB = costCB;
+
+    // Specify that we want to retrieve the cost value:
+    traits.compute_cost = true;
+    traits.compute_grads = true;
 
     // perform actual gradient descent:
     int res = _run_gd(traits);
+
+    // retrieve the cv cost:
+    cvCost = traits.cost;
 
     // release the resources:
     delete [] lsizes;
@@ -290,19 +297,22 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
 
   // Prepare the cost map:
   CostMap costsmap;
-  
+
+  double Jcv = 0.0;
+
   // Call the gradient descent method:
-  g_nerv.run_gradient_descent(lsizes, X_train, y_train, params, desc, costsmap);
+  g_nerv.run_gradient_descent(lsizes, X_train, y_train, params, desc, costsmap, Jcv);
 
   // build the matrices to hold the cost data:
   size_t n = costsmap.size();
 
-  Matrix costs = Matrix(n,1);
-  Matrix iters = Matrix(n,1);
-  double* cptr = (double*)costs.data();
-  double* iptr = (double*)iters.data();
+  Matrix costs = Matrix(n, 1);
+  Matrix iters = Matrix(n, 1);
+  double *cptr = (double *)costs.data();
+  double *iptr = (double *)iters.data();
 
-  for(CostMap::iterator it = costsmap.begin(); it!=costsmap.end(); ++it) {
+  for (CostMap::iterator it = costsmap.begin(); it != costsmap.end(); ++it)
+  {
     (*iptr++) = (double)(it->first);
     (*cptr++) = it->second;
   }
@@ -310,6 +320,7 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   result.append(params);
   result.append(costs);
   result.append(iters);
+  result.append(Jcv);
 
   return result;
 }

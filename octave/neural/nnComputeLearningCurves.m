@@ -8,16 +8,18 @@ m_vals = zeros(num,1);
 
 m = size(training.X_train,1);
 
-nn = nnInitNetwork(lsizes,cfg);
 
 for i=1:num,
 	training.train_ratio = ratios(i);
+	
+	nn = nnInitNetwork(lsizes,cfg);
 	
 	if cfg.use_CUDA
 		nn = nnTrainNetworkCUDA(training,nn,cfg);
 	else
 		nn = nnTrainNetwork(training,nn,cfg);
 	end
+	
 	ev = nnEvaluateNetwork(training,nn,cfg);
 	num_m = floor(0.5 + ratios(i)*m)
 	if cfg.verbose

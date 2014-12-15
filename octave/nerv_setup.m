@@ -55,6 +55,13 @@ cfg = config();
 % fname = [cfg.datapath '/training_weeks_1_4_pca.mat'];
 % save('-binary',fname,'tr');
 
+% cfg.use_PCA = false;
+% tr = nnPrepareTraining(1:4,cfg);	
+% tr.early_stopping = true;
+% tr.max_iterations = 0;
+% fname = [cfg.datapath '/training_weeks_1_4.mat'];
+% save('-binary',fname,'tr');
+
 
 % 5. Perform some training:
 %	load training set:

@@ -346,4 +346,21 @@
 %!	ylabel('Cv Cost');
 %!	hold off;
 
+% ==> Should return invalid cost and iter arrays if no early stopping mode:
+%!test
+%!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 100;
+%!	desc.evalFrequency = 32;
+%!	desc.miniBatchSize = 10;
+%!	desc.validationWindowSize = 0;
+%!	desc.X_cv = rand(50,3);
+%!	desc.y_cv = rand(50,1);
+%!	[weights, costs, iters] = nn_gradient_descent(desc);
+%!	assert(numel(costs)==0,'Found element in costs.')
+%!	assert(numel(iters)==0,'Found element in iters.')
 

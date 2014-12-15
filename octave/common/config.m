@@ -83,7 +83,7 @@ cfg.use_PCA = true;
 cfg.PCA_variance = 99.9;
 
 % Apply early stopping when training the networks:
-cfg.use_early_stopping = false;
+cfg.use_early_stopping = true;
 
 % Use sparse initialization:
 cfg.use_sparse_init = false;

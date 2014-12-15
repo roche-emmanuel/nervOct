@@ -153,8 +153,8 @@ void GradientDescent<T>::run()
     earlyStopping = true;
   }
 
-  trDEBUG(THIS, "Using learning rate: "<<_epsilon);
-  trDEBUG(THIS, "Using max momentum: "<<_mumax);
+  trDEBUG(THIS, "Using learning rate: " << _epsilon);
+  trDEBUG(THIS, "Using max momentum: " << _mumax);
 
   WindowedMean<value_type> mean(_validationWindowSize);
   value_type cur_mean = 0.0;
@@ -232,8 +232,9 @@ void GradientDescent<T>::run()
       // perform evaluation of the current theta value:
       // logDEBUG("Performing cv evaluation at iteration "<<iter<<"...");
       value_type J = computeCvCost();
-      if(_traits.cvCostCB) {
-        _traits.cvCostCB(J,iter, _traits.userdata);
+      if (_traits.cvCostCB)
+      {
+        _traits.cvCostCB(J, iter, _traits.userdata);
       }
 
       if (J < bestCvCost)
@@ -370,6 +371,10 @@ extern "C" {
     {
       GradientDescent<double> gd(traits);
       gd.run();
+      if (traits.compute_cost && traits.validationWindowSize>0)
+      {
+        traits.cost = gd.computeCvCost();
+      }
     }
     catch (...) //std::runtime_error &e)
     {
@@ -386,6 +391,10 @@ extern "C" {
     {
       GradientDescent<float> gd(traits);
       gd.run();
+      if (traits.compute_cost && traits.validationWindowSize>0)
+      {
+        traits.cost = gd.computeCvCost();
+      }
     }
     catch (...) //std::runtime_error &e)
     {
