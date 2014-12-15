@@ -152,6 +152,10 @@ void GradientDescent<T>::run()
     trDEBUG(THIS, "Using early stopping with window size: " << _validationWindowSize)
     earlyStopping = true;
   }
+
+  trDEBUG(THIS, "Using learning rate: "<<_epsilon);
+  trDEBUG(THIS, "Using max momentum: "<<_mumax);
+
   WindowedMean<value_type> mean(_validationWindowSize);
   value_type cur_mean = 0.0;
   value_type bestCvCost = std::numeric_limits<value_type>::max();

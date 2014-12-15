@@ -241,12 +241,55 @@
 %!error <nn_gradient_descent: dropout for layer 1 is out of range> invalid_dropouts_val()
 
 
-% ==> Should work if the input argument is a structure:
+% ==> Should work if the input argument is a structure with minimal fields:
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
 %!	desc.y_train = rand(100,1);
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
+%!	desc.maxiter = 10;
+%!	nn_gradient_descent(desc);
+
+% ==> Should work if the input argument is a structure proper cv datasets:
+%!test
+%!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
+%!  desc.epsilon = 0.05;
+%!	desc.maxiter = 0;
+%!	desc.validationWindowSize = 10;
+%!	desc.X_cv = rand(50,3);
+%!	desc.y_cv = rand(50,1);
+%!	nn_gradient_descent(desc);
+
+% ==> Should work with mini batch:
+%!test
+%!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
+%!  desc.epsilon = 0.05;
+%!	desc.maxiter = 0;
+%!	desc.miniBatchSize = 10;
+%!	desc.validationWindowSize = 10;
+%!	desc.X_cv = rand(50,3);
+%!	desc.y_cv = rand(50,1);
+%!	nn_gradient_descent(desc);
+
+% ==> Should work with momentum:
+%!test
+%!	desc.lsizes = [3, 4, 1];
+%!	desc.X_train = rand(100,3);
+%!	desc.y_train = rand(100,1);
+%!  desc.params = rand(21,1);
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 0;
+%!	desc.miniBatchSize = 10;
+%!	desc.validationWindowSize = 10;
+%!	desc.X_cv = rand(50,3);
+%!	desc.y_cv = rand(50,1);
 %!	nn_gradient_descent(desc);
 

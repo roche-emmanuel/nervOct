@@ -128,6 +128,20 @@ public:
       traits.debug = val.bool_value();
     }
 
+    val = desc.contents("bias");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: bias is not a double type");
+      traits.bias = val.double_value();
+    }
+
+    val = desc.contents("lambda");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: lambda is not a double type");
+      traits.lambda = val.double_value();
+    }
+
     double *dropouts = nullptr;
     val = desc.contents("dropouts");
     if (val.is_defined())
@@ -158,6 +172,8 @@ public:
 
       traits.X_cv_size = X_cv.numel();
       traits.X_cv = (double*)X_cv.data();
+
+      traits.nsamples_cv = X_cv.dim1();
 
       val = desc.contents("y_cv");
       CHECK(val.is_defined(), "nn_gradient_descent: y_cv value is not defined");

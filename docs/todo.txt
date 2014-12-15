@@ -1,9 +1,6 @@
 *** TODOs:
-- retrieve run_gradient_descent in octave plugin.
-- implement octave plugin to access gradient descent.
-- retrieve all traits in ocave plugin.
-- return error code in run_gradient_descent.
-
+- implement rescale weights functions to be used with dropout
+- return newly computed params from nn_gradient_descent.
 
 *** CUDA infos:
 
