@@ -48,19 +48,17 @@ public:
   }
 
   inline void run_gradient_descent(const Matrix &lsizes_mat, const Matrix &X_train, const Matrix &y_train,
-                                   const Matrix &params)
+                                   const Matrix &params, octave_scalar_map &desc)
   {
     // Here we can already check that the feature matrix dimensions match
     // the lsizes description:
-    CHECK(X_train.dim2() == lsizes_mat(0), "nn_gradient_descent: Feature matrix doesn't match lsizes: " << X_train.dim2() << "!=" << lsizes_mat(0));
-    // TODO: also check here that we have the same number of samples.
-
     GDTraits<double> traits;
 
     // Assign the nl value:
     unsigned int nl = lsizes_mat.numel();
+    unsigned int nt = nl - 1;
     traits.nl = nl;
-    logDEBUG("traits.nl = " << traits.nl)
+    // logDEBUG("traits.nl = " << traits.nl)
 
     // Assign the lsizes value:
     unsigned int *lsizes = new unsigned int[nl];
@@ -75,7 +73,6 @@ public:
     traits.nsamples_train = nsamples_train;
 
     // Check if we have the proper number of parameters:
-    CHECK(params.numel() == traits.np(), "nn_gradient_descent: params doesn't match expected size: " << params.numel() << "!=" << traits.np());
     traits.nparams = params.numel();
     traits.params = (double *)params.data();
 
@@ -84,16 +81,105 @@ public:
     traits.X = (double *)X_train.data();
 
     // Assign the y_train data:
-    CHECK(X_train.dim1() == y_train.dim1(), "nn_gradient_descent: mismatch in nsamples_train: " << X_train.dim1() << "!=" << y_train.dim1());
-    CHECK(y_train.dim2() == lsizes_mat(nl-1), "nn_gradient_descent: y_train doesn't match lsizes: " << y_train.dim2() << "!=" << lsizes_mat(nl-1));
     traits.y_train_size = y_train.numel();
-    traits.yy = (double*)y_train.data();
+    traits.yy = (double *)y_train.data();
+
+    // We should also read a value for momentum if available:
+    octave_value val = desc.contents("momentum");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: momentum is not a double type");
+      traits.momentum = val.double_value();
+      CHECK(traits.momentum >= 0.0 && traits.momentum < 1.0, "nn_gradient_descent: invalid value for momentum: " << traits.momentum);
+    }
+
+    // We should also read a value for learning rate if available:
+    val = desc.contents("epsilon");
+    CHECK(val.is_defined(), "nn_gradient_descent: epsilon value is not defined");
+    CHECK(val.is_double_type(), "nn_gradient_descent: epsilon is not a double type");
+    traits.epsilon = val.double_value();
+    CHECK(traits.epsilon > 0.0 && traits.epsilon < 1.0, "nn_gradient_descent: invalid value for epsilon: " << traits.epsilon);
+
+    val = desc.contents("miniBatchSize");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: miniBatchSize is not a double type");
+      traits.miniBatchSize = (unsigned int)val.double_value();
+    }
+
+    val = desc.contents("validationWindowSize");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: validationWindowSize is not a double type");
+      traits.validationWindowSize = (unsigned int)val.double_value();
+    }
+
+    val = desc.contents("maxiter");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: maxiter is not a double type");
+      traits.maxiter = (unsigned int)val.double_value();
+    }
+
+    val = desc.contents("debug");
+    if (val.is_defined())
+    {
+      CHECK(val.is_bool_type(), "nn_gradient_descent: debug is not a bool type");
+      traits.debug = val.bool_value();
+    }
+
+    double *dropouts = nullptr;
+    val = desc.contents("dropouts");
+    if (val.is_defined())
+    {
+      CHECK(val.is_matrix_type(), "nn_gradient_descent: dropouts is not a matrix type");
+      Matrix drop_mat = val.matrix_value();
+      CHECK(drop_mat.numel() == nt, "nn_gradient_descent: invalid size for dropout matrix size: " << drop_mat.numel() << "!=" << nt);
+
+      dropouts = new double[nt];
+      for (unsigned int i = 0; i < nt; ++i)
+      {
+        dropouts[i] = drop_mat(i);
+        CHECK(dropouts[i] >= 0.0 && dropouts[i] <= 1.0, "nn_gradient_descent: dropout for layer " << i << " is out of range");
+      }
+
+      traits.dropouts = dropouts;
+    }
+
+    // If we requested a validationWindow, then we also msut retrieve the cv datasets:
+    if(traits.validationWindowSize>0) {
+      val = desc.contents("X_cv");
+      CHECK(val.is_defined(), "nn_gradient_descent: X_cv value is not defined");
+      CHECK(val.is_matrix_type(), "nn_gradient_descent: X_cv is not a matrix type");
+
+      Matrix X_cv = val.matrix_value();
+      // Check that this matrix matches the lsizes:
+      CHECK(X_cv.dim2()==lsizes[0],"nn_gradient_descent: X_cv size doesn't match lsizes: "<<X_cv.dim2()<<"!="<<lsizes[0]);
+
+      traits.X_cv_size = X_cv.numel();
+      traits.X_cv = (double*)X_cv.data();
+
+      val = desc.contents("y_cv");
+      CHECK(val.is_defined(), "nn_gradient_descent: y_cv value is not defined");
+      CHECK(val.is_matrix_type(), "nn_gradient_descent: y_cv is not a matrix type");
+
+      Matrix y_cv = val.matrix_value();
+      // Check that this matrix matches the lsizes:
+      CHECK(y_cv.dim2()==lsizes[nt],"nn_gradient_descent: y_cv size doesn't match lsizes: "<<y_cv.dim2()<<"!="<<lsizes[nt]);
+
+      // Check that X/Y cv do match:
+      CHECK(y_cv.dim1()==X_cv.dim1(),"nn_gradient_descent: X_cv and y_cv sizes do not match: "<<X_cv.dim1()<<"!="<<y_cv.dim1());
+
+      traits.y_cv_size = y_cv.numel();
+      traits.y_cv = (double*)y_cv.data();
+    }
 
     // perform actual gradient descent:
     int res = _run_gd(traits);
 
     // release the resources:
     delete [] lsizes;
+    delete [] dropouts;
 
     CHECK(res == GD_SUCCESS, "ERROR: exception occured in gradient descent.")
   }
@@ -148,8 +234,23 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
 
   Matrix y_train = y_train_val.matrix_value();
 
+  CHECK_RET(X_train.dim2() == lsizes(0), "nn_gradient_descent: Feature matrix doesn't match lsizes: " << X_train.dim2() << "!=" << lsizes(0));
+
+  unsigned int np = 0;
+  unsigned int nt = lsizes.numel() - 1;
+
+  for (unsigned int i = 0; i < nt; ++i)
+  {
+    np += (lsizes(i) + 1) * lsizes(i + 1);
+  }
+
+  CHECK_RET(params.numel() == np, "nn_gradient_descent: params doesn't match expected size: " << params.numel() << "!=" << np);
+
+  CHECK_RET(X_train.dim1() == y_train.dim1(), "nn_gradient_descent: mismatch in nsamples_train: " << X_train.dim1() << "!=" << y_train.dim1());
+  CHECK_RET(y_train.dim2() == lsizes(nt), "nn_gradient_descent: y_train doesn't match lsizes: " << y_train.dim2() << "!=" << lsizes(nt));
+
   // Call the gradient descent method:
-  g_nerv.run_gradient_descent(lsizes, X_train, y_train, params);
+  g_nerv.run_gradient_descent(lsizes, X_train, y_train, params, desc);
 
   return result;
 }

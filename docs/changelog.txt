@@ -195,3 +195,4 @@
 - Added run_gradient_descent function and initial test.
 - testing traits before device traits init in gradient descent.
 - Building octave plugin for nn_gradient_descent.
+- Retrieving most parameters in nn_gradient_descent.
