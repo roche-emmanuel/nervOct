@@ -5,6 +5,8 @@
 
 #include <nerv/GDTraits.h>
 
+// #define WITH_COST_TEST
+
 #define CHECK(cond, msg) if(!(cond)) { \
     std::ostringstream os; \
     os << msg; \
@@ -30,6 +32,11 @@ class NERVManager
 protected:
   typedef int (* RunGDFunc)(GDTraits<double> &traits);
 
+#ifdef WITH_COST_TEST
+  typedef void (*CostFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+                           double *nn_params, double *X, double *yy, double lambda, double &J, double *gradients, double *deltas, double *inputs);
+#endif
+
 public:
   NERVManager()
   {
@@ -40,6 +47,12 @@ public:
     // Try loading the functions of interest:
     _run_gd = (RunGDFunc) GetProcAddress(_h, "run_gradient_descent");
     CHECK(_run_gd, "ERROR: cannot find run_gradient_descent method! err=" << GetLastError());
+
+#ifdef WITH_COST_TEST
+    _costFunc = (CostFunc) GetProcAddress(_h, "costFunc");
+    CHECK(_costFunc, "ERROR: cannot find costFunc method! err=" << GetLastError());
+#endif
+
   }
 
   ~NERVManager()
@@ -229,9 +242,42 @@ public:
     CHECK(res == GD_SUCCESS, "ERROR: exception occured in gradient descent.")
   }
 
+#ifdef WITH_COST_TEST
+  inline void costFunc(const Matrix &lsizes_mat, const Matrix &nn_params, const Matrix &X, const Matrix &yy, double lambda, double &J, Matrix &grads)
+  {
+    unsigned int nl = lsizes_mat.numel();
+    unsigned int *lsizes = new unsigned int[nl];
+    for (unsigned int i = 0; i < nl; ++i)
+    {
+      lsizes[i] = lsizes_mat(i);
+    }
+
+    unsigned int np = 0;
+    unsigned int nt = nl - 1; // number of matrices evolved.
+
+    for (unsigned int i = 0; i < nt; ++i)
+    {
+      np += lsizes[i + 1] * (lsizes[i] + 1);
+    }
+
+    if (nn_params.numel() != np)
+    {
+      error("Invalid number of parameters: %d!=%d", np, nn_params.numel());
+    }
+
+    _costFunc(nl, lsizes, X.dim1(), (double *)nn_params.data(), (double *)X.data(), (double *)yy.data(), lambda, J, (double *)grads.data(), NULL, NULL); // memcpy((double*)grads.data(),gradients,sizeof(double)*nn_params.numel());
+
+    delete [] lsizes;
+  }
+#endif
+  
 protected:
   HMODULE _h;
   RunGDFunc _run_gd;
+
+#ifdef WITH_COST_TEST
+  CostFunc _costFunc;
+#endif
 };
 
 NERVManager g_nerv;
@@ -321,6 +367,17 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   result.append(costs);
   result.append(iters);
   result.append(Jcv);
+
+#ifdef WITH_COST_TEST
+  double J = 0.0;
+  Matrix grads = Matrix(params.numel(), 1);
+  Matrix X_cv = desc.contents("X_cv").matrix_value();
+  Matrix y_cv = desc.contents("y_cv").matrix_value();
+
+  g_nerv.costFunc(lsizes, params, X_cv, y_cv, 0.0, J, grads);
+  CHECK_RET(abs(J-Jcv)<1e-10,"Mismatch in cv cost computation: "<<J<<"!="<<Jcv);
+
+#endif
 
   return result;
 }

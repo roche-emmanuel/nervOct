@@ -205,3 +205,4 @@
 - Working on mismatch of cv cost computation.
 - Added comparaison of gd_errfunc and old costfunc test.
 - Added test for final cv cost computation consistency.
+- Added check on final cv cost computation from nn_gradient_descent.

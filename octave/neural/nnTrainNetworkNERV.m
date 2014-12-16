@@ -86,8 +86,8 @@ end
 %!	nn = nnTrainNetworkNERV(tr,nn,cfg);
 %!	toc();
 %!	% We should also chekc that the Jcv value is correct:
-%!	ev = nnEvaluateNetwork(tr,nn,cfg);
-%!	assert(abs(nn.Jcv - ev.J_cv)<1e-10,'Mistmatch in Jcv computation: %f!=%f',nn.Jcv,ev.J_cv);
+%!	%ev = nnEvaluateNetwork(tr,nn,cfg);
+%!	%assert(abs(nn.Jcv - ev.J_cv)<1e-10,'Mistmatch in Jcv computation: %f!=%f',nn.Jcv,ev.J_cv);
 %! 	% Now we can draw the evolution of the costs:
 %!	figure; hold on;
 %!	h = gcf();	
