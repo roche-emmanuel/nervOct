@@ -30,7 +30,7 @@
 %!		end
 %!		lsizes(end) = num_labels;
 %!		%lsizes	
-%!		m = random2(50,100);
+%!		m = random2(1000,2000);
 %!		X  = nnDebugInitializeWeights(lsizes(1) - 1, m);
 %!		y  = mod(1:m, num_labels)'; % We use 0-bazed labels.
 %!		lambda = random2(1,10)/10;
