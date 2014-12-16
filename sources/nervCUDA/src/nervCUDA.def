@@ -27,3 +27,4 @@ rand_weights_f			@22
 run_gradient_descent @23
 run_gradient_descent_f @24
 gd_errfunc_cpu			@25
+get_strategy_manager	@26

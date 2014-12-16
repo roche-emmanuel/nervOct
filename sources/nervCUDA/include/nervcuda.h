@@ -31,6 +31,8 @@
 #include <nerv/BPDeviceTraits.h>
 #include <nerv/RandDeviceTraits.h>
 
+#include <nerv/StrategyManager.h>
+
 using namespace nerv;
 
 namespace nerv
@@ -114,6 +116,10 @@ extern "C" {
   void rand_weights(RandTraits<double>& traits);
   void rand_weights_f(RandTraits<float>& traits);
 
+  nerv::StrategyManager& get_strategy_manager();
+
+  NERVCUDA_EXPORT int create_strategy();
+  NERVCUDA_EXPORT void destroy_strategy(int id);
 };
 
 template<typename T>

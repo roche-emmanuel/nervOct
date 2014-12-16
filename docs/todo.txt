@@ -1,6 +1,5 @@
 *** TODOs:
 - test real training conditions.
-- Investigate issue with mismatch in early stopping cost value.
 - add verbose flag de gradient descent.
 - implement network trading evaluation in octave.
 
