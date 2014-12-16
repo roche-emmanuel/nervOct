@@ -80,7 +80,7 @@ end
 %!	tr = nnPrepareTraining(1:1,cfg);
 %!	tr.early_stopping = true;
 %!	tr.max_iterations = 0;
-%!	tr.dropouts = [0.8, 0.5, 0.5, 0.5];
+%!	%tr.dropouts = [0.8, 0.5, 0.5, 0.5];
 %!	nn = nnInitNetwork([tr.num_features 512 128 32 3],cfg);
 %!	tic();
 %!	nn = nnTrainNetworkNERV(tr,nn,cfg);

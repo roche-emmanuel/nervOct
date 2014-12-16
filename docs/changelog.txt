@@ -204,3 +204,4 @@
 - Implemented rescale weights functions to use after dropout.
 - Working on mismatch of cv cost computation.
 - Added comparaison of gd_errfunc and old costfunc test.
+- Added test for final cv cost computation consistency.

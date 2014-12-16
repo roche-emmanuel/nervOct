@@ -43,6 +43,10 @@ public:
   {
     return _nsamples;
   }
+  inline unsigned int nsamples_cv() const
+  {
+    return _nsamples_cv;
+  }
 
   inline unsigned int *lsizes() const
   {
@@ -132,6 +136,7 @@ protected:
   unsigned int _ny_cv; // number of element in y_cv
 
   unsigned int _nsamples; // number of samples.
+  unsigned int _nsamples_cv;
 
   unsigned int *_lsizes;
 
@@ -154,6 +159,7 @@ void TrainingSet<T>::reset()
   _nl = 0;
   _nt = 0;
   _nsamples = 0;
+  _nsamples_cv = 0;
   _lambda = 0;
   _maxiter = 0;
   _np = 0;
@@ -260,13 +266,14 @@ void TrainingSet<T>::init(std::vector<unsigned int> lsizes, unsigned int nsample
   _nx = nsamples * lsizes[0];
   _X_train = createArray(_nx);
 
-  _nx_cv = (unsigned int)ceil(nsamples * 0.25) * lsizes[0];
+  _nsamples_cv = (unsigned int)ceil(nsamples * 0.25);
+  _nx_cv = _nsamples_cv * lsizes[0];
   _X_cv = createArray(_nx_cv);
 
   _ny = nsamples * lsizes[_nt];
   _y_train = createArray(_ny);
 
-  _ny_cv = (unsigned int)ceil(nsamples * 0.25) * lsizes[_nt];
+  _ny_cv = _nsamples_cv * lsizes[_nt];
   _y_cv = createArray(_ny_cv);
 
   _np = 0;

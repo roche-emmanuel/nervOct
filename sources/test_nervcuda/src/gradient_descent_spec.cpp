@@ -1047,7 +1047,7 @@ BOOST_AUTO_TEST_CASE( test_compute_cv_cost_final )
   GDd::Traits gtraits(tr);
   gtraits.lambda = 0.1;
   gtraits.epsilon = 0.001;
-  gtraits.momentum = 0.995;  
+  gtraits.momentum = 0.995;
 
   gtraits.dropouts = dropouts;
 
@@ -1072,8 +1072,8 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_vs_costfunc )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*OldCostFunc)(unsigned int nl, unsigned int* lsizes, unsigned int nsamples, 
-  double* nn_params, double* X, double* yy, double lambda, double& J, double* gradients, double* deltas, double* inputs);
+  typedef void (*OldCostFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+                              double * nn_params, double * X, double * yy, double lambda, double & J, double * gradients, double * deltas, double * inputs);
 
   OldCostFunc old_costfunc = (OldCostFunc) GetProcAddress(h, "costFunc");
   BOOST_CHECK(old_costfunc != nullptr);
@@ -1172,6 +1172,89 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_vs_costfunc )
   }
 
   BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_final_cv_cost_consistency )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  BOOST_CHECK(h != nullptr);
+
+  typedef void (*CostFunc)(BPTraits<double> &traits);
+
+  // We should be able to retrieve the train function:
+  CostFunc costfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
+  BOOST_CHECK(costfunc != nullptr);
+
+
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3, 5, 4, 8, 70, 100);
+  // tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  value_type *dropouts = tr.createArray(tr.nt());
+  for (unsigned int j = 0; j < tr.nt(); ++j)
+  {
+    dropouts[j] = tr.random_real(0.0, 1.0);
+  }
+
+  // dropouts[0] = 0.5;
+  // dropouts[1] = 0.9;
+
+  // Create traits from that trainingset:
+  GDd::Traits gtraits(tr);
+  gtraits.lambda = 0.1;
+  gtraits.epsilon = 0.001;
+  gtraits.momentum = 0.995;
+
+  // gtraits.dropouts = dropouts;
+
+  // enabled early stopping:
+  gtraits.validationWindowSize = 10;
+
+  // ask the gradient descent to compute the final Jcv value:
+  // gtraits.compute_cost = true;
+
+  // create gradient descent and run:
+  GDd gd(gtraits);
+  value_type cost = gd.run();
+
+
+  // Recompute the cost with the final parameters:
+  // unsigned int np = tr.np();
+  unsigned int *lsizes = tr.lsizes();
+  unsigned int nsamples = tr.nsamples_cv();
+  value_type lambda = tr.lambda();
+  unsigned int nl = tr.nl();
+  unsigned int nt = tr.nt();
+
+  BPTraits<value_type> traits;
+  traits.nl = nl;
+  traits.lsizes = lsizes;
+  traits.nsamples_train = nsamples;
+
+  traits.params = tr.params();
+  traits.X = tr.X_cv();
+  traits.yy = tr.y_cv();
+  traits.lambda = 0.0;
+  traits.compute_cost = true; // Note that this is disabled by default.
+
+  unsigned int np = traits.np();
+  unsigned int nd = traits.nd();
+
+  // prepare the output gradient array:
+  traits.grads = tr.createArray(np);
+  traits.inputs = tr.createArray(nd);
+  traits.deltas = tr.createArray(nd);
+
+  costfunc(traits);
+  value_type J = traits.cost;
+
+  BOOST_CHECK_MESSAGE(abs(cost - J) <= 1e-10, "Mismatch in J cv values:" << std::setprecision(16) << cost << "!=" << J);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
