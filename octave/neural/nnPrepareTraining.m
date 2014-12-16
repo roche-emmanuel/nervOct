@@ -151,6 +151,10 @@ trdata.learning_rate = cfg.default_learning_rate;
 
 trdata.momentum = cfg.default_momentum;
 
+trdata.validation_window_size = cfg.default_validation_window_size;
+
+trdata.eval_frequency = cfg.default_eval_frequency;
+
 end
 
 % ==> Should return a struct containing an Xtrain matrix and Ytrain vector, both with same number of rows:

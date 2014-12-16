@@ -125,10 +125,13 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   // Theta is the array containing the computed network weights at each cycle:
   d_theta = _d_traits.createDeviceBuffer(_np, traits.params);
   d_theta_bak = _d_traits.createDeviceBuffer(_np);
+
+  // keep a reference on the device parameters buffer:
+  d_params = _d_traits.params;
 }
 
 template <typename T>
-void GradientDescent<T>::run()
+T GradientDescent<T>::run()
 {
   int iter = 0;
   value_type *current_cost = NULL;
@@ -201,6 +204,7 @@ void GradientDescent<T>::run()
     _d_traits.lambda = _traits.lambda;
     _d_traits.dropouts = _traits.dropouts;
     _d_traits.wmults = nullptr;
+    _d_traits.params = d_params;
 
     gd_errfunc_device(_d_traits);
 
@@ -267,11 +271,18 @@ void GradientDescent<T>::run()
           {
             iter = restoreState(mean);
             // logDEBUG("Max number of invalid Jcv count reached. Resetting the latest best state from iteration "<<iter);
+            // value_type J2 = computeCvCost();
+            // if (abs(J2 - bestCvCost) > 1e-6)
+            // {
+            //   trDEBUG(THIS, "Mismatch while restoring best cvcost " << std::setprecision(16) << bestCvCost << "!=" << J2);
+            // }
 
             if (evalFrequency > 1)
             {
               // we reduce the evaluation frequency (assuming it is a power of 2)
               evalFrequency /= 2;
+              evalFrequency = evalFrequency < 1 ? 1 : evalFrequency; // ensure the value stays valid.
+
               invalid_count = 0;
               trDEBUG_V(THIS, "Resetting from iteration " << iter << " with eval frequency of " << evalFrequency)
             }
@@ -301,6 +312,8 @@ void GradientDescent<T>::run()
 
   // Download the parameters from the theta buffer on the GPU:
   copyFromDevice(_traits.params, d_theta, _np);
+
+  return bestCvCost;
 }
 
 template <typename T>
@@ -317,6 +330,8 @@ T GradientDescent<T>::computeTrainCost()
   _d_traits.lambda = 0.0;
   _d_traits.dropouts = nullptr;
   _d_traits.wmults = _traits.dropouts;
+
+  _d_traits.params = d_theta;
 
   gd_errfunc_device(_d_traits);
 
@@ -336,6 +351,12 @@ T GradientDescent<T>::computeCvCost()
   _d_traits.lambda = 0.0;
   _d_traits.dropouts = nullptr;
   _d_traits.wmults = _traits.dropouts;
+
+  _d_traits.params = d_theta;
+
+  // checkCudaErrors(cudaMemset(_d_traits.grads, 0, _d_traits.np()*sizeof(T)));
+  // checkCudaErrors(cudaMemset(_d_traits.inputs, 0, _d_traits.nd()*sizeof(T)));
+  // checkCudaErrors(cudaMemset(_d_traits.deltas, 0, _d_traits.nd()*sizeof(T)));
 
   gd_errfunc_device(_d_traits);
 
@@ -371,9 +392,10 @@ extern "C" {
     {
       GradientDescent<double> gd(traits);
       gd.run();
-      if (traits.compute_cost && traits.validationWindowSize>0)
+      if (traits.compute_cost && traits.validationWindowSize > 0)
       {
         traits.cost = gd.computeCvCost();
+        // logDEBUG("Computed final Jcv value: " << traits.cost);
       }
     }
     catch (...) //std::runtime_error &e)
@@ -391,9 +413,10 @@ extern "C" {
     {
       GradientDescent<float> gd(traits);
       gd.run();
-      if (traits.compute_cost && traits.validationWindowSize>0)
+      if (traits.compute_cost && traits.validationWindowSize > 0)
       {
         traits.cost = gd.computeCvCost();
+        // logDEBUG("Computed final Jcv value: " << traits.cost);
       }
     }
     catch (...) //std::runtime_error &e)

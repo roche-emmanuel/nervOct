@@ -814,7 +814,7 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout )
       dropouts[j] = tr.random_real(0.0, 1.0);
     }
 
-    // dropouts[0] = 0.5; 
+    // dropouts[0] = 0.5;
     // dropouts[1] = 0.9;
 
     traits.dropouts = dropouts;
@@ -987,14 +987,14 @@ BOOST_AUTO_TEST_CASE( test_run_gradient_descent )
   // We should be able to retrieve the train function:
   CostFunc errfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
   BOOST_CHECK(errfunc != nullptr);
-  
+
   // prepare a dataset:
   TrainingSet<value_type> tr(3, 5, 3, 6, 200, 300);
   tr.maxiter(-1); // no limit on maximum number of iterations.
 
   // Create traits from that trainingset:
   GDTraits<value_type> traits(tr);
-  
+
   traits.epsilon = 0.001;
   traits.momentum = 0.995;
   traits.bias = 0.0;
@@ -1020,6 +1020,51 @@ BOOST_AUTO_TEST_CASE( test_run_gradient_descent )
   BOOST_CHECK_MESSAGE(cost2 < cost1, "No improvement in train cost:" << cost2 << ">=" << cost1);
 
   BOOST_CHECK(FreeLibrary(h));
+}
+
+BOOST_AUTO_TEST_CASE( test_compute_cv_cost_final )
+{
+  srand((unsigned int)time(nullptr));
+
+  typedef double value_type;
+  value_type epsilon = std::numeric_limits<value_type>::epsilon();
+  // logDEBUG("Epsilon value is: "<<epsilon)
+
+  // prepare a dataset:
+  TrainingSet<value_type> tr(3, 5, 4, 8, 70, 100);
+  // tr.maxiter(-1); // no limit on maximum number of iterations.
+
+  value_type *dropouts = tr.createArray(tr.nt());
+  for (unsigned int j = 0; j < tr.nt(); ++j)
+  {
+    dropouts[j] = tr.random_real(0.0, 1.0);
+  }
+
+  // dropouts[0] = 0.5;
+  // dropouts[1] = 0.9;
+
+  // Create traits from that trainingset:
+  GDd::Traits gtraits(tr);
+  gtraits.lambda = 0.1;
+  gtraits.epsilon = 0.001;
+  gtraits.momentum = 0.995;  
+
+  gtraits.dropouts = dropouts;
+
+  // enabled early stopping:
+  gtraits.validationWindowSize = 10;
+
+  // ask the gradient descent to compute the final Jcv value:
+  // gtraits.compute_cost = true;
+
+  // create gradient descent and run:
+  GDd gd(gtraits);
+  value_type cost = gd.run();
+
+  // compute cv cost:
+  value_type J = gd.computeCvCost();
+
+  BOOST_CHECK_MESSAGE(abs(cost - J) <= 1e-10, "Mismatch in J cv values:" << std::setprecision(16) << cost << "!=" << J);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

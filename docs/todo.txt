@@ -1,6 +1,8 @@
 *** TODOs:
 - test real training conditions.
-- implement selectBestRandomNetwork
+- Investigate issue with mismatch in early stopping cost value.
+- add verbose flag de gradient descent.
+- implement network trading evaluation in octave.
 
 *** CUDA infos:
 

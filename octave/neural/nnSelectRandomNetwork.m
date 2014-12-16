@@ -1,10 +1,10 @@
-function [best_network, best_Jcv, all_Jcvs] = nnSelectRandomNetwork(ntrials,lsizes,training,cfg,withFig=false)
+function [best_network, best_Jcv, all_Jcvs] = nnSelectRandomNetwork(ntrials,plsizes,training,cfg,withFig=false)
 % Train a given number of NN and select the best one.
 
 best_Jcv = Inf;
 all_Jcvs = zeros(ntrials,1);
 
-lsizes = [training.num_features lsizes];
+lsizes = [training.num_features plsizes];
 
 % Enable figure display or not:
 % withFig = true;
@@ -59,10 +59,16 @@ end
 %!test
 %!	cfg = config();
 %!	cfg.use_PCA = false;
-%!	tr = nnPrepareTraining(1:1,cfg);
+%!	tr = nnPrepareTraining(1:6,cfg);
 %!	tr.early_stopping = true;
 %!	tr.max_iterations = 0;
-%!	tr.dropouts = [0.8, 0.5, 0.5, 0.5];
+%!	tr.regularization_param = 0.1;
+%!	%tr.dropouts = [0.8, 0.5];
+%!	tr.dropouts = [0.8, 0.5, 0.5];
+%!	%tr.dropouts = [0.8, 0.5, 0.5, 0.5];
 %!	tic();
-%!	nn = nnSelectRandomNetwork(10,[128 64 32 3],tr,cfg);
+%!	%[nn, best, all] = nnSelectRandomNetwork(10,[32 3],tr,cfg,true);
+%!	[nn, best, all] = nnSelectRandomNetwork(10,[128 32 3],tr,cfg,true);
+%!	%[nn, best, all] = nnSelectRandomNetwork(10,[128 64 32 3],tr,cfg,true);
+%!  all;
 %!	toc();

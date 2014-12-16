@@ -86,17 +86,14 @@ addpath([pname '/neural']);
 % fprintf('Testing nnTrainNetworkCUDA...\n')
 % test nnTrainNetworkCUDA
 
-% fprintf('Testing nnTrainNetworkNERV...\n')
-% test nnTrainNetworkNERV
+fprintf('Testing nnTrainNetworkNERV...\n')
+test nnTrainNetworkNERV
 
 % fprintf('Testing nnPredict...\n')
 % test nnPredict
 
 % fprintf('Testing nnEvaluateNetwork...\n')
 % test nnEvaluateNetwork
-
-% fprintf('Testing nnComputeLearningCurves...\n')
-% test nnComputeLearningCurves
 
 % fprintf('Testing DLL loading...\n')
 % test_load
@@ -116,7 +113,10 @@ addpath([pname '/neural']);
 % fprintf('Testing nnSelectRandomNetwork...\n')
 % test nnSelectRandomNetwork
 
-fprintf('Testing nnRescaleParameters...\n')
-test nnRescaleParameters
+% fprintf('Testing nnRescaleParameters...\n')
+% test nnRescaleParameters
+
+% fprintf('Testing nnComputeLearningCurves...\n')
+% test nnComputeLearningCurves
 
 more on;

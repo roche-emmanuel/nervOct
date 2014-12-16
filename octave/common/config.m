@@ -92,12 +92,18 @@ cfg.use_sparse_init = false;
 cfg.sparse_init_lot_size = 15;
 
 % Number of trials performed by default when generating random netwoks:
-cfg.default_num_random_trials = 10;
+cfg.default_num_random_trials = 20;
 
 % Default learning rate:
-cfg.default_learning_rate = 0.00001;
+cfg.default_learning_rate = 0.0001;
 
 % Default momentum:
 cfg.default_momentum = 0.99;
+
+% Default validation window size:
+cfg.default_validation_window_size = 20;
+
+% Default initial evaluation frequency when using cross validation window in back propagation.
+cfg.default_eval_frequency = 32;
 
 end

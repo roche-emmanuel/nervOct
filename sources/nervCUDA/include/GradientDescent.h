@@ -23,7 +23,7 @@ public:
   // Constructor taking all the parameters needed for computation:
   GradientDescent(const GDTraits<value_type> &traits);
 
-  void run();
+  value_type run();
 
   value_type computeTrainCost();
   value_type computeCvCost();
@@ -49,6 +49,8 @@ protected:
   value_type _minCvCostDec; // minimal valid mean cv cost decrease
 
   // GPU buffers:
+  value_type *d_params; // training weights buffer.
+  
   value_type *d_theta; // weights buffer.
   value_type *d_theta_bak; // weights buffer.
   

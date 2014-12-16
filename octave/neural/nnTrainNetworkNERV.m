@@ -28,12 +28,12 @@ desc.params = network.weights;
 desc.epsilon = training.learning_rate;
 desc.momentum = training.momentum;
 desc.maxiter = training.max_iterations;
-desc.evalFrequency = 32;
+desc.evalFrequency = training.eval_frequency;
 desc.miniBatchSize = 32;
 desc.lambda = training.regularization_param;
 
 if isfield(training,'dropouts')
-fprintf('Setting up dropout...\n');
+% fprintf('Setting up dropout...\n');
 desc.dropouts = training.dropouts;
 end
 
@@ -44,7 +44,7 @@ if training.early_stopping,
 	% size(y)
 	yycv = nnBuildLabelMatrix(ycv);
 	
-	desc.validationWindowSize = 100;
+	desc.validationWindowSize = training.validation_window_size;
 	desc.X_cv = Xcv;
 	desc.y_cv = yycv;
 end
@@ -52,9 +52,12 @@ end
 [weights, costs, iters, Jcv] = nn_gradient_descent(desc);
 
 if isfield(training,'dropouts')
-fprintf('Rescaling weights...\n');
-weights = nnRescaleParameters(weights, desc.lsizes, desc.dropouts)
+% fprintf('Rescaling weights...\n');
+weights = nnRescaleParameters(weights, desc.lsizes, desc.dropouts);
 end
+
+pred_jcv = nnCostFunction(weights,desc.lsizes,desc.X_cv,desc.y_cv',0);
+jcv_error = abs(Jcv-pred_jcv)
 
 network.weights = weights;
 network.costs = costs;
@@ -82,6 +85,9 @@ end
 %!	tic();
 %!	nn = nnTrainNetworkNERV(tr,nn,cfg);
 %!	toc();
+%!	% We should also chekc that the Jcv value is correct:
+%!	ev = nnEvaluateNetwork(tr,nn,cfg);
+%!	assert(abs(nn.Jcv - ev.J_cv)<1e-10,'Mistmatch in Jcv computation: %f!=%f',nn.Jcv,ev.J_cv);
 %! 	% Now we can draw the evolution of the costs:
 %!	figure; hold on;
 %!	h = gcf();	

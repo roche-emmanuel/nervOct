@@ -1,6 +1,8 @@
 
 set X64_MODE=1
 
+set PATH=W:\Cloud\Dev\Cygwin\bin;%PATH%
+
 if %X64_MODE%==1 goto mode_x64
 
 set PATH=W:\Cloud\Projects\nervtech\bin\x86;%PATH%

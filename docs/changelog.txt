@@ -202,3 +202,4 @@
 - Added trait for eval frequency and callback to retrieve cv cost at runtime.
 - Added nnTrainNetworkNERV method.
 - Implemented rescale weights functions to use after dropout.
+- Working on mismatch of cv cost computation.
