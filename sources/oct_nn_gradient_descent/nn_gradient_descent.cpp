@@ -2,10 +2,11 @@
 #include <octave/ov-struct.h>
 #include <sstream>
 #include <windows.h>
+#include <iomanip>
 
 #include <nerv/GDTraits.h>
 
-// #define WITH_COST_TEST
+#define WITH_COST_TEST
 
 #define CHECK(cond, msg) if(!(cond)) { \
     std::ostringstream os; \
@@ -316,8 +317,13 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   CHECK_RET(params_val.is_defined(), "nn_gradient_descent: params value is not defined");
   CHECK_RET(params_val.is_matrix_type(), "nn_gradient_descent: params is not a matrix type");
 
-  Matrix params = params_val.matrix_value();
-  params.make_unique();
+  // Matrix params = params_val.matrix_value();
+  // params.make_unique();
+
+  Matrix params_orig = params_val.matrix_value();
+  unsigned int np2 = params_orig.numel();
+  Matrix params = Matrix(np2,1);
+  memcpy((void*)params.data(),params_orig.data(),np2*sizeof(double));
 
   // The desc structure should contain an y_train element.
   octave_value y_train_val = desc.contents("y_train");
@@ -374,10 +380,18 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   Matrix X_cv = desc.contents("X_cv").matrix_value();
   Matrix y_cv = desc.contents("y_cv").matrix_value();
 
+  result.append(lsizes);
+  result.append(X_cv);
+  result.append(y_cv);
+
   g_nerv.costFunc(lsizes, params, X_cv, y_cv, 0.0, J, grads);
   CHECK_RET(abs(J-Jcv)<1e-10,"Mismatch in cv cost computation: "<<J<<"!="<<Jcv);
-
 #endif
+
+  // logDEBUG("Params =");
+  // for(unsigned int i=0;i<10;++i) {
+  //   logDEBUG( std::setprecision(16) << params(i));
+  // }
 
   return result;
 }
