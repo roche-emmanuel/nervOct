@@ -207,3 +207,4 @@
 - Added test for final cv cost computation consistency.
 - Added check on final cv cost computation from nn_gradient_descent.
 - Still working on the Jcv mismatch issue.
+- Finally fixed computation of Jcv : was due to transposition of yy matrix (eg. all computations were wrong so far).

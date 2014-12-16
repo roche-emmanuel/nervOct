@@ -17,7 +17,7 @@ X = X(1:m,:);
 y = y(1:m,cfg.target_symbol_pair);
 
 % Now we need to convert the label vector into a matrix:
-yy = nnBuildLabelMatrix(y);
+yy = nnBuildLabelMatrix(y)';
 
 
 % Prepare the training traits:
@@ -42,7 +42,7 @@ if training.early_stopping,
 	% size(X)
 	ycv = training.y_cv(:,cfg.target_symbol_pair);
 	% size(y)
-	yycv = nnBuildLabelMatrix(ycv);
+	yycv = nnBuildLabelMatrix(ycv)';
 	
 	desc.validationWindowSize = training.validation_window_size;
 	desc.X_cv = Xcv;
@@ -56,11 +56,8 @@ if isfield(training,'dropouts')
 weights = nnRescaleParameters(weights, desc.lsizes, desc.dropouts);
 end
 
-%  Note that here we cannot use nnCostFunction directly as we would need
-% to reorder the desc.y_cv data. (transposition is not enough here!)
-
-% pred_jcv = nnCostFunction(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
-pred_jcv = nn_cost_function_cuda(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
+pred_jcv = nnCostFunction(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
+% pred_jcv = nn_cost_function_cuda(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
 jcv_error = abs(Jcv-pred_jcv)
 
 network.weights = weights;
@@ -84,15 +81,19 @@ end
 %!	tr = nnPrepareTraining(1:1,cfg);
 %!	tr.early_stopping = true;
 %!	tr.max_iterations = 0;
-%!	%tr.dropouts = [0.8, 0.5, 0.5, 0.5];
+%!	tr.dropouts = [0.8, 0.5, 0.5, 0.5];
 %!	nn = nnInitNetwork([tr.num_features 512 128 32 3],cfg);
-%!	% nn = nnInitNetwork([tr.num_features 32 3],cfg);
+%!	%nn = nnInitNetwork([tr.num_features 32 3],cfg);
 %!	tic();
 %!	nn = nnTrainNetworkNERV(tr,nn,cfg);
 %!	toc();
 %!	% We should also chekc that the Jcv value is correct:
-%!	%ev = nnEvaluateNetwork(tr,nn,cfg);
-%!	%assert(abs(nn.Jcv - ev.J_cv)<1e-10,'Mistmatch in Jcv computation: %f!=%f',nn.Jcv,ev.J_cv);
+%!	ev = nnEvaluateNetwork(tr,nn,cfg);
+%!	assert(abs(nn.Jcv - ev.J_cv)<1e-10,'Mistmatch in Jcv computation: %f!=%f',nn.Jcv,ev.J_cv);
+%!	ev.J_train
+%!	ev.J_cv
+%!	ev.accuracy_train
+%!	ev.accuracy_cv
 %! 	% Now we can draw the evolution of the costs:
 %!	figure; hold on;
 %!	h = gcf();	

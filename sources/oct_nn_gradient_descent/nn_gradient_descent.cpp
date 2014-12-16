@@ -6,7 +6,7 @@
 
 #include <nerv/GDTraits.h>
 
-#define WITH_COST_TEST
+// #define WITH_COST_TEST
 
 #define CHECK(cond, msg) if(!(cond)) { \
     std::ostringstream os; \
@@ -205,10 +205,10 @@ public:
 
       Matrix y_cv = val.matrix_value();
       // Check that this matrix matches the lsizes:
-      CHECK(y_cv.dim2() == lsizes[nt], "nn_gradient_descent: y_cv size doesn't match lsizes: " << y_cv.dim2() << "!=" << lsizes[nt]);
+      CHECK(y_cv.dim1() == lsizes[nt], "nn_gradient_descent: y_cv size doesn't match lsizes: " << y_cv.dim1() << "!=" << lsizes[nt]);
 
       // Check that X/Y cv do match:
-      CHECK(y_cv.dim1() == X_cv.dim1(), "nn_gradient_descent: X_cv and y_cv sizes do not match: " << X_cv.dim1() << "!=" << y_cv.dim1());
+      CHECK(y_cv.dim2() == X_cv.dim1(), "nn_gradient_descent: X_cv and y_cv sizes do not match: " << X_cv.dim1() << "!=" << y_cv.dim2());
 
       traits.y_cv_size = y_cv.numel();
       traits.y_cv = (double *)y_cv.data();
@@ -344,8 +344,9 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
 
   CHECK_RET(params.numel() == np, "nn_gradient_descent: params doesn't match expected size: " << params.numel() << "!=" << np);
 
-  CHECK_RET(X_train.dim1() == y_train.dim1(), "nn_gradient_descent: mismatch in nsamples_train: " << X_train.dim1() << "!=" << y_train.dim1());
-  CHECK_RET(y_train.dim2() == lsizes(nt), "nn_gradient_descent: y_train doesn't match lsizes: " << y_train.dim2() << "!=" << lsizes(nt));
+  // Note that her we expect the matrix y_train to be transposed compared to X_train:
+  CHECK_RET(X_train.dim1() == y_train.dim2(), "nn_gradient_descent: mismatch in nsamples_train: " << X_train.dim1() << "!=" << y_train.dim2());
+  CHECK_RET(y_train.dim1() == lsizes(nt), "nn_gradient_descent: y_train doesn't match lsizes: " << y_train.dim1() << "!=" << lsizes(nt));
 
   // Prepare the cost map:
   CostMap costsmap;
@@ -380,18 +381,9 @@ DEFUN_DLD (nn_gradient_descent, args, nargout,
   Matrix X_cv = desc.contents("X_cv").matrix_value();
   Matrix y_cv = desc.contents("y_cv").matrix_value();
 
-  result.append(lsizes);
-  result.append(X_cv);
-  result.append(y_cv);
-
   g_nerv.costFunc(lsizes, params, X_cv, y_cv, 0.0, J, grads);
   CHECK_RET(abs(J-Jcv)<1e-10,"Mismatch in cv cost computation: "<<J<<"!="<<Jcv);
 #endif
-
-  // logDEBUG("Params =");
-  // for(unsigned int i=0;i<10;++i) {
-  //   logDEBUG( std::setprecision(16) << params(i));
-  // }
 
   return result;
 }
