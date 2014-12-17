@@ -213,3 +213,4 @@
 - Added test for Strategy::getPrice
 - Added implementation for strategy evaluation.
 - Adding plugin trade_strategy for octave.
+- Building trade_strategy function.

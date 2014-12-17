@@ -24,8 +24,6 @@
 
 using namespace nerv;
 
-typedef std::map<unsigned int, double> CostMap;
-
 class NERVManager
 {
 public:
@@ -38,9 +36,35 @@ DEFUN_DLD (trade_strategy, args, nargout,
 {
   octave_value_list result;
 
+  // logDEBUG("Calling trade_strategy function.")
+
   // we expect to receive at least 2 arguments:
   int nargin = args.length();
-  CHECK_RET(nargin >= 2, "trade_strategy: Invalid number of arguments: " << nargin);
+
+  CHECK_RET(nargin == 3, "trade_strategy: Invalid number of arguments: " << nargin);
+
+  // First we retrieve the command from the first argument (should be a string)
+  CHECK_RET(args(0).is_string(), "trade_strategy: command is not a string");
+  std::string cmd = args(0).string_value();
+
+  // We can already read the strategy id and the desc structure:
+  CHECK_RET(args(1).is_uint32_type(), "trade_strategy: invalid strategy id");
+  unsigned int sid = (unsigned int)(args(1).uint32_scalar_value());
+  CHECK_RET(cmd=="create" || sid > 0, "trade_strategy: invalud strategy id(==0)");
+
+  CHECK_RET(args(2).is_map(), "trade_strategy: desc should be a structure type");
+  octave_scalar_map desc = args(2).scalar_map_value();
+
+
+  if (cmd == "create")
+  {
+    CHECK_RET(sid==0,"Strategy ID should be zero when creating new strategy");
+
+  }
+  else
+  {
+    CHECK_RET(false, "trade_strategy: unknown command name: " << cmd);
+  }
 
   // // Check the argument types:
   // CHECK_RET(args(0).is_map(), "trade_strategy: desc (arg 0) should be a structure type");
