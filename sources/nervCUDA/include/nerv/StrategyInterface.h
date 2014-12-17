@@ -2,6 +2,10 @@
 #ifndef NERV_STRATEGYINTERFACE_H_
 #define NERV_STRATEGYINTERFACE_H_
 
+#ifndef NERVCUDA_EXPORT
+#define NERVCUDA_EXPORT
+#endif
+
 #include <windows.h>
 #include <sstream>
 #include <stdio.h>
@@ -15,7 +19,7 @@
 
 #define DECLARE_PROC(pname) pname##_t pname;
 #define GET_PROC(ptype) ptype = (ptype##_t)GetProcAddress(_h,#ptype); \
-	SCHECK(ptype##,"Invalid " #ptype " pointer.")
+	SCHECK(ptype,"Invalid " #ptype " pointer.")
 
 namespace nerv
 {

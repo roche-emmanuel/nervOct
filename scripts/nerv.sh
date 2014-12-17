@@ -67,6 +67,8 @@ build_all)
 	build_octave_plugin "nn_cg_train" "x64"
 	build_octave_plugin "nn_gradient_descent" "x86"
 	build_octave_plugin "nn_gradient_descent" "x64"
+	build_octave_plugin "trade_strategy" "x86"
+	build_octave_plugin "trade_strategy" "x64"
 	
 	;;
 
