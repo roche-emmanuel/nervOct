@@ -2,6 +2,8 @@
 #ifndef NERV_STRATEGY_H_
 #define NERV_STRATEGY_H_
 
+#include <nerv/Model.h>
+
 namespace nerv
 {
 
@@ -98,7 +100,13 @@ public:
 
   void digest(DigestTraits& traits) const;
 
+  void destroyAllModels();
+
 protected:
+  typedef std::vector<Model*> ModelVector;
+  // List of all models used for this strategy:
+  ModelVector _models; 
+
   // Retrieve the current price for a given symbol.
   // if the default value -1 is used for symbol, then the current
   // target symbol is used.

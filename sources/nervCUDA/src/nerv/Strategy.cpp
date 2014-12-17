@@ -19,6 +19,7 @@ Strategy::Strategy(const CreationTraits &traits)
 Strategy::~Strategy()
 {
   logDEBUG("Destroying Strategy " << _id << ".");
+  destroyAllModels();
 }
 
 void Strategy::evaluate(EvalTraits &traits) const
@@ -226,4 +227,12 @@ Strategy::value_type Strategy::getPrice(value_type *iptr, int type, int symbol) 
 void Strategy::digest(DigestTraits &traits) const
 {
 
+}
+
+void Strategy::destroyAllModels()
+{
+  for(ModelVector::iterator it = _models.begin(); it != _models.end(); ++it) {
+    delete (*it);
+  }
+  _models.clear();
 }

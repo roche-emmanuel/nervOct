@@ -217,3 +217,4 @@
 - Added support for destroy_strategy usage.
 - Added support for strategy evaluation from octave.
 - Adding strategy model class.
+- Added model list in strategy.
