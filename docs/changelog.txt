@@ -211,3 +211,4 @@
 - Started implementation of strategy manager.
 - Started implementation of strategy evaluation.
 - Added test for Strategy::getPrice
+- Added implementation for strategy evaluation.

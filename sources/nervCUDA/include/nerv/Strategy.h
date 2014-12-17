@@ -32,7 +32,7 @@ enum StrategyPriceType
 
 enum StrategeyTradePosition
 {
-  POS_UNKNONW, // used when system is not ready.
+  POS_UNKNOWN, // used when system is not ready.
   POS_NONE,
   POS_LONG, // when buying
   POS_SHORT // when selling
@@ -68,6 +68,18 @@ public:
     int inputs_ncols;
   };
 
+  struct DigestTraits
+  {
+    DigestTraits()
+      : input(nullptr), input_size(0), position(POS_UNKNOWN) {}
+
+    value_type *input;
+    int input_size;
+
+    // Suggested position given the input.
+    int position;
+  };
+
 public:
   Strategy(const CreationTraits &traits);
   virtual ~Strategy();
@@ -78,6 +90,8 @@ public:
   }
 
   void evaluate(EvalTraits &traits) const;
+
+  void digest(DigestTraits& traits) const;
 
 protected:
   // Retrieve the current price for a given symbol.
