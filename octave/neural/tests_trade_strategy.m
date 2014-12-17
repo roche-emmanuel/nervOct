@@ -18,8 +18,21 @@
 %!error <trade_strategy: unknown command name: dummy> invalid_command()
 
 % ==> Should throw an error if create is called without valid traits:
-%!error <trade_strategy: desc should be a structure type> trade_strategy('create',uint32(0),3)
+%!error <trade_strategy: desc should be a structure type> trade_strategy('create',3)
 
-% ==> Should return a valid id when we request the creation of a strategy:
-%test
-%	id = trade_strategy('create')
+% ==> Should throw an error if creation traits do not contain target_symbol:
+
+%!function invalid_creation()
+%!  desc.dummy = 10;
+%!	trade_strategy('create',desc)
+%!endfunction
+
+%!error <trade_stategy: target_symbol value is not defined.> invalid_creation()
+
+% ==> It should create a valid strategy when the traits are OK:
+%!test
+%!	desc.target_symbol = 6;
+%!	sid = trade_strategy('create',desc)
+%!	assert(sid>0,'Invalid valud for Strategy id: %d',sid)
+%!	% once a strategy is create it should be possible to destroy it:
+%!	trade_strategy('destroy',sid)

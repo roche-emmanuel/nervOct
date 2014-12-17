@@ -70,7 +70,7 @@ extern "C"
     }
     catch (...)
     {
-      logERROR("Exception occured in destroy_strategy.")
+      logERROR("Exception occured in create_strategy.")
       return 0;
     }
   }
