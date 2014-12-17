@@ -28,7 +28,7 @@ NERVManager g_nerv;
 
 
 template<typename T>
-T read_desc_value(octave_scalar_map &desc, std::string key, bool optional = false, T def = 0)
+T read_desc_value(octave_scalar_map &desc, std::string key, bool optional = false, T def = T())
 {
   octave_value val = desc.contents(key);
   CHECK(val.is_defined() || optional, "trade_stategy: " << key << " value is not defined.");
@@ -39,9 +39,27 @@ T read_desc_value(octave_scalar_map &desc, std::string key, bool optional = fals
   return (T)val.double_value();
 }
 
+template <>
+Matrix read_desc_value<Matrix>(octave_scalar_map &desc, std::string key, bool optional, Matrix def)
+{
+  octave_value val = desc.contents(key);
+  CHECK(val.is_defined() || optional, "trade_stategy: " << key << " value is not defined.");
+  if (!val.is_defined())
+    return def;
+
+  CHECK(val.is_matrix_type(), "trade_strategy: " << key << " should be a matrix");
+  return val.matrix_value();
+
+}
+
 unsigned int read_uint(octave_scalar_map &desc, std::string key, bool optional = false, unsigned int def = 0)
 {
   return read_desc_value<unsigned int>(desc, key, optional, def);
+}
+
+Matrix read_matrix(octave_scalar_map &desc, std::string key, bool optional = false, Matrix def = Matrix())
+{
+  return read_desc_value<Matrix>(desc, key, optional, def);
 }
 
 DEFUN_DLD (trade_strategy, args, nargout,
@@ -96,14 +114,20 @@ DEFUN_DLD (trade_strategy, args, nargout,
     CHECK(args(2).is_map(), "trade_strategy: desc should be a structure type");
     octave_scalar_map desc = args(2).scalar_map_value();
 
-    // if (cmd == "create")
-    // {
-    //   CHECK(sid == 0, "Strategy ID should be zero when creating new strategy");
-    // }
-    // else
-    // {
+    if (cmd == "evaluate")
+    {
+      Strategy::EvalTraits traits;
+      Matrix inputs = read_matrix(desc,"inputs");
+      traits.inputs = (double*)inputs.data();
+      traits.inputs_nrows = inputs.dim1();
+      traits.inputs_ncols = inputs.dim2();
+
+      CHECK(g_intf.evaluate_strategy(sid,traits)==ST_SUCCESS,"Could not evaluate strategy.");
+    }
+    else
+    {
       CHECK(false, "trade_strategy: unknown command name: " << cmd);
-    // }
+    }
   }
   catch (...)
   {

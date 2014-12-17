@@ -36,3 +36,19 @@
 %!	assert(sid>0,'Invalid valud for Strategy id: %d',sid)
 %!	% once a strategy is create it should be possible to destroy it:
 %!	trade_strategy('destroy',sid)
+
+% ==> It should be possible to evaluate a strategy:
+%!test
+%!	cdesc.target_symbol = 6;
+%!	sid = trade_strategy('create',cdesc)
+%!	
+%!	% Prepare the evaluation traits:
+%!	nf = 1 + 4*6*3;
+%!	nsamples = 100;
+%!	evdesc.inputs = rand(nf,nsamples);
+%!	
+%!	% Perform evaluation:
+%!	trade_strategy('evaluate',sid,evdesc);
+%!
+%!	% once a strategy is create it should be possible to destroy it:
+%!	trade_strategy('destroy',sid)

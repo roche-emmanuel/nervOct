@@ -51,6 +51,8 @@ void Strategy::evaluate(EvalTraits &traits) const
 
   for (int i = 0; i < nsamples; ++i)
   {
+    logDEBUG("Evaluating input "<<i<<"...");
+    
     // Digest this input:
     dtraits.input = iptr;
     digest(dtraits);
