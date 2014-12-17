@@ -13,9 +13,9 @@ StrategyManager::~StrategyManager()
   logDEBUG("Destroying StrategyManager.");
 }
 
-Strategy *StrategyManager::createStrategy()
+Strategy *StrategyManager::createStrategy(const Strategy::CreationTraits& traits) 
 {
-  Strategy *s = new Strategy();
+  Strategy *s = new Strategy(traits);
   _strategies.push_back(s);
   return s;
 }
@@ -57,11 +57,11 @@ extern "C"
     return singleton;
   }
 
-  int create_strategy()
+  int create_strategy(const Strategy::CreationTraits& traits)
   {
     try
     {
-      return get_strategy_manager().createStrategy()->getID();
+      return get_strategy_manager().createStrategy(traits)->getID();
     }
     catch (...)
     {
@@ -70,7 +70,7 @@ extern "C"
     }
   }
 
-  void destroy_strategy(int id)
+  int destroy_strategy(int id)
   {
     try
     {
@@ -78,11 +78,31 @@ extern "C"
       Strategy *s = sm.getStrategy(id);
       THROW_IF(!s, "Cannot find strategy with ID " << id);
       sm.destroyStrategy(s);
+      return ST_SUCCESS;
     }
     catch (...)
     {
       logERROR("Exception occured in destroy_strategy.")
+      return ST_EXCEPTION_OCCURED;
     }
+  }
+
+  int evaluate_strategy(int id, Strategy::EvalTraits& traits)
+  {
+    try
+    {
+      StrategyManager &sm = get_strategy_manager();
+      Strategy *s = sm.getStrategy(id);
+      THROW_IF(!s, "Cannot find strategy with ID " << id);
+      s->evaluate(traits);
+      return ST_SUCCESS;
+    }
+    catch (...)
+    {
+      logERROR("Exception occured in evaluate_strategy.")
+      return ST_EXCEPTION_OCCURED;
+    }
+
   }
 }
 

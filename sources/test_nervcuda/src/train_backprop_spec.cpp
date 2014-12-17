@@ -13,10 +13,6 @@
 #undef min
 #endif
 
-int random_int(int mini, int maxi) {
-  return mini + (int)floor(0.5 + (maxi-mini)*(double)rand()/(double)RAND_MAX);
-}
-
 double random_double(double mini, double maxi) {
   return mini + (maxi-mini)*(double)rand()/(double)RAND_MAX;
 }

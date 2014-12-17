@@ -56,6 +56,11 @@ sigma = std(X_train);
 
 fprintf('Applying normalization...\n')
 
+% Here we should keep a copy of the raw matrices:
+trdata.X_train_raw = X_train;
+trdata.X_cv_raw = X_cv;
+trdata.X_test_raw = X_test;
+
 % Then we apply the normalization on all datasets:
 X_train = applyNormalization(X_train,mu,sigma);
 X_cv = applyNormalization(X_cv,mu,sigma);

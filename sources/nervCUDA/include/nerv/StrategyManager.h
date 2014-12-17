@@ -16,7 +16,7 @@ public:
   StrategyManager();
   ~StrategyManager();
 
-  Strategy *createStrategy();
+  Strategy *createStrategy(const Strategy::CreationTraits& traits);
   Strategy* getStrategy(int id);
   void destroyStrategy(Strategy *s);
 

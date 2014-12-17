@@ -49,6 +49,11 @@ inline unsigned int random_uint(unsigned int mini, unsigned int maxi)
   return mini + (unsigned int)floor(0.5 + (maxi - mini) * (double)rand() / (double)RAND_MAX);
 }
 
+inline int random_int(int mini, int maxi)
+{
+  return mini + (int)floor(0.5 + (maxi - mini) * (double)rand() / (double)RAND_MAX);
+}
+
 }
 
 extern "C" {
@@ -118,8 +123,9 @@ extern "C" {
 
   nerv::StrategyManager& get_strategy_manager();
 
-  NERVCUDA_EXPORT int create_strategy();
-  NERVCUDA_EXPORT void destroy_strategy(int id);
+  NERVCUDA_EXPORT int create_strategy(const Strategy::CreationTraits& traits);
+  NERVCUDA_EXPORT int destroy_strategy(int id);
+  NERVCUDA_EXPORT int evaluate_strategy(int id, Strategy::EvalTraits& traits);
 };
 
 template<typename T>

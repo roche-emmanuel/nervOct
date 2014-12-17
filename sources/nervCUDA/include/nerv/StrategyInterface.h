@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <iostream>
 
+#include <nerv/StrategyManager.h>
+
 #define SLOG(msg) std::cout << msg << std::endl;
 #define STHROW(msg) { std::ostringstream os; os << msg; SLOG("[ERROR] Throwing exception: " << msg); throw std::runtime_error(os.str()); }
 #define SCHECK(cond,msg) if(!(cond)) STHROW(msg);
@@ -22,8 +24,9 @@ class StrategyInterface
 {
 public:
   typedef StrategyManager &(*get_strategy_manager_t)();
-  typedef int (*create_strategy_t)();
-  typedef void (*destroy_strategy_t)(int id);
+  typedef int (*create_strategy_t)(const Strategy::CreationTraits& traits);
+  typedef int (*destroy_strategy_t)(int id);
+  typedef int (*evaluate_strategy_t)(int id, const Strategy::EvalTraits& traits);
 
 public:
   StrategyInterface()
@@ -36,6 +39,7 @@ public:
 	  GET_PROC(get_strategy_manager)
 	  GET_PROC(create_strategy)
 	  GET_PROC(destroy_strategy)
+	  GET_PROC(evaluate_strategy)
   };
 
   ~StrategyInterface() {
@@ -46,6 +50,7 @@ public:
 	DECLARE_PROC(get_strategy_manager)
 	DECLARE_PROC(create_strategy)
 	DECLARE_PROC(destroy_strategy)
+	DECLARE_PROC(evaluate_strategy)
 
 protected:
 	HMODULE _h;
