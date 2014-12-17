@@ -7,7 +7,7 @@
 namespace nerv
 {
 
-class StrategyManager
+class NERVCUDA_EXPORT StrategyManager
 {
 public:
   typedef std::vector<Strategy *> StrategyVector;
@@ -20,10 +20,13 @@ public:
   Strategy* getStrategy(int id);
   void destroyStrategy(Strategy *s);
 
+  static StrategyManager& instance();
+  
 protected:
   StrategyVector _strategies;
 };
 
 };
+
 
 #endif

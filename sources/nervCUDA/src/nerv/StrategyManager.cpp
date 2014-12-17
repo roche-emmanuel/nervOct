@@ -49,14 +49,19 @@ Strategy *StrategyManager::getStrategy(int id)
   return nullptr;
 }
 
+StrategyManager& StrategyManager::instance()
+{
+    static StrategyManager singleton;
+    return singleton;  
+}
+
 extern "C"
 {
   StrategyManager &get_strategy_manager()
   {
-    static StrategyManager singleton;
-    return singleton;
+    return StrategyManager::instance();
   }
-
+  
   int create_strategy(const Strategy::CreationTraits& traits)
   {
     try

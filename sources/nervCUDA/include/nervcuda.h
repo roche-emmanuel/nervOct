@@ -14,6 +14,12 @@
 #  define NERVCUDA_EXPORT
 #endif
 
+#if defined(_MSC_VER)
+    // #pragma warning( disable : 4244 )
+    #pragma warning( disable : 4251 )
+    // #pragma warning( disable : 4275 )
+#endif
+
 #include <cuda_runtime.h>
 #include <iostream>
 
@@ -21,6 +27,7 @@
 #include <nerv/Utils.h>
 #else
 #include <sgtCore.h>
+#include <nerv/StrategyManager.h>
 #endif
 
 #define BLOCK_SIZE 32
@@ -30,8 +37,6 @@
 #include <nerv/GDTraits.h>
 #include <nerv/BPDeviceTraits.h>
 #include <nerv/RandDeviceTraits.h>
-
-#include <nerv/StrategyManager.h>
 
 using namespace nerv;
 
@@ -121,11 +126,13 @@ extern "C" {
   void rand_weights(RandTraits<double>& traits);
   void rand_weights_f(RandTraits<float>& traits);
 
+#ifndef __CUDACC__
   nerv::StrategyManager& get_strategy_manager();
 
   NERVCUDA_EXPORT int create_strategy(const Strategy::CreationTraits& traits);
   NERVCUDA_EXPORT int destroy_strategy(int id);
   NERVCUDA_EXPORT int evaluate_strategy(int id, Strategy::EvalTraits& traits);
+#endif
 };
 
 template<typename T>

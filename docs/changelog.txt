@@ -210,3 +210,4 @@
 - Finally fixed computation of Jcv : was due to transposition of yy matrix (eg. all computations were wrong so far).
 - Started implementation of strategy manager.
 - Started implementation of strategy evaluation.
+- Added test for Strategy::getPrice

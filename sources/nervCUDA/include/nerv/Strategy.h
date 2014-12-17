@@ -5,22 +5,43 @@
 namespace nerv
 {
 
-enum StrategyErrorCode {
-	ST_SUCCESS = 0,
-	ST_EXCEPTION_OCCURED
+enum StrategyErrorCode
+{
+  ST_SUCCESS = 0,
+  ST_EXCEPTION_OCCURED
 };
 
-class Strategy
+enum StrategyTradeSymbol
+{
+  SYMBOL_EURAUD = 1,
+  SYMBOL_EURCAD,
+  SYMBOL_EURCHF,
+  SYMBOL_EURGBP,
+  SYMBOL_EURJPY,
+  SYMBOL_EURUSD,
+  SYMBOL_LAST
+};
+
+enum StrategyPriceType
+{
+  PRICE_OPEN = 1,
+  PRICE_LOW,
+  PRICE_HIGH,
+  PRICE_CLOSE
+};
+
+enum StrategeyTradePosition
+{
+  POS_UNKNONW, // used when system is not ready.
+  POS_NONE,
+  POS_LONG, // when buying
+  POS_SHORT // when selling
+};
+
+class NERVCUDA_EXPORT Strategy
 {
 public:
   typedef double value_type;
-
-  enum TradePosition {
-  	POS_UNKNONW, // used when system is not ready.
-  	POS_NONE,
-  	POS_LONG, // when buying
-  	POS_SHORT // when selling
-  };
 
   struct CreationTraits
   {
@@ -49,17 +70,27 @@ public:
 
 public:
   Strategy(const CreationTraits &traits);
-  ~Strategy();
+  virtual ~Strategy();
 
   inline int getID()
   {
     return _id;
   }
 
-  void evaluate(EvalTraits &traits);
+  void evaluate(EvalTraits &traits) const;
 
 protected:
+  // Retrieve the current price for a given symbol.
+  // if the default value -1 is used for symbol, then the current
+  // target symbol is used.
+  value_type getPrice(value_type *iptr, int type, int symbol = 0) const;
+
   int _id;
+
+  // The symbol that we want to trade:
+  // The symbol value should be taken from the
+  // StrategyTradeSymbol enumeration.
+  int _target_symbol;
 };
 
 };
