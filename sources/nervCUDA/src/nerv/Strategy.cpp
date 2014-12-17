@@ -28,16 +28,21 @@ void Strategy::evaluate(EvalTraits &traits) const
   int nfeatures = traits.inputs_nrows;
   int nsamples = traits.inputs_ncols;
 
+  value_type *balance_ptr = traits.balance;
+
   THROW_IF(!iptr || nfeatures <= 0 || nsamples <= 0, "Invalid input data");
 
   value_type stop_lost = -1.0;
   value_type ref_price = -1.0;
+  value_type num_lots = 0.0;
 
   value_type mean_spread = 0.00008;
   value_type max_lost = mean_spread * 0.5;
 
   value_type gross_profit = 0.0;
   value_type gross_lost = 0.0;
+
+  value_type balance = 3000.0; // initial balance in euros.
 
   // Initial position should be NONE:
   int cur_pos = POS_NONE;
@@ -47,12 +52,13 @@ void Strategy::evaluate(EvalTraits &traits) const
   DigestTraits dtraits;
   dtraits.input_size = nfeatures;
 
-  value_type cur_price, cur_low, cur_high, gain, new_stop;
+  value_type cur_price, cur_low, cur_high, gain, new_stop, profit;
+
 
   for (int i = 0; i < nsamples; ++i)
   {
-    logDEBUG("Evaluating input "<<i<<"...");
-    
+    logDEBUG("Evaluating input " << i << "...");
+
     // Digest this input:
     dtraits.input = iptr;
     digest(dtraits);
@@ -86,6 +92,11 @@ void Strategy::evaluate(EvalTraits &traits) const
         {
           gross_lost += -gain; // take the negative value here.
         }
+
+        // We assume here that we are trading the EURO symbol on our account.
+        // Then the profit depends on the lot size:
+        profit = num_lots * 100000.0 * (stop_lost / ref_price - 1.0);
+        balance += profit;
 
         // Leave the current position:
         ref_price = -1.0;
@@ -130,6 +141,11 @@ void Strategy::evaluate(EvalTraits &traits) const
         {
           gross_lost += -gain;
         }
+
+        // We assume here that we are trading the EURO symbol on our account.
+        // Then the profit depends on the lot size:
+        profit = num_lots * 100000.0 * (ref_price / stop_lost - 1.0);
+        balance += profit;
 
         // Leave the current position:
         ref_price = -1.0;
@@ -187,9 +203,15 @@ void Strategy::evaluate(EvalTraits &traits) const
       }
     }
 
+    // Save the current balance after each minute if requested:
+    if (balance_ptr)
+      balance_ptr[i] = balance;
+
     // Move to the next minute:
     iptr += nfeatures;
   }
+
+  logDEBUG("Final balance is: " << balance);
 }
 
 Strategy::value_type Strategy::getPrice(value_type *iptr, int type, int symbol) const

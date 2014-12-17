@@ -11,6 +11,9 @@ StrategyManager::StrategyManager()
 StrategyManager::~StrategyManager()
 {
   logDEBUG("Destroying StrategyManager.");
+
+  // Ensure all registered strategies are removed:
+  destroyAllStrategies();
 }
 
 Strategy *StrategyManager::createStrategy(const Strategy::CreationTraits& traits) 
@@ -47,6 +50,16 @@ Strategy *StrategyManager::getStrategy(int id)
   }
 
   return nullptr;
+}
+
+void StrategyManager::destroyAllStrategies()
+{
+  for (StrategyVector::iterator it = _strategies.begin(); it != _strategies.end(); ++it)
+  {
+    delete (*it);
+  }
+
+  _strategies.clear();
 }
 
 StrategyManager& StrategyManager::instance()

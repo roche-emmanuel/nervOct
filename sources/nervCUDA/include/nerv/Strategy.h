@@ -56,7 +56,8 @@ public:
   struct EvalTraits
   {
     EvalTraits()
-      : inputs(nullptr), inputs_nrows(0), inputs_ncols(0) {}
+      : inputs(nullptr), inputs_nrows(0), inputs_ncols(0),
+      balance(nullptr) {}
 
     // input array containing 1 minute of data per column.
     // Each column contains the minute id, following by the
@@ -66,6 +67,10 @@ public:
     value_type *inputs;
     int inputs_nrows;
     int inputs_ncols;
+
+    // Buffer that may be provided to hold the actual balance value for each minute.
+    // This buffer may also be NULL.
+    value_type* balance;
   };
 
   struct DigestTraits

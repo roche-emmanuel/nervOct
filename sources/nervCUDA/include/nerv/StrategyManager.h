@@ -16,12 +16,14 @@ public:
   StrategyManager();
   ~StrategyManager();
 
-  Strategy *createStrategy(const Strategy::CreationTraits& traits);
-  Strategy* getStrategy(int id);
+  Strategy *createStrategy(const Strategy::CreationTraits &traits);
+  Strategy *getStrategy(int id);
   void destroyStrategy(Strategy *s);
 
-  static StrategyManager& instance();
+  void destroyAllStrategies();
   
+  static StrategyManager &instance();
+
 protected:
   StrategyVector _strategies;
 };
