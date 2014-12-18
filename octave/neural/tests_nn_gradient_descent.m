@@ -392,3 +392,31 @@
 %!	ylabel('Cv Cost');
 %!	hold off;
 
+% ==> Should train on a XOR and AND problem:
+%!test
+%!	desc.lsizes = [2, 3, 2];
+%!	desc.X_train = [0 0; 1 0; 0 1; 1 1];
+%!	desc.y_train = [1 0; 0 0; 0 0; 1 1]';
+%!  desc.params = rand(17,1)
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 3000;
+%!	desc.evalFrequency = 32;
+%!	desc.miniBatchSize = 0;
+%!	desc.validationWindowSize = 50;
+%!	desc.X_cv = [0 0; 1 0; 0 1; 1 1];
+%!	desc.y_cv = [1 0; 0 0; 0 0; 1 1]';
+%!	[weights, costs, iters] = nn_gradient_descent(desc);
+%!	nn.layer_sizes = [2, 3, 2];
+%!	nn.weights = weights;
+%!	[y yy] = nnPredict(nn,[0 0; 1 0; 0 1; 1 1])
+%! 	% Now we can draw the evolution of the costs:
+%!	figure; hold on;
+%!	h = gcf();	
+%!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
+%!	legend('Jcv');
+%!	title('Learning progress');
+%!	xlabel('Number of epochs');
+%!	ylabel('Cv Cost');
+%!	hold off;
+

@@ -158,6 +158,7 @@ T GradientDescent<T>::run()
 
   trDEBUG(THIS, "Using learning rate: " << _epsilon);
   trDEBUG(THIS, "Using max momentum: " << _mumax);
+  trDEBUG(THIS, "Using lambda: " << _d_traits.lambda);
 
   WindowedMean<value_type> mean(_validationWindowSize);
   value_type cur_mean = 0.0;
