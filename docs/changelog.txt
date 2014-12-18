@@ -225,3 +225,4 @@
 - Studying network accuracy.
 - Added simple test for XOR network computation.
 - Added test with XOR and AND network.
+- Added test with XOR and AND and OR network.
