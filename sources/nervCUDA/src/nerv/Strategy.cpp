@@ -187,7 +187,7 @@ void Strategy::evaluate(EvalTraits &traits)
 
       if(cur_pos != POS_NONE) {
         num_transactions++;
-        num_lots = dtraits.confidence;
+        num_lots = dtraits.confidence*100.0; // TODO: remove this multiplier from here!!
         num_lots = floor(num_lots*100.0)/100.0;
         logDEBUG("Performing transaction with lot size: "<<num_lots<<" confidence="<<dtraits.confidence)
       }

@@ -107,6 +107,7 @@
 %! 	fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_1.mat'];
 %! 	load(fname);
 %!
+%!	nnEvaluateNetwork(tr,nn,cfg)
 %!	cdesc.target_symbol = 6;
 %!	sid = trade_strategy('create',cdesc);
 %!
@@ -122,8 +123,22 @@
 %!	% Prepare the evaluation traits:
 %!	evdesc.inputs = tr.X_cv_raw';
 %!	
+%!	% We also add a matrix to hold the computed balance data:
+%!	evdesc.balance = zeros(size(evdesc.inputs,2),1);
+%!
 %!	% Perform evaluation:
 %!	trade_strategy('evaluate',sid,evdesc);
 %!
 %!	% once a strategy is create it should be possible to destroy it:
 %!	trade_strategy('destroy',sid)
+%! 
+%! 	% Draw a figure of the balance values:
+%! 	figure; hold on;
+%! 	h = gcf();	
+%!	x=1:size(evdesc.balance,1);
+%! 	plot(x, evdesc.balance, 'LineWidth', 2, 'Color','b');
+%! 	legend('Jcv');
+%! 	title('Balance progress');
+%! 	xlabel('Number of minutes');
+%! 	ylabel('Account in EURO');
+%! 	hold off;

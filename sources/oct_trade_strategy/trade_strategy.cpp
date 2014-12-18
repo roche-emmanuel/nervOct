@@ -135,6 +135,13 @@ DEFUN_DLD (trade_strategy, args, nargout,
     if (cmd == "evaluate")
     {
       Strategy::EvalTraits traits;
+
+      Matrix balance = read_matrix(desc,"balance",true);
+      
+      if(balance.numel()>0) {
+        traits.balance = (double*)balance.data();
+      }
+
       Matrix inputs = read_matrix(desc,"inputs");
       traits.inputs = (double*)inputs.data();
       traits.inputs_nrows = inputs.dim1();

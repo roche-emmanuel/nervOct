@@ -81,7 +81,7 @@ cfg = config();
 
 
 % 6. Write a trained network:
-% fname = [cfg.datapath '/training_weeks_1_1.mat'];
+% fname = [cfg.datapath '/training_weeks_1_4.mat'];
 % load(fname);
 % tr.early_stopping = true;
 % tr.max_iterations = 0;
@@ -90,8 +90,9 @@ cfg = config();
 % nn = nnTrainNetworkNERV(tr,nn,cfg);
 % nn.mu = tr.mu;
 % nn.sigma = tr.sigma;
-% fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_1.mat'];
+% fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_4.mat'];
 % save('-binary',fname,'nn');
+% nnEvaluateNetwork(tr,nn,cfg)
 
 % % Write the figure:
 % figure; hold on;

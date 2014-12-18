@@ -56,6 +56,15 @@ pred = nnPredict(network, X);
 
 perfs.accuracy_cv = 1.0 - mean(double(pred~=y));
 
+% Chekc how many times we predict a buy:
+pred_none_count = sum(pred==0)
+pred_buy_count = sum(pred==1)
+pred_sell_count = sum(pred==2)
+
+real_none_count = sum(y==0)
+real_buy_count = sum(y==1)
+real_sell_count = sum(y==2)
+
 % Now we get the predictions of the network on those features:
 % pred = nnPredict(network, X);
 
