@@ -223,3 +223,4 @@
 - Added support for mu and sigma in network model.
 - Added test with real data for strategy evaluation.
 - Studying network accuracy.
+- Added simple test for XOR network computation.

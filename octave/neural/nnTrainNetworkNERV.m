@@ -19,7 +19,6 @@ y = y(1:m,cfg.target_symbol_pair);
 % Now we need to convert the label vector into a matrix:
 yy = nnBuildLabelMatrix(y)';
 
-
 % Prepare the training traits:
 desc.lsizes = network.layer_sizes;
 desc.X_train = X;

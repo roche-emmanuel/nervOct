@@ -52,7 +52,7 @@ cfg.target_symbol_pair = 6; % 6 = EURUSD symbol.
 cfg.default_max_training_iterations = 50;
 
 % Default regularization parameter:
-cfg.default_regularization_parameter = 0.0;
+cfg.default_regularization_parameter = 0.1;
 
 % Number of features to consider:
 cfg.num_features = 1 + 4 * cfg.num_symbol_pairs * cfg.num_input_bars;

@@ -133,7 +133,7 @@
 %!function no_nsamples_match()
 %!  desc.lsizes = [4,3,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(9,2);
+%!  desc.y_train = rand(9,2)';
 %!  desc.params = rand(23,1);
 %!	nn_gradient_descent(desc)
 %!endfunction
@@ -146,7 +146,7 @@
 %!function no_y_train_match()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,3);
+%!  desc.y_train = rand(10,3)';
 %!  desc.params = rand(37,1);
 %!	nn_gradient_descent(desc)
 %!endfunction
@@ -158,7 +158,7 @@
 %!function invalid_momentum()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,2);
+%!  desc.y_train = rand(10,2)';
 %!  desc.params = rand(37,1);
 %!  desc.momentum = true;
 %!	nn_gradient_descent(desc)
@@ -171,7 +171,7 @@
 %!function invalid_momentum_val()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,2);
+%!  desc.y_train = rand(10,2)';
 %!  desc.params = rand(37,1);
 %!  desc.momentum = 1.1;
 %!	nn_gradient_descent(desc)
@@ -185,7 +185,7 @@
 %!function invalid_epsilon()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,2);
+%!  desc.y_train = rand(10,2)';
 %!  desc.params = rand(37,1);
 %!  desc.momentum = 0.9;
 %!  desc.epsilon = true;
@@ -200,7 +200,7 @@
 %!function invalid_epsilon_val()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,2);
+%!  desc.y_train = rand(10,2)';
 %!  desc.params = rand(37,1);
 %!  desc.momentum = 0.9;
 %!  desc.epsilon = 0;
@@ -215,7 +215,7 @@
 %!function invalid_dropouts()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,2);
+%!  desc.y_train = rand(10,2)';
 %!  desc.params = rand(37,1);
 %!  desc.momentum = 0.9;
 %!  desc.epsilon = 0.005;
@@ -230,7 +230,7 @@
 %!function invalid_dropouts_val()
 %!  desc.lsizes = [4,5,2];
 %!  desc.X_train = rand(10,4);
-%!  desc.y_train = rand(10,2);
+%!  desc.y_train = rand(10,2)';
 %!  desc.params = rand(37,1);
 %!  desc.momentum = 0.9;
 %!  desc.epsilon = 0.005;
@@ -245,7 +245,7 @@
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!	desc.maxiter = 10;
@@ -255,34 +255,34 @@
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!	desc.maxiter = 0;
 %!	desc.validationWindowSize = 10;
 %!	desc.X_cv = rand(50,3);
-%!	desc.y_cv = rand(50,1);
+%!	desc.y_cv = rand(50,1)';
 %!	nn_gradient_descent(desc);
 
 % ==> Should work with mini batch:
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!	desc.maxiter = 0;
 %!	desc.miniBatchSize = 10;
 %!	desc.validationWindowSize = 10;
 %!	desc.X_cv = rand(50,3);
-%!	desc.y_cv = rand(50,1);
+%!	desc.y_cv = rand(50,1)';
 %!	nn_gradient_descent(desc);
 
 % ==> Should work with momentum:
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
@@ -290,14 +290,14 @@
 %!	desc.miniBatchSize = 10;
 %!	desc.validationWindowSize = 10;
 %!	desc.X_cv = rand(50,3);
-%!	desc.y_cv = rand(50,1);
+%!	desc.y_cv = rand(50,1)';
 %!	nn_gradient_descent(desc);
 
 % ==> Should return updated params
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
@@ -306,7 +306,7 @@
 %!	desc.miniBatchSize = 10;
 %!	desc.validationWindowSize = 10;
 %!	desc.X_cv = rand(50,3);
-%!	desc.y_cv = rand(50,1);
+%!	desc.y_cv = rand(50,1)';
 %!	p0 = desc.params;
 %!	n0 = numel(p0);
 %!	p1 = nn_gradient_descent(desc);
@@ -322,7 +322,7 @@
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
@@ -331,7 +331,7 @@
 %!	desc.miniBatchSize = 10;
 %!	desc.validationWindowSize = 10;
 %!	desc.X_cv = rand(50,3);
-%!	desc.y_cv = rand(50,1);
+%!	desc.y_cv = rand(50,1)';
 %!	[weights, costs, iters] = nn_gradient_descent(desc);
 %!	assert(numel(costs)>0,'No element in costs.')
 %!	assert(numel(costs)==numel(iters),'Mismatch between costs and iters: %d!=%d',numel(costs),numel(iters))
@@ -350,7 +350,7 @@
 %!test
 %!	desc.lsizes = [3, 4, 1];
 %!	desc.X_train = rand(100,3);
-%!	desc.y_train = rand(100,1);
+%!	desc.y_train = rand(100,1)';
 %!  desc.params = rand(21,1);
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
@@ -359,8 +359,36 @@
 %!	desc.miniBatchSize = 10;
 %!	desc.validationWindowSize = 0;
 %!	desc.X_cv = rand(50,3);
-%!	desc.y_cv = rand(50,1);
+%!	desc.y_cv = rand(50,1)';
 %!	[weights, costs, iters] = nn_gradient_descent(desc);
 %!	assert(numel(costs)==0,'Found element in costs.')
 %!	assert(numel(iters)==0,'Found element in iters.')
+
+% ==> Should train on a XOR problem:
+%!test
+%!	desc.lsizes = [2, 2, 1];
+%!	desc.X_train = [0 0; 1 0; 0 1; 1 1];
+%!	desc.y_train = [1; 0; 0 ; 1]';
+%!  desc.params = rand(9,1)
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 3000;
+%!	desc.evalFrequency = 32;
+%!	desc.miniBatchSize = 0;
+%!	desc.validationWindowSize = 50;
+%!	desc.X_cv = [0 0; 1 0; 0 1; 1 1];
+%!	desc.y_cv = [1; 0; 0 ; 1]';
+%!	[weights, costs, iters] = nn_gradient_descent(desc);
+%!	nn.layer_sizes = [2, 2, 1];
+%!	nn.weights = weights;
+%!	[y yy] = nnPredict(nn,[0 0; 1 0; 0 1; 1 1])
+%! 	% Now we can draw the evolution of the costs:
+%!	figure; hold on;
+%!	h = gcf();	
+%!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
+%!	legend('Jcv');
+%!	title('Learning progress');
+%!	xlabel('Number of epochs');
+%!	ylabel('Cv Cost');
+%!	hold off;
 
