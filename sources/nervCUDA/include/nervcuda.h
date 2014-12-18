@@ -44,6 +44,30 @@ namespace nerv
 {
 
 template<typename T>
+T minimum(T v1, T v2)
+{
+  return v1 < v2 ? v1 : v2;
+}
+
+template<typename T>
+T maximum(T v1, T v2)
+{
+  return v1 > v2 ? v1 : v2;
+}
+
+template<typename T>
+T minimum(T v1, T v2, T v3)
+{
+  return minimum(v1, minimum(v2,v3));
+}
+
+template<typename T>
+T maximum(T v1, T v2, T v3)
+{
+  return maximum(v1, maximum(v2,v3));
+}
+
+template<typename T>
 T random_real(T mini, T maxi)
 {
   return mini + (maxi - mini) * (T)rand() / (T)RAND_MAX;
@@ -132,6 +156,7 @@ extern "C" {
   NERVCUDA_EXPORT int create_strategy(const Strategy::CreationTraits& traits);
   NERVCUDA_EXPORT int destroy_strategy(int id);
   NERVCUDA_EXPORT int evaluate_strategy(int id, Strategy::EvalTraits& traits);
+  NERVCUDA_EXPORT int add_strategy_model(int id, Model::CreationTraits& traits);
 #endif
 };
 

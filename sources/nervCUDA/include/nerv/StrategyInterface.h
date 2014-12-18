@@ -31,6 +31,7 @@ public:
   typedef int (*create_strategy_t)(const Strategy::CreationTraits& traits);
   typedef int (*destroy_strategy_t)(int id);
   typedef int (*evaluate_strategy_t)(int id, const Strategy::EvalTraits& traits);
+	typedef int (*add_strategy_model_t)(int id, Model::CreationTraits& traits);
 
 public:
   StrategyInterface()
@@ -44,6 +45,7 @@ public:
 	  GET_PROC(create_strategy)
 	  GET_PROC(destroy_strategy)
 	  GET_PROC(evaluate_strategy)
+	  GET_PROC(add_strategy_model)
   };
 
   ~StrategyInterface() {
@@ -55,6 +57,7 @@ public:
 	DECLARE_PROC(create_strategy)
 	DECLARE_PROC(destroy_strategy)
 	DECLARE_PROC(evaluate_strategy)
+	DECLARE_PROC(add_strategy_model)
 
 protected:
 	HMODULE _h;

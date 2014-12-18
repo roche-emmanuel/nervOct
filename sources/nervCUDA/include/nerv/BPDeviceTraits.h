@@ -147,15 +147,8 @@ protected:
 
     nsamples = rhs.nsamples_train;
 
-    if (rhs.X)
-    {
-      X_train = createDeviceBuffer(nx(), rhs.X);
-    }
-
-    if (rhs.yy)
-    {
-      y_train = createDeviceBuffer(ny(), rhs.yy);
-    }
+    X_train = createDeviceBuffer(nx(), rhs.X);
+    y_train = createDeviceBuffer(ny(), rhs.yy);
 
     X = X_train;
     yy = y_train;

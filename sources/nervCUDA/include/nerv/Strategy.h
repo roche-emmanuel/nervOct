@@ -78,13 +78,18 @@ public:
   struct DigestTraits
   {
     DigestTraits()
-      : input(nullptr), input_size(0), position(POS_UNKNOWN) {}
+      : input(nullptr), input_size(0), 
+      position(POS_UNKNOWN), confidence(0.0) {}
 
     value_type *input;
     int input_size;
 
     // Suggested position given the input.
     int position;
+
+    // The confidence value should be between 0 and 1 and
+    // should be a measure of how much we trust the decision that was taken.
+    value_type confidence;
   };
 
 public:
@@ -96,10 +101,11 @@ public:
     return _id;
   }
 
-  void evaluate(EvalTraits &traits) const;
+  void evaluate(EvalTraits &traits);
 
-  void digest(DigestTraits& traits) const;
+  void digest(DigestTraits& traits);
 
+  void createModel(Model::CreationTraits& traits);
   void destroyAllModels();
 
 protected:

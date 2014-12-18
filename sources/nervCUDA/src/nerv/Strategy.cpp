@@ -1,6 +1,7 @@
 #include <nervCUDA.h>
 #include <nerv/Strategy.h>
 #include <sgtCore.h>
+#include <nerv/NLSNetworkModel.h>
 
 using namespace nerv;
 
@@ -22,7 +23,7 @@ Strategy::~Strategy()
   destroyAllModels();
 }
 
-void Strategy::evaluate(EvalTraits &traits) const
+void Strategy::evaluate(EvalTraits &traits)
 {
   // Retrieve the input data:
   value_type *iptr = traits.inputs;
@@ -58,7 +59,7 @@ void Strategy::evaluate(EvalTraits &traits) const
 
   for (int i = 0; i < nsamples; ++i)
   {
-    logDEBUG("Evaluating input " << i << "...");
+    // logDEBUG("Evaluating input " << i << "...");
 
     // Digest this input:
     dtraits.input = iptr;
@@ -98,6 +99,7 @@ void Strategy::evaluate(EvalTraits &traits) const
         // Then the profit depends on the lot size:
         profit = num_lots * 100000.0 * (stop_lost / ref_price - 1.0);
         balance += profit;
+        logDEBUG("New Balance value: "<<balance);
 
         // Leave the current position:
         ref_price = -1.0;
@@ -147,6 +149,7 @@ void Strategy::evaluate(EvalTraits &traits) const
         // Then the profit depends on the lot size:
         profit = num_lots * 100000.0 * (ref_price / stop_lost - 1.0);
         balance += profit;
+        logDEBUG("New Balance value: "<<balance);
 
         // Leave the current position:
         ref_price = -1.0;
@@ -182,6 +185,13 @@ void Strategy::evaluate(EvalTraits &traits) const
         cur_pos = dtraits.position;
       }
 
+      if(cur_pos != POS_NONE) {
+        num_transactions++;
+        num_lots = dtraits.confidence;
+        num_lots = floor(num_lots*100.0)/100.0;
+        logDEBUG("Performing transaction with lot size: "<<num_lots)
+      }
+
       if (cur_pos == POS_LONG)
       {
         // We are either buying or selling, so we record the current close price:
@@ -190,7 +200,6 @@ void Strategy::evaluate(EvalTraits &traits) const
 
         // Stop the looses if the price goes down too much:
         stop_lost = cur_price - max_lost;
-        num_transactions++;
       }
 
       if (cur_pos == POS_SHORT)
@@ -200,7 +209,6 @@ void Strategy::evaluate(EvalTraits &traits) const
 
         // Stop the looses if the price goes high too much:
         stop_lost = cur_price + max_lost;
-        num_transactions++;
       }
     }
 
@@ -224,15 +232,58 @@ Strategy::value_type Strategy::getPrice(value_type *iptr, int type, int symbol) 
   return iptr[index];
 }
 
-void Strategy::digest(DigestTraits &traits) const
+void Strategy::digest(DigestTraits &traits)
 {
+  // if we have no model, then just return an unknown position.
+  if (_models.empty())
+  {
+    traits.position = POS_UNKNOWN;
+    return;
+  }
+
+  // Once we have a list of model, we can digest the input on each of them
+  // and retrieve they decision:
+  Model::DigestTraits mt;
+  mt.input = traits.input;
+  mt.input_size = traits.input_size;
+
+  for (ModelVector::iterator it = _models.begin(); it != _models.end(); ++it)
+  {
+    (*it)->digest(mt);
+  }
+
+  // select long or short position if appropriate:
+  if (mt.field[MD_LONG_PROB] > 0.5)
+  {
+    traits.position = POS_LONG;
+    traits.confidence = mt.field[MD_LONG_CONFIDENCE];
+  }
+  else if (mt.field[MD_SHORT_PROB] > 0.5)
+  {
+    traits.position = POS_SHORT;
+    traits.confidence = mt.field[MD_SHORT_CONFIDENCE];
+  }
 
 }
 
 void Strategy::destroyAllModels()
 {
-  for(ModelVector::iterator it = _models.begin(); it != _models.end(); ++it) {
+  for (ModelVector::iterator it = _models.begin(); it != _models.end(); ++it)
+  {
     delete (*it);
   }
   _models.clear();
+}
+
+void Strategy::createModel(Model::CreationTraits &traits)
+{
+  Model* m = nullptr;
+  if(traits.type == MODEL_NLS_NETWORK) {
+    m = new NLSNetworkModel(traits);
+  }
+
+  THROW_IF(!m,"Invalid model type: "<< traits.type);
+
+  // add the new model to the list:
+  _models.push_back(m);
 }

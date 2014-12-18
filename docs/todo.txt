@@ -3,7 +3,7 @@
 - add verbose flag de gradient descent.
 - implement trading strategy management.
 - format the dataset to match the desired input for strategy evaluation.
-
+- Add tests for digest methods
 
 *** CUDA infos:
 

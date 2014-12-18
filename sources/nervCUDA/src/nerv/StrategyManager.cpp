@@ -120,7 +120,24 @@ extern "C"
       logERROR("Exception occured in evaluate_strategy.")
       return ST_EXCEPTION_OCCURED;
     }
-
   }
+
+  int add_strategy_model(int id, Model::CreationTraits& traits)
+  {
+    try
+    {
+      StrategyManager &sm = get_strategy_manager();
+      Strategy *s = sm.getStrategy(id);
+      THROW_IF(!s, "Cannot find strategy with ID " << id);
+      s->createModel(traits);
+      return ST_SUCCESS;
+    }
+    catch (...)
+    {
+      logERROR("Exception occured in add_strategy_model.")
+      return ST_EXCEPTION_OCCURED;
+    }    
+  }
+
 }
 
