@@ -81,7 +81,7 @@ void NLSNetworkModel::predict(DigestTraits &traits, value_type &long_prob, value
 
   copyFromDevice(_hx, _dtraits.inputs + input_offset, _dtraits.ny());
 
-  logDEBUG("Hx values: "<<_hx[0]<<", "<<_hx[1]<<", "<<_hx[2]<<" (ny="<<_dtraits.ny()<<")");
+  // logDEBUG("Hx values: "<<_hx[0]<<", "<<_hx[1]<<", "<<_hx[2]<<" (ny="<<_dtraits.ny()<<")");
 
   // Retrieve the computed probabilities:
   value_type total = _hx[0] + _hx[1] + _hx[2];

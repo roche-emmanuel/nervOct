@@ -98,3 +98,32 @@
 %!
 %!	% once a strategy is create it should be possible to destroy it:
 %!	trade_strategy('destroy',sid)
+
+% ==> It should be possible to evaluate a strategy with a real model:
+%!test
+%!	cfg = config();
+%! 	fname = [cfg.datapath '/training_weeks_1_1.mat'];
+%! 	load(fname);
+%! 	fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_1.mat'];
+%! 	load(fname);
+%!
+%!	cdesc.target_symbol = 6;
+%!	sid = trade_strategy('create',cdesc);
+%!
+%!  desc.type = "nls_network";
+%!  desc.lsizes = nn.layer_sizes;
+%!	np = compute_np(desc.lsizes);
+%!  desc.params = nn.weights;
+%!	assert(np==numel(desc.params),'Invalid number of parameters: %d',numel(desc.params))
+%!  desc.mu = nn.mu';
+%!  desc.sigma = nn.sigma';
+%!	trade_strategy('add_model',sid,desc);
+%!
+%!	% Prepare the evaluation traits:
+%!	evdesc.inputs = tr.X_cv_raw';
+%!	
+%!	% Perform evaluation:
+%!	trade_strategy('evaluate',sid,evdesc);
+%!
+%!	% once a strategy is create it should be possible to destroy it:
+%!	trade_strategy('destroy',sid)

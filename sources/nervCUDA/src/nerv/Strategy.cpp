@@ -252,7 +252,7 @@ void Strategy::digest(DigestTraits &traits)
     (*it)->digest(mt);
   }
 
-  logDEBUG("Got NLS Probabilities: ["<<mt.field[MD_NONE_PROB]<<", "<<mt.field[MD_LONG_PROB]<<", "<<mt.field[MD_SHORT_PROB]<<"]");
+  // logDEBUG("Got NLS Probabilities: ["<<mt.field[MD_NONE_PROB]<<", "<<mt.field[MD_LONG_PROB]<<", "<<mt.field[MD_SHORT_PROB]<<"]");
 
   // select long or short position if appropriate:
   if (mt.field[MD_LONG_PROB] > 0.5)

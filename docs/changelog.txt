@@ -221,3 +221,4 @@
 - Added implementation for add_model.
 - Added add_model support for octave plugin.
 - Added support for mu and sigma in network model.
+- Added test with real data for strategy evaluation.

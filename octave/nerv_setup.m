@@ -43,6 +43,13 @@ cfg = config();
 % fname = [cfg.datapath '/training_week1_pca.mat'];
 % save('-binary',fname,'tr');
 
+% cfg.use_PCA = false;
+% tr = nnPrepareTraining(1:1,cfg);	
+% tr.early_stopping = true;
+% tr.max_iterations = 0;
+% fname = [cfg.datapath '/training_weeks_1_1.mat'];
+% save('-binary',fname,'tr');
+
 % tr = nnPrepareTraining(1:2,cfg);	
 % tr.early_stopping = true;
 % tr.max_iterations = 100;
@@ -65,12 +72,41 @@ cfg = config();
 
 % 5. Perform some training:
 %	load training set:
-fname = [cfg.datapath '/training_weeks_1_4_pca.mat'];
-load(fname);
-nn = nnInitNetwork([tr.num_features 100 3],cfg);
-tic();
-nn = nnTrainNetworkCUDA(tr,nn,cfg);
-toc();
+% fname = [cfg.datapath '/training_weeks_1_4_pca.mat'];
+% load(fname);
+% nn = nnInitNetwork([tr.num_features 100 3],cfg);
+% tic();
+% nn = nnTrainNetworkCUDA(tr,nn,cfg);
+% toc();
+
+
+% 6. Write a trained network:
+% fname = [cfg.datapath '/training_weeks_1_1.mat'];
+% load(fname);
+% tr.early_stopping = true;
+% tr.max_iterations = 0;
+% tr.dropouts = [0.8, 0.5, 0.5, 0.5];
+% nn = nnInitNetwork([tr.num_features 512 128 32 3],cfg);
+% nn = nnTrainNetworkNERV(tr,nn,cfg);
+% nn.mu = tr.mu;
+% nn.sigma = tr.sigma;
+% fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_1.mat'];
+% save('-binary',fname,'nn');
+
+% % Write the figure:
+% figure; hold on;
+% h = gcf();	
+% %nn.cost_iters;
+% %nn.costs;
+% plot(nn.cost_iters, nn.costs, 'LineWidth', 2, 'Color','b');
+% legend('Jcv');
+% title('Learning progress');
+% xlabel('Number of epochs');
+% ylabel('Cv Cost');
+% hold off;
+
+
+% 7. Once we have a network, we can build a strategy from it:
 
 
 % week1_data = data{1,1};
