@@ -219,3 +219,4 @@
 - Adding strategy model class.
 - Added model list in strategy.
 - Added implementation for add_model.
+- Added add_model support for octave plugin.

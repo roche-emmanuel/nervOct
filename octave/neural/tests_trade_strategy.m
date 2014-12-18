@@ -27,12 +27,34 @@
 %!	trade_strategy('create',desc)
 %!endfunction
 
-%!error <trade_stategy: target_symbol value is not defined.> invalid_creation()
+%!error <trade_strategy: target_symbol value is not defined.> invalid_creation()
+
+% ==> Should throw an error if trying to add a model with invalid params:
+
+%!function np = compute_np(lsizes)
+%!	np = 0;
+%!	nt = numel(lsizes)-1;
+%!	for i=1:nt
+%!		np += (lsizes(i)+1)*lsizes(i+1);
+%!	end
+%!endfunction
+
+%!function no_params_model()
+%!	cdesc.target_symbol = 6;
+%!	sid = trade_strategy('create',cdesc);
+%!  desc.type = "nls_network";
+%!  desc.lsizes = [4,3,3];
+%!	np = compute_np(desc.lsizes);
+%!  %desc.params = rand(np,1);
+%!	trade_strategy('add_model',sid,desc)
+%!endfunction
+
+%!error <trade_strategy: params value is not defined.> no_params_model()
 
 % ==> It should create a valid strategy when the traits are OK:
 %!test
 %!	desc.target_symbol = 6;
-%!	sid = trade_strategy('create',desc)
+%!	sid = trade_strategy('create',desc);
 %!	assert(sid>0,'Invalid valud for Strategy id: %d',sid)
 %!	% once a strategy is create it should be possible to destroy it:
 %!	trade_strategy('destroy',sid)
@@ -40,12 +62,34 @@
 % ==> It should be possible to evaluate a strategy:
 %!test
 %!	cdesc.target_symbol = 6;
-%!	sid = trade_strategy('create',cdesc)
+%!	sid = trade_strategy('create',cdesc);
 %!	
 %!	% Prepare the evaluation traits:
 %!	nf = 1 + 4*6*3;
 %!	nsamples = 100;
 %!	evdesc.inputs = rand(nf,nsamples);
+%!	
+%!	% Perform evaluation:
+%!	trade_strategy('evaluate',sid,evdesc);
+%!
+%!	% once a strategy is create it should be possible to destroy it:
+%!	trade_strategy('destroy',sid)
+
+% ==> It should be possible to evaluate a strategy with a model loaded:
+%!test
+%!	cdesc.target_symbol = 6;
+%!	sid = trade_strategy('create',cdesc);
+%!
+%!  desc.type = "nls_network";
+%!  desc.lsizes = [73,10,3];
+%!	np = compute_np(desc.lsizes);
+%!  desc.params = rand(np,1);
+%!	trade_strategy('add_model',sid,desc);
+%!
+%!	% Prepare the evaluation traits:
+%!	nf = 1 + 4*6*3;
+%!	nsamples = 100;
+%!	evdesc.inputs = rand(nf,nsamples)*100.0;
 %!	
 %!	% Perform evaluation:
 %!	trade_strategy('evaluate',sid,evdesc);

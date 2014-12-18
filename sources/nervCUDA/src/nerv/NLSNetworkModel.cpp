@@ -48,11 +48,16 @@ void NLSNetworkModel::predict(DigestTraits &traits, value_type &long_prob, value
 {
   // first we upload the input buffer onthe GPU.
   THROW_IF(traits.input_size != _dtraits.nx(), "Mismatch in number of features: " << traits.input_size << "!=" << _dtraits.nx())
+  // for(unsigned int i=0;i<10;++i) {
+  //   logDEBUG("Input "<<i<<": "<<traits.input[i]);
+  // }
   copyToDevice(_dtraits.X, traits.input, traits.input_size);
 
   int input_offset = nn_activation_device(_dtraits);
 
   copyFromDevice(_hx, _dtraits.inputs + input_offset, _dtraits.ny());
+
+  logDEBUG("Hx values: "<<_hx[0]<<", "<<_hx[1]<<", "<<_hx[2]<<" (ny="<<_dtraits.ny()<<")");
 
   // Retrieve the computed probabilities:
   value_type total = _hx[0] + _hx[1] + _hx[2];

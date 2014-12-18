@@ -31,7 +31,7 @@ template<typename T>
 T read_desc_value(octave_scalar_map &desc, std::string key, bool optional = false, T def = T())
 {
   octave_value val = desc.contents(key);
-  CHECK(val.is_defined() || optional, "trade_stategy: " << key << " value is not defined.");
+  CHECK(val.is_defined() || optional, "trade_strategy: " << key << " value is not defined.");
   if (!val.is_defined())
     return def;
 
@@ -43,13 +43,24 @@ template <>
 Matrix read_desc_value<Matrix>(octave_scalar_map &desc, std::string key, bool optional, Matrix def)
 {
   octave_value val = desc.contents(key);
-  CHECK(val.is_defined() || optional, "trade_stategy: " << key << " value is not defined.");
+  CHECK(val.is_defined() || optional, "trade_strategy: " << key << " value is not defined.");
   if (!val.is_defined())
     return def;
 
   CHECK(val.is_matrix_type(), "trade_strategy: " << key << " should be a matrix");
   return val.matrix_value();
+}
 
+template <>
+std::string read_desc_value<std::string>(octave_scalar_map &desc, std::string key, bool optional, std::string def)
+{
+  octave_value val = desc.contents(key);
+  CHECK(val.is_defined() || optional, "trade_strategy: " << key << " value is not defined.");
+  if (!val.is_defined())
+    return def;
+
+  CHECK(val.is_string(), "trade_strategy: " << key << " should be a string");
+  return val.string_value();
 }
 
 unsigned int read_uint(octave_scalar_map &desc, std::string key, bool optional = false, unsigned int def = 0)
@@ -61,6 +72,13 @@ Matrix read_matrix(octave_scalar_map &desc, std::string key, bool optional = fal
 {
   return read_desc_value<Matrix>(desc, key, optional, def);
 }
+
+std::string read_string(octave_scalar_map &desc, std::string key, bool optional = false, std::string def = std::string())
+{
+  return read_desc_value<std::string>(desc, key, optional, def);
+}
+
+typedef std::map<std::string,int> TypeMap;
 
 DEFUN_DLD (trade_strategy, args, nargout,
            "trade_strategy function providing C++ implementation of Trading Strategy management")
@@ -123,6 +141,42 @@ DEFUN_DLD (trade_strategy, args, nargout,
       traits.inputs_ncols = inputs.dim2();
 
       CHECK(g_intf.evaluate_strategy(sid,traits)==ST_SUCCESS,"Could not evaluate strategy.");
+    }
+    else if (cmd == "add_model")
+    {
+      TypeMap model_type_map{
+        {"nls_network", MODEL_NLS_NETWORK}
+      };
+
+      std::string tname = read_string(desc,"type");
+      CHECK(model_type_map.find(tname)!=model_type_map.end(),"Invalid model type name "<<tname)
+
+      Matrix lsizes_mat = read_matrix(desc,"lsizes");
+      unsigned int nl = lsizes_mat.numel();
+      unsigned int nt = nl-1;
+      unsigned int* lsizes = new unsigned int[nl];
+      for(unsigned int i=0;i<nl;++i) {
+        lsizes[i] = lsizes_mat(i);
+      }
+
+      Matrix params = read_matrix(desc,"params");
+      
+      // Check that the params size match the lsizes:
+      unsigned int np = 0;
+      for(unsigned int i=0;i<nt;++i) {
+        np += (lsizes[i]+1)*lsizes[i+1];
+      }
+      CHECK(np==params.numel(),"Invalid number of parameters "<<params.numel()<<"!="<<np);
+
+      Model::CreationTraits traits;
+      traits.type = model_type_map[tname];
+      traits.nl = nl;
+      traits.lsizes = lsizes;
+      traits.params = (double*)params.data();
+
+      CHECK(g_intf.add_strategy_model(sid,traits)==ST_SUCCESS,"Could not add strategy model.");
+
+      delete [] lsizes;
     }
     else
     {
