@@ -20,6 +20,10 @@ protected:
   BPDeviceTraits<value_type> _dtraits;
   unsigned int *_lsizes;
   value_type *_hx;
+  value_type *_mu;
+  value_type *_sigma;
+  value_type *_input;
+  unsigned int _nf;
 };
 
 };

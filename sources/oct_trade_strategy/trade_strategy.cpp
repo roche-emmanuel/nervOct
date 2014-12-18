@@ -161,6 +161,11 @@ DEFUN_DLD (trade_strategy, args, nargout,
 
       Matrix params = read_matrix(desc,"params");
       
+      Matrix mu = read_matrix(desc,"mu");
+      Matrix sigma = read_matrix(desc,"sigma");
+      CHECK(mu.dim1()==lsizes[0] && mu.dim2()==1,"Invalid mu dimensions "<<mu.dim1()<<"x"<<mu.dim2());
+      CHECK(sigma.dim1()==lsizes[0] && sigma.dim2()==1,"Invalid sigma dimensions "<<sigma.dim1()<<"x"<<sigma.dim2());
+
       // Check that the params size match the lsizes:
       unsigned int np = 0;
       for(unsigned int i=0;i<nt;++i) {
@@ -173,6 +178,8 @@ DEFUN_DLD (trade_strategy, args, nargout,
       traits.nl = nl;
       traits.lsizes = lsizes;
       traits.params = (double*)params.data();
+      traits.mu = (double*)mu.data();
+      traits.sigma = (double*)sigma.data();
 
       CHECK(g_intf.add_strategy_model(sid,traits)==ST_SUCCESS,"Could not add strategy model.");
 

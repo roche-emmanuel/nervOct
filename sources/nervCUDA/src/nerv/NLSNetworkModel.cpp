@@ -13,6 +13,8 @@ NLSNetworkModel::NLSNetworkModel(const CreationTraits &traits)
   THROW_IF(traits.nl < 3, "Invalid number of layers.")
   THROW_IF(!traits.lsizes, "Invalid lsizes pointer.")
   THROW_IF(!traits.params, "Invalid parameters pointer.")
+  THROW_IF(!traits.mu, "Invalid mu pointer.")
+  THROW_IF(!traits.sigma, "Invalid sigma pointer.")
 
   unsigned int nout = traits.lsizes[traits.nl - 1];
   THROW_IF(nout != 3, "Invalid number of outputs: " << nout);
@@ -24,6 +26,15 @@ NLSNetworkModel::NLSNetworkModel(const CreationTraits &traits)
   memcpy((void *)_lsizes, traits.lsizes, traits.nl * sizeof(unsigned int));
 
   _hx = new value_type[nout];
+
+  _nf = _lsizes[0];
+  _mu = new value_type[_nf];
+  memcpy((void*)_mu, traits.mu, _nf*sizeof(value_type));
+
+  _sigma = new value_type[_nf];
+  memcpy((void*)_sigma, traits.sigma, _nf*sizeof(value_type));
+
+  _input = new value_type[_nf];
 
   // Build BPTraits from the creation traits:
   BPTraits<value_type> btraits;
@@ -42,16 +53,29 @@ NLSNetworkModel::~NLSNetworkModel()
   logDEBUG("Destroying NLSNetworkModel.");
   delete [] _lsizes;
   delete [] _hx;
+  delete [] _mu;
+  delete [] _sigma;
+  delete [] _input;
 }
 
 void NLSNetworkModel::predict(DigestTraits &traits, value_type &long_prob, value_type &short_prob, value_type &none_prob)
 {
   // first we upload the input buffer onthe GPU.
   THROW_IF(traits.input_size != _dtraits.nx(), "Mismatch in number of features: " << traits.input_size << "!=" << _dtraits.nx())
+  
+  // first we copy on our internal buffer to be able to apply normalization:  
+  memcpy((void*)_input, traits.input, traits.input_size*sizeof(value_type));
+
+  // Apply normalization:
+  
+  for(unsigned int i=0;i<_nf;++i) {
+    _input[i] = (_input[i] - _mu[i])/_sigma[i];
+  }
+
   // for(unsigned int i=0;i<10;++i) {
   //   logDEBUG("Input "<<i<<": "<<traits.input[i]);
   // }
-  copyToDevice(_dtraits.X, traits.input, traits.input_size);
+  copyToDevice(_dtraits.X, _input, _nf);
 
   int input_offset = nn_activation_device(_dtraits);
 

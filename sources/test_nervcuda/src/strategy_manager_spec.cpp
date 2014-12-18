@@ -138,6 +138,14 @@ BOOST_AUTO_TEST_CASE( test_strategy_add_nls_network )
   BOOST_CHECK(intf.add_strategy_model(id, mt) == ST_EXCEPTION_OCCURED);
 
   mt.params = tr.params();
+  unsigned int nf = mt.lsizes[0];
+  mt.mu = tr.createArray(nf);
+  mt.sigma = tr.createArray(nf);
+  for(unsigned int i=0;i<nf;++i) {
+    mt.mu[i] = random_real(0.0,1.0);
+    mt.sigma[i] = random_real(0.01,10.0);
+  }
+
   BOOST_CHECK(intf.add_strategy_model(id, mt) == ST_SUCCESS);
 
   BOOST_CHECK(intf.destroy_strategy(id) == ST_SUCCESS);
@@ -146,7 +154,7 @@ BOOST_AUTO_TEST_CASE( test_strategy_add_nls_network )
 BOOST_AUTO_TEST_CASE( test_strategy_eval_with_model )
 {
   srand((unsigned int)time(nullptr));
-    
+
   StrategyInterface intf;
   Strategy::CreationTraits traits;
   traits.num_features = 1441;
@@ -174,6 +182,14 @@ BOOST_AUTO_TEST_CASE( test_strategy_eval_with_model )
   BOOST_CHECK(intf.add_strategy_model(id, mt) == ST_EXCEPTION_OCCURED);
 
   mt.params = tr.params();
+  unsigned int nf = mt.lsizes[0];
+  mt.mu = tr.createArray(nf);
+  mt.sigma = tr.createArray(nf);
+  for(unsigned int i=0;i<nf;++i) {
+    mt.mu[i] = random_real(0.0,1.0);
+    mt.sigma[i] = random_real(0.01,10.0);
+  }
+
   BOOST_CHECK(intf.add_strategy_model(id, mt) == ST_SUCCESS);
 
   int count = evt.inputs_ncols * evt.inputs_nrows;

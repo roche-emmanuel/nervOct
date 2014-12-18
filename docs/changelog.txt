@@ -220,3 +220,4 @@
 - Added model list in strategy.
 - Added implementation for add_model.
 - Added add_model support for octave plugin.
+- Added support for mu and sigma in network model.

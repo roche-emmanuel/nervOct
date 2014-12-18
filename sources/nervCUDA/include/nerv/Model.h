@@ -40,11 +40,17 @@ public:
   {
     CreationTraits()
       : nl(0), lsizes(nullptr), params(nullptr),
-      type(MODEL_NLS_NETWORK) {}
+      type(MODEL_NLS_NETWORK), mu(nullptr),
+      sigma(nullptr) {}
 
     int type;
     unsigned int nl;
     unsigned int *lsizes;
+
+    // parameters provided for normalization of the features:
+    value_type* mu;
+    value_type* sigma;
+
     value_type *params;
   };
 

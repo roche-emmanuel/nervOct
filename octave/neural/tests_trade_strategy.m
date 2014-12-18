@@ -84,6 +84,8 @@
 %!  desc.lsizes = [73,10,3];
 %!	np = compute_np(desc.lsizes);
 %!  desc.params = rand(np,1);
+%!  desc.mu = rand(73,1);
+%!  desc.sigma = rand(73,1);
 %!	trade_strategy('add_model',sid,desc);
 %!
 %!	% Prepare the evaluation traits:

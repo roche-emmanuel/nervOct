@@ -189,7 +189,7 @@ void Strategy::evaluate(EvalTraits &traits)
         num_transactions++;
         num_lots = dtraits.confidence;
         num_lots = floor(num_lots*100.0)/100.0;
-        logDEBUG("Performing transaction with lot size: "<<num_lots)
+        logDEBUG("Performing transaction with lot size: "<<num_lots<<" confidence="<<dtraits.confidence)
       }
 
       if (cur_pos == POS_LONG)
@@ -265,8 +265,6 @@ void Strategy::digest(DigestTraits &traits)
     traits.position = POS_SHORT;
     traits.confidence = mt.field[MD_SHORT_CONFIDENCE];
   }
-
-  logDEBUG("Got confidence: "<<traits.confidence);
 }
 
 void Strategy::destroyAllModels()
