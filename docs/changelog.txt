@@ -234,3 +234,4 @@
 - Tested training with 1024 features.
 - Preparing for addition of learning rate decay.
 - Added support for gradient descent advanced parameters.
+- Tested learning with PCA activated.

@@ -37,10 +37,11 @@ cfg = config();
 % buildFeatureMatrix(data,cfg);
 
 % 4. Prepare a training set:
+% cfg.use_PCA = true;
 % tr = nnPrepareTraining(1:1,cfg);	
 % tr.early_stopping = true;
 % tr.max_iterations = 100;
-% fname = [cfg.datapath '/training_week1_pca.mat'];
+% fname = [cfg.datapath '/training_week_1_1_pca.mat'];
 % save('-binary',fname,'tr');
 
 % cfg.use_PCA = false;

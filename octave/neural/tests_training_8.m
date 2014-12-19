@@ -13,16 +13,16 @@
 
 %!test
 %!	cfg = config();
-%!	cfg.use_PCA = false;
-%!	tr = nnPrepareTraining(1:8,cfg);
+%! 	fname = [cfg.datapath '/training_weeks_1_1_pca.mat'];
+%! 	load(fname);
 %!	nf = tr.num_features;
-%!	lsizes = [nf, 512, 3]
+%!	lsizes = [nf, 128, 3]
 %!	desc.lsizes = lsizes;
 
 %!	desc.X_train = tr.X_train;
 %!	desc.y_train = nnBuildLabelMatrix(tr.y_train(:,cfg.target_symbol_pair))';
 
-%!	cfg.use_sparse_init = true;
+%!	cfg.use_sparse_init = false;
 %!	nn = nnInitNetwork(lsizes,cfg);
 
 %!  desc.params = nn.weights;
@@ -32,30 +32,32 @@
 %!	desc.maxiter = 60000;
 %!	desc.evalFrequency = 32;
 %!	desc.miniBatchSize = 128;
-%!	desc.validationWindowSize = 100;
+%!	desc.validationWindowSize = 50;
 %!	desc.minCostDecrease = 0.0;
 %!	desc.learningDecay = 0.9999;
-%!	desc.lambda = 0.1;
+%!	desc.lambda = 0.0;
 
-%!	desc.X_cv = tr.X_cv;
-%!	desc.y_cv = nnBuildLabelMatrix(tr.y_cv(:,cfg.target_symbol_pair))';
+%!	%desc.X_cv = tr.X_cv;
+%!	%desc.y_cv = nnBuildLabelMatrix(tr.y_cv(:,cfg.target_symbol_pair))';
+%!	desc.X_cv = tr.X_train;
+%!	desc.y_cv = nnBuildLabelMatrix(tr.y_train(:,cfg.target_symbol_pair))';
 
 %!	[weights, costs, iters] = nn_gradient_descent(desc);
 
-%!	% Display the weight matrices:
-%!	nt = numel(lsizes)-1;
-%!	pos = 1;
-%!	for i=1:nt,
-%!		n = lsizes(i+1);
-%!		m = lsizes(i)+1;
-%!		count = n*m;
-%!		mat = reshape(weights(pos:pos+count-1),n,m);
-%!		pos += count;
-%!		fprintf('Theta %d:\n',i)
-%!		nr = min(10,size(mat,1));
-%!		nc = min(10,size(mat,2));
-%!		mat(1:nr,1:nc)
-%!	end
+%	% Display the weight matrices:
+%	nt = numel(lsizes)-1;
+%	pos = 1;
+%	for i=1:nt,
+%		n = lsizes(i+1);
+%		m = lsizes(i)+1;
+%		count = n*m;
+%		mat = reshape(weights(pos:pos+count-1),n,m);
+%		pos += count;
+%		fprintf('Theta %d:\n',i)
+%		nr = min(10,size(mat,1));
+%		nc = min(10,size(mat,2));
+%		mat(1:nr,1:nc)
+%	end
 
 %!	nn.weights = weights;
 %!	[y yy] = nnPredict(nn,desc.X_train);
