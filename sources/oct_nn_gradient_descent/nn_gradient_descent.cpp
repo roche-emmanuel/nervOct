@@ -93,8 +93,10 @@ public:
     traits.params = (double *)params.data();
 
     // Assign X train data:
+    // Note that here we need to transpose the X matrix before assigning it to the traits
     traits.X_train_size = X_train.numel();
-    traits.X = (double *)X_train.data();
+    Matrix X_train_t = X_train.transpose();
+    traits.X = (double *)X_train_t.data();
 
     // Assign the y_train data:
     traits.y_train_size = y_train.numel();
@@ -183,6 +185,8 @@ public:
       traits.dropouts = dropouts;
     }
 
+    Matrix X_cv_t; // Keep a reference on the X_cv transpose matrix here.
+
     // If we requested a validationWindow, then we also msut retrieve the cv datasets:
     if (traits.validationWindowSize > 0)
     {
@@ -194,10 +198,12 @@ public:
       // Check that this matrix matches the lsizes:
       CHECK(X_cv.dim2() == lsizes[0], "nn_gradient_descent: X_cv size doesn't match lsizes: " << X_cv.dim2() << "!=" << lsizes[0]);
 
-      traits.X_cv_size = X_cv.numel();
-      traits.X_cv = (double *)X_cv.data();
-
       traits.nsamples_cv = X_cv.dim1();
+
+      // Note that we need to transpose the X_cv matrix before assigning it to the traits:
+      traits.X_cv_size = X_cv.numel();
+      X_cv_t = X_cv.transpose();
+      traits.X_cv = (double *)X_cv_t.data();
 
       val = desc.contents("y_cv");
       CHECK(val.is_defined(), "nn_gradient_descent: y_cv value is not defined");

@@ -369,7 +369,7 @@
 %!	desc.lsizes = [2, 2, 1];
 %!	desc.X_train = [0 0; 1 0; 0 1; 1 1];
 %!	desc.y_train = [1; 0; 0 ; 1]';
-%!  desc.params = rand(9,1)
+%!  desc.params = rand(9,1);
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
 %!	desc.maxiter = 3000;
@@ -467,7 +467,7 @@
 %!	xsin = sin(desc.X_train(:,1)*2*pi);
 
 %!	desc.y_train = [xsin>=0 xsin<0]';
-%!  desc.params = rand(compute_np(lsizes),1)
+%!  desc.params = rand(compute_np(lsizes),1);
 %!  desc.epsilon = 0.05;
 %!  desc.momentum = 0.99;
 %!	desc.maxiter = 3000;
