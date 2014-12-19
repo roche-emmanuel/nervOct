@@ -123,7 +123,7 @@ fprintf('Testing Training...\n')
 % test tests_training_1
 % test tests_training_2
 % test tests_training_2b
-% test tests_training_3
-test tests_training_4
+test tests_training_3
+% test tests_training_4
 
 more on;

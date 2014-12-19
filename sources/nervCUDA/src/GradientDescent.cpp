@@ -62,7 +62,7 @@ void GDTraits<T>::validate() const
 
   unsigned int ns_cv = y_cv_size / lsizes[nl - 1];
   THROW_IF(nsamples_cv != ns_cv, "Mismatch in computation of nsamples_cv" << nsamples_cv << "!=" << ns_cv)
-  THROW_IF(miniBatchSize > nsamples_train / 2, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples_train / 2));
+  THROW_IF(miniBatchSize > nsamples_train, "mini-batch size is too big: " << miniBatchSize << ">" << (nsamples_train));
   THROW_IF(validationWindowSize > 0 && (!X_cv || !y_cv), "Invalid cv datasets.");
 
   if (dropouts)
@@ -226,6 +226,8 @@ T GradientDescent<T>::run()
       // check if we have enough samples left or if we should reset to the beginning:
       if ((mbOffset + _miniBatchSize) > _d_traits.nsamples_train)
         mbOffset = 0;
+
+      // logDEBUG("Using mbOffset: "<< mbOffset);
 
       // update the pointers:
       X_train_ptr = _d_traits.X_train + _lsizes[0] * mbOffset;

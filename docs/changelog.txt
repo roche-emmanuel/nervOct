@@ -228,3 +228,4 @@
 - Added test with XOR and AND and OR network.
 - Testing training settings.
 - Preparing training 4 for minibatch usage.
+- Found the source of the mini batch issue: X matrix should be transposed.

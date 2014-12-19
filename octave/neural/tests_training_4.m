@@ -52,3 +52,5 @@
 %!	xlabel('Number of epochs');
 %!	ylabel('Cv Cost');
 %!	hold off;
+%!  max(costs)
+
