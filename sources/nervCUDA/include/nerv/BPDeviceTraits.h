@@ -147,7 +147,31 @@ protected:
 
     nsamples = rhs.nsamples_train;
 
-    X_train = createDeviceBuffer(nx(), rhs.X);
+    // if (rhs.X)
+    // {
+    //   // perform transposition of X matrix:
+    //   // THe input X matrix is of dimensions nsamples*lsizes[0]
+    //   // We need to convert that to lsizes[0]*nsamples;
+    //   T *X_data = new T[nx()];
+    //   unsigned int nf = lsizes[0];
+
+    //   for (unsigned int r = 0; r < nsamples; r++)
+    //   {
+    //     for (unsigned int c = 0; c < nf; ++c)
+    //     {
+    //       X_data[nf*r+c] = rhs.X[nsamples*c+r];
+    //     }
+    //   }
+
+    //   X_train = createDeviceBuffer(nx(), X_data);
+    //   delete [] X_data;
+    // }
+    // else
+    // {
+
+      X_train = createDeviceBuffer(nx(),rhs.X);
+    // }
+
     y_train = createDeviceBuffer(ny(), rhs.yy);
 
     X = X_train;
@@ -155,8 +179,26 @@ protected:
 
     if (rhs.X_cv)
     {
-      X_cv = createDeviceBuffer(nx_cv(), rhs.X_cv);
+      // // perform transposition of X matrix:
+      // // THe input X_cv matrix is of dimensions nsamples_cv*lsizes[0]
+      // // We need to convert that to lsizes[0]*nsamples_cv;
+      // T *X_data = new T[nx_cv()];
+      // unsigned int nf = lsizes[0];
+
+      // for (unsigned int r = 0; r < nsamples_cv; r++)
+      // {
+      //   for (unsigned int c = 0; c < nf; ++c)
+      //   {
+      //     X_data[nf*r+c] = rhs.X_cv[nsamples_cv*c+r];
+      //   }
+      // }
+
+      // X_cv = createDeviceBuffer(nx_cv(), X_data); //rhs.X_cv);
+      // delete [] X_data;    
+
+      X_cv = createDeviceBuffer(nx_cv(),rhs.X_cv);  
     }
+
     if (rhs.y_cv)
     {
       y_cv = createDeviceBuffer(ny_cv(), rhs.y_cv);

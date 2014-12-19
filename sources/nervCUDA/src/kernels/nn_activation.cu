@@ -202,12 +202,14 @@ void _nn_predict_cpu(BPTraits<T> &traits)
           if (i == 0)
           {
             xw = 1.0;
-            if(traits.dropouts && (abs(sin(nsamples * j + c)) > traits.dropouts[0]))
+            // if(traits.dropouts && (abs(sin(nsamples * j + c)) > traits.dropouts[0]))
+            if(traits.dropouts && (abs(sin(ncolT * c + j)) > traits.dropouts[0]))
             {
               xw = 0.0;
             }
 
-            val += params[theta_offset + nrows * (j + 1) + r] * X[nsamples * j + c] * xw;
+            // val += params[theta_offset + nrows * (j + 1) + r] * X[nsamples * j + c] * xw;
+            val += params[theta_offset + nrows * (j + 1) + r] * X[ncolT * c + j] * xw;
           }
           else
           {

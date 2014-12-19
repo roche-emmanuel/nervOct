@@ -67,32 +67,15 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
 
     val = 0.0;
 
-    if (traits.next_input_offset == 0)
+    xx = blockIdx.x * blockSize + threadIdx.y;
+    yy = k * blockSize + threadIdx.x;
+
+    if (yy < ncolT && xx < ncols)
     {
-      // In that case we need to retrieve the data from the X matrix.
-      // actually we need the data from X^T.
-      xx = blockIdx.x * blockSize + threadIdx.x;
-      yy = k * blockSize + threadIdx.y;
-
-      if (xx < ncols && yy < ncolT)
-      {
-        val = traits.wX[yy * ncols + xx];
-      }
-
-      Bs[threadIdx.y][threadIdx.x] = val;
+      val = traits.next_input_offset == 0 ? traits.wX[xx * ncolT + yy] : traits.inputs[traits.input_offset + xx * ncolT + yy];
     }
-    else
-    {
-      xx = blockIdx.x * blockSize + threadIdx.y;
-      yy = k * blockSize + threadIdx.x;
 
-      if (yy < ncolT && xx < ncols)
-      {
-        val = traits.inputs[traits.input_offset + xx * ncolT + yy];
-      }
-
-      Bs[threadIdx.x][threadIdx.y] = val;
-    }
+    Bs[threadIdx.x][threadIdx.y] = val;
 
     __syncthreads();
 

@@ -372,7 +372,8 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
           }
 
           xw = 1.0;
-          if (traits.dropouts && (abs(sin(niter * (c - 1) + n))) > traits.dropouts[0])
+          // if (traits.dropouts && (abs(sin(niter * (c - 1) + n))) > traits.dropouts[0])
+          if (traits.dropouts && (abs(sin((ncols - 1) * n + (c - 1)))) > traits.dropouts[0])
           {
             xw = 0.0;
           }
@@ -385,7 +386,8 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
             // Here we have to use the X matrix instead of the z_T.
             // we still want to write the value act(n,c)=x(n,c-1) if c>0
             // Here we also need to check if we want to use the X value in case dropout is enabled:
-            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : X[niter * (c - 1) + n] * xw);
+            // val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : X[niter * (c - 1) + n] * xw);
+            val += deltas[delta_offset + nrows * n + r] * (c == 0 ? bias : X[(ncols - 1) * n + (c - 1)] * xw);
           }
           else
           {

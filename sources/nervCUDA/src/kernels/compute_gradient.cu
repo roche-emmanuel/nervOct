@@ -41,60 +41,31 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
 
     val = 0.0;
 
-    if (input_offset < 0)
+    // Same for the B matrix, we need to invert the x and y coords:
+    xx = blockIdx.x * blockSize + threadIdx.x;
+    yy = k * blockSize + threadIdx.y;
+
+    if (yy < niter && xx < ncols)
     {
-      xx = blockIdx.x * blockSize + threadIdx.y;
-      yy = k * blockSize + threadIdx.x;
-
-      if (yy < niter && xx < ncols)
+      // B(r,c)==1 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
+      if (xx == 0)
       {
-        // Here we use the matrix X instead of z_T:
-        // B(r,c)= X(r,c-1) if c>0;
-        if(xx==0) {
-          if (withDropout)
-          {
-            val = traits.wbias[traits.wbias_offset + yy];
-          }
-          else
-          {
-            val = traits.bias;
-          }
-        }
-        else {
-        	val = traits.wX[niter * (xx - 1) + yy];
-        }
-      }
-
-      Bs[threadIdx.x][threadIdx.y] = val;
-    }
-    else
-    {
-      // Same for the B matrix, we need to invert the x and y coords:
-      xx = blockIdx.x * blockSize + threadIdx.x;
-      yy = k * blockSize + threadIdx.y;
-
-      if (yy < niter && xx < ncols)
-      {
-        // B(r,c)==1 if c==0 or B(r,c)=z_T(r,c-1)= z(c-1,r)
-        if (xx == 0)
+        if (withDropout)
         {
-          if (withDropout)
-          {
-            val = traits.wbias[traits.wbias_offset + yy];
-          }
-          else
-          {
-            val = traits.bias;
-          }
+          val = traits.wbias[traits.wbias_offset + yy];
         }
         else
         {
-          val = traits.inputs[input_offset + (ncols - 1) * yy + xx - 1];
+          val = traits.bias;
         }
       }
-
-      Bs[threadIdx.y][threadIdx.x] = val;
+      else
+      {
+        val = input_offset < 0 ? traits.wX[(ncols - 1) * yy + xx - 1] : traits.inputs[input_offset + (ncols - 1) * yy + xx - 1];
+      }
     }
+
+    Bs[threadIdx.y][threadIdx.x] = val;
 
     __syncthreads();
 
@@ -123,5 +94,5 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
 // Explicit instanciation:
 template __global__ void ComputeGradient(BPComputeTraits<double> traits);
 template __global__ void ComputeGradient(BPComputeTraits<float> traits);
-template __global__ void ComputeGradient<double,true>(BPComputeTraits<double> traits);
-template __global__ void ComputeGradient<float,true>(BPComputeTraits<float> traits);
+template __global__ void ComputeGradient<double, true>(BPComputeTraits<double> traits);
+template __global__ void ComputeGradient<float, true>(BPComputeTraits<float> traits);
