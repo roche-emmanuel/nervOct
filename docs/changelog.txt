@@ -231,3 +231,4 @@
 - Found the source of the mini batch issue: X matrix should be transposed.
 - Now using transposed X matrix for gradient descent. This should fix the mini batch issue.
 - Performed test for gradient descent in octave.
+- Tested training with 1024 features.

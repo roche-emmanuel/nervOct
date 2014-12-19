@@ -12,7 +12,7 @@
 %!endfunction
 
 %!test
-%!	nf = 128
+%!	nf = 1024
 %!	cfg = config();
 %!	lsizes = [nf, 32, 3]
 %!	desc.lsizes = lsizes;
