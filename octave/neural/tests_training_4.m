@@ -9,11 +9,11 @@
 %!endfunction
 
 %!test
-%!	nf = 100
+%!	nf = 128
 %!	cfg = config();
 %!	lsizes = [nf, 32, 3]
 %!	desc.lsizes = lsizes;
-%!	m = 2000;
+%!	m = 2048;
 %!	desc.X_train = rand(m,nf);
 
 %!	% build the label matrix:

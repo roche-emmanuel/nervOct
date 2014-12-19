@@ -227,3 +227,4 @@
 - Added test with XOR and AND network.
 - Added test with XOR and AND and OR network.
 - Testing training settings.
+- Preparing training 4 for minibatch usage.
