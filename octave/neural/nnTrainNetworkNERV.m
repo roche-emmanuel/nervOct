@@ -28,7 +28,7 @@ desc.epsilon = training.learning_rate;
 desc.momentum = training.momentum;
 desc.maxiter = training.max_iterations;
 desc.evalFrequency = training.eval_frequency;
-desc.miniBatchSize = 32;
+desc.miniBatchSize = training.mini_batch_size;
 desc.lambda = training.regularization_param;
 
 if isfield(training,'dropouts')
@@ -80,7 +80,12 @@ end
 %!	tr = nnPrepareTraining(1:1,cfg);
 %!	tr.early_stopping = true;
 %!	tr.max_iterations = 0;
+%!	tr.learning_rate = 0.001;
+%!	tr.mini_batch_size = 128;
+%!	tr.validation_window_size = 50;
+%!	tr.regularization_param = 10.0;
 %!	tr.dropouts = [0.8, 0.5, 0.5, 0.5];
+%!	%tr.dropouts = [0.8, 0.5];
 %!	nn = nnInitNetwork([tr.num_features 512 128 32 3],cfg);
 %!	%nn = nnInitNetwork([tr.num_features 32 3],cfg);
 %!	tic();

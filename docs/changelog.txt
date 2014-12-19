@@ -232,3 +232,4 @@
 - Now using transposed X matrix for gradient descent. This should fix the mini batch issue.
 - Performed test for gradient descent in octave.
 - Tested training with 1024 features.
+- Preparing for addition of learning rate decay.
