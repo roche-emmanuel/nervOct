@@ -43,6 +43,10 @@ public:
 
   T momentum;
   T epsilon;
+  T learningDecay;
+  T minCostDecrease;
+
+  bool verbose;
 
   unsigned int miniBatchSize;
   unsigned int validationWindowSize;
@@ -66,6 +70,11 @@ protected:
 
     momentum = 0.0;
     epsilon = 0.0;
+    learningDecay = 1.0;
+
+    minCostDecrease = (T)0.00001;
+
+    verbose = false;
 
     miniBatchSize = 0;
     validationWindowSize = 0;

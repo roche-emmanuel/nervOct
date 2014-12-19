@@ -233,3 +233,4 @@
 - Performed test for gradient descent in octave.
 - Tested training with 1024 features.
 - Preparing for addition of learning rate decay.
+- Added support for gradient descent advanced parameters.

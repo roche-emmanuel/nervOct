@@ -125,6 +125,27 @@ public:
       traits.miniBatchSize = (unsigned int)val.double_value();
     }
 
+    val = desc.contents("learningDecay");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: learningDecay is not a double type");
+      traits.learningDecay = val.double_value();
+    }
+
+    val = desc.contents("minCostDecrease");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: minCostDecrease is not a double type");
+      traits.minCostDecrease = val.double_value();
+    }
+
+    val = desc.contents("verbose");
+    if (val.is_defined())
+    {
+      CHECK(val.is_bool_type(), "nn_gradient_descent: verbose is not a bool type");
+      traits.verbose = val.bool_value();
+    }
+
     val = desc.contents("validationWindowSize");
     if (val.is_defined())
     {

@@ -44,9 +44,6 @@ protected:
   WindowedMean<value_type> _bestMean; // best windowed mean stack
 
   value_type _mumax; // maximum value of the momentum.
-  value_type _mu; // current value of the momentum.
-  value_type _epsilon; // Learning rate value.
-  value_type _minCvCostDec; // minimal valid mean cv cost decrease
 
   // GPU buffers:
   value_type *d_params; // training weights buffer.

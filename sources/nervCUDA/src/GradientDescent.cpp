@@ -96,13 +96,9 @@ GradientDescent<T>::GradientDescent(const GDTraits<T> &traits)
   _maxiter = traits.maxiter;
 
   _mumax = traits.momentum;
-  _mu = 0.0; // will be initialized later.
-
-  _epsilon = traits.epsilon;
 
   _miniBatchSize = traits.miniBatchSize;
   _validationWindowSize = traits.validationWindowSize;
-  _minCvCostDec = (value_type)0.00001;
 
   _nt = traits.nl - 1;
 
@@ -146,19 +142,22 @@ T GradientDescent<T>::run()
   if (_miniBatchSize > 0)
   {
     ns = _miniBatchSize;
-    trDEBUG(THIS, "Using mini batch size: " << _miniBatchSize);
+    if (_traits.verbose)
+    {
+      trDEBUG(THIS, "Using mini batch size: " << _miniBatchSize);
+    }
   }
 
   bool earlyStopping = false;
   if (_validationWindowSize > 0)
   {
-    trDEBUG(THIS, "Using early stopping with window size: " << _validationWindowSize)
+    if (_traits.verbose)
+    {
+      trDEBUG(THIS, "Using early stopping with window size: " << _validationWindowSize)
+    }
+
     earlyStopping = true;
   }
-
-  trDEBUG(THIS, "Using learning rate: " << _epsilon);
-  trDEBUG(THIS, "Using max momentum: " << _mumax);
-  trDEBUG(THIS, "Using lambda: " << _d_traits.lambda);
 
   WindowedMean<value_type> mean(_validationWindowSize);
   value_type cur_mean = 0.0;
@@ -172,6 +171,20 @@ T GradientDescent<T>::run()
   unsigned int invalid_count = 0;
   unsigned int max_invalid_count = 5;
 
+
+  value_type learning_rate = _traits.epsilon;
+  value_type minCvCostDecrease = _traits.minCostDecrease;
+
+  if (_traits.verbose)
+  {
+    trDEBUG(THIS, "Using learning rate: " << _traits.epsilon);
+    trDEBUG(THIS, "Using learning decay: " << _traits.learningDecay);
+    trDEBUG(THIS, "Using max momentum: " << _mumax);
+    trDEBUG(THIS, "Using lambda: " << _traits.lambda);
+    trDEBUG(THIS, "Using minCvCostDecrease: " << _traits.minCostDecrease);
+  }
+
+  value_type mu; // current momentum.
 
   // Run the iteration loop:
   while (_maxiter <= 0 || iter < _maxiter)
@@ -189,10 +202,10 @@ T GradientDescent<T>::run()
 
     // 1. We need to compute the desired value of mu for this cycle:
     // formula from [1]
-    _mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter / 250.0) + 1) / LOG2), (double)_mumax);
+    mu = (value_type)std::min(1.0 - pow(2.0, -1.0 - log(floor((double)iter / 250.0) + 1) / LOG2), (double)_mumax);
 
     // 2. prepare the parameter vector:
-    mix_vectors_device(_d_traits.params, d_theta, d_vel, (value_type)1.0, _mu, _np, _d_traits.stream);
+    mix_vectors_device(_d_traits.params, d_theta, d_vel, (value_type)1.0, mu, _np, _d_traits.stream);
 
     // 3. Once we have the parameter vector, we compute the gradient at that location:
     _d_traits.X = X_train_ptr;
@@ -212,10 +225,13 @@ T GradientDescent<T>::run()
     // logDEBUG("Performing iteration "<<iter<<", Jtrain="<<current_cost);
 
     // 4. With the gradient we update the velocity vector:
-    mix_vectors_device(d_vel, d_vel, _d_traits.grads, _mu, -_epsilon, _np, _d_traits.stream);
+    mix_vectors_device(d_vel, d_vel, _d_traits.grads, mu, -learning_rate, _np, _d_traits.stream);
 
     // 5. Now that we have the new velocity, we can compute the new value for the theta vector:
     mix_vectors_device(d_theta, d_theta, d_vel, (value_type)1.0, (value_type)1.0, _np, _d_traits.stream);
+
+    // update the value of the learning rate:
+    learning_rate *= _traits.learningDecay;
 
     if (_miniBatchSize > 0)
     {
@@ -265,7 +281,7 @@ T GradientDescent<T>::run()
       if (mean.size() == _validationWindowSize)
       {
         value_type dec = (cur_mean - new_mean) / cur_mean;
-        if (dec < _minCvCostDec)
+        if (dec < minCvCostDecrease)
         {
           trDEBUG_V(THIS, "Invalid mean cv cost decrease ratio of: " << dec); //new_mean<<">"<<cur_mean);
           // We count this as an error:
