@@ -104,11 +104,8 @@ addpath([pname '/neural']);
 % fprintf('Testing train_bp...\n')
 % test tests_train_bp;
 
-% fprintf('Testing Training...\n')
-% test tests_training
-
-fprintf('Testing Gradient descent...\n')
-test tests_nn_gradient_descent
+% fprintf('Testing Gradient descent...\n')
+% test tests_nn_gradient_descent
 
 % fprintf('Testing nnSelectRandomNetwork...\n')
 % test nnSelectRandomNetwork
@@ -121,5 +118,12 @@ test tests_nn_gradient_descent
 
 % fprintf('Testing Trade Strategy...\n')
 % test tests_trade_strategy
+
+fprintf('Testing Training...\n')
+% test tests_training_1
+% test tests_training_2
+% test tests_training_2b
+% test tests_training_3
+test tests_training_4
 
 more on;

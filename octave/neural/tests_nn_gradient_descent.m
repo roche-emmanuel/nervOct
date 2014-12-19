@@ -387,7 +387,7 @@
 %!	h = gcf();	
 %!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
 %!	legend('Jcv');
-%!	title('Learning progress');
+%!	title('XOR Learning progress');
 %!	xlabel('Number of epochs');
 %!	ylabel('Cv Cost');
 %!	hold off;
@@ -415,7 +415,7 @@
 %!	h = gcf();	
 %!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
 %!	legend('Jcv');
-%!	title('Learning progress');
+%!	title('XOR/AND Learning progress');
 %!	xlabel('Number of epochs');
 %!	ylabel('Cv Cost');
 %!	hold off;
@@ -443,8 +443,55 @@
 %!	h = gcf();	
 %!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
 %!	legend('Jcv');
-%!	title('Learning progress');
+%!	title('XOR/AND/OR Learning progress');
 %!	xlabel('Number of epochs');
 %!	ylabel('Cv Cost');
 %!	hold off;
 
+%!function np = compute_np(lsizes)
+%!	np = 0;
+%!	nt = numel(lsizes)-1;
+%!	for i=1:nt
+%!		np += (lsizes(i)+1)*lsizes(i+1);
+%!	end
+%!endfunction
+
+% ==> Should train on a network predicting positive or negative sinus
+%!test
+%!	lsizes = [10, 32, 2]
+%!	desc.lsizes = lsizes;
+%!	m = 2000;
+%!	desc.X_train = rand(m,10);
+
+%!	% build the label matrix:
+%!	xsin = sin(desc.X_train(:,1)*2*pi);
+
+%!	desc.y_train = [xsin>=0 xsin<0]';
+%!  desc.params = rand(compute_np(lsizes),1)
+%!  desc.epsilon = 0.05;
+%!  desc.momentum = 0.99;
+%!	desc.maxiter = 3000;
+%!	desc.evalFrequency = 32;
+%!	desc.miniBatchSize = 0;
+%!	desc.validationWindowSize = 50;
+%!	desc.X_cv = desc.X_train;
+%!	desc.y_cv = desc.y_train;
+%!	[weights, costs, iters] = nn_gradient_descent(desc);
+%!	nn.layer_sizes = lsizes;
+%!	nn.weights = weights;
+%!	[y yy] = nnPredict(nn,desc.X_train);
+%!	[dummy, origy] = max(desc.y_train', [], 2);
+%!	origy = origy-1;
+%!	y(1:20,:)
+%!	%origy(1:20,:)
+%!	yy(1:20,:)
+%!	accuracy = 1.0 - mean(double(origy ~= y))
+%! 	% Now we can draw the evolution of the costs:
+%!	figure; hold on;
+%!	h = gcf();	
+%!	plot(iters, costs, 'LineWidth', 2, 'Color','b');
+%!	legend('Jcv');
+%!	title('Sin POS/NEG Learning progress');
+%!	xlabel('Number of epochs');
+%!	ylabel('Cv Cost');
+%!	hold off;
