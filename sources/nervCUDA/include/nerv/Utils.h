@@ -37,6 +37,7 @@ unsigned int nextPow2(unsigned int x);
 void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
 
 NERVCUDA_EXPORT const char * _cudaGetErrorEnum(cudaError_t error);
+NERVCUDA_EXPORT const char * _cublasGetErrorEnum(cublasStatus_t error);
 
 template< typename T >
 void check(T result, char const *const func, const char *const file, int const line)
@@ -51,7 +52,22 @@ void check(T result, char const *const func, const char *const file, int const l
   }
 }
 
+template< typename T >
+void checkBlas(T result, char const *const func, const char *const file, int const line)
+{
+  if (result)
+  {
+    fprintf(stderr, "CUBLAS error at %s:%d code=%d(%s) \"%s\" \n",
+            file, line, static_cast<unsigned int>(result), _cublasGetErrorEnum(result), func);
+    DEVICE_RESET
+    // Make sure we call CUDA Device Reset before exiting
+    exit(EXIT_FAILURE);
+  }
+}
+
 #define checkCudaErrors(val)           check ( (val), #val, __FILE__, __LINE__ )
+
+#define checkCublasErrors(val) checkBlas ( (val), #val, __FILE__, __LINE__ )
 
 // This will output the proper error string when calling cudaGetLastError
 #define getLastCudaError(msg)      __getLastCudaError (msg, __FILE__, __LINE__)

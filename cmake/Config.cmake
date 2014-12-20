@@ -50,7 +50,7 @@ SET(BOOST_LIBS 		)
 
 SET(CUDA_INC_DIR 	${DEP_CUDA}/include)
 SET(CUDA_LIB_DIR 	${DEP_CUDA}/lib/${ARCHMODEL})
-SET(CUDA_LIBS 		cudart.lib)
+SET(CUDA_LIBS 		cudart.lib cublas.lib)
 
 # SET(GPUMLIB_INC_DIR 	${DEP_GPUMLIB}/src)
 # SET(GPUMLIB_LIB_DIR 	${DEP_GPUMLIB}/lib/${ARCHMODEL})
