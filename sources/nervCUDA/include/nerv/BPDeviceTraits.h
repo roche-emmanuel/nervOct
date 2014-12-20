@@ -21,7 +21,8 @@ struct BPDeviceTraits : public BPTraits<T>
 
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
-      y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr)
+      y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
+      handle(nullptr)
   {
     if (withStream)
     {
@@ -51,6 +52,11 @@ struct BPDeviceTraits : public BPTraits<T>
     if (owned_stream)
     {
       checkCudaErrors(cudaStreamDestroy(stream));
+    }
+
+    if (handle)
+    {
+      checkCublasErrors(cublasDestroy(handle));
     }
   }
 
@@ -90,6 +96,12 @@ struct BPDeviceTraits : public BPTraits<T>
     THROW_IF(stream, "Stream already allocated.")
     owned_stream = true;
     checkCudaErrors(cudaStreamCreate(&stream));
+
+    // check if softmax is enabled, and in that case create the handle
+    if (use_softmax)
+    {
+      checkCublasErrors(cublasCreate(&handle));
+    }
   }
 
   // T* predictions() {
@@ -108,6 +120,7 @@ public:
 
   T *regw; // array containing the L2 regularization weights.
   cudaStream_t stream;
+  cublasHandle_t handle;
 
   T *X_train;
   T *y_train;
@@ -169,7 +182,7 @@ protected:
     // else
     // {
 
-      X_train = createDeviceBuffer(nx(),rhs.X);
+    X_train = createDeviceBuffer(nx(), rhs.X);
     // }
 
     y_train = createDeviceBuffer(ny(), rhs.yy);
@@ -194,9 +207,9 @@ protected:
       // }
 
       // X_cv = createDeviceBuffer(nx_cv(), X_data); //rhs.X_cv);
-      // delete [] X_data;    
+      // delete [] X_data;
 
-      X_cv = createDeviceBuffer(nx_cv(),rhs.X_cv);  
+      X_cv = createDeviceBuffer(nx_cv(), rhs.X_cv);
     }
 
     if (rhs.y_cv)
