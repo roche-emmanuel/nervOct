@@ -237,3 +237,4 @@
 - Tested learning with PCA activated.
 - Preparing to add support for sotfmax.
 - Added kernel for matrix vector multiplication with Cublas.
+- Added test for matrix vector multiplication.

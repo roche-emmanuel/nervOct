@@ -15,9 +15,9 @@
 #endif
 
 #if defined(_MSC_VER)
-    // #pragma warning( disable : 4244 )
-    #pragma warning( disable : 4251 )
-    // #pragma warning( disable : 4275 )
+// #pragma warning( disable : 4244 )
+#pragma warning( disable : 4251 )
+// #pragma warning( disable : 4275 )
 #endif
 
 #include <cuda_runtime.h>
@@ -60,13 +60,13 @@ T maximum(T v1, T v2)
 template<typename T>
 T minimum(T v1, T v2, T v3)
 {
-  return minimum(v1, minimum(v2,v3));
+  return minimum(v1, minimum(v2, v3));
 }
 
 template<typename T>
 T maximum(T v1, T v2, T v3)
 {
-  return maximum(v1, maximum(v2,v3));
+  return maximum(v1, maximum(v2, v3));
 }
 
 template<typename T>
@@ -141,7 +141,7 @@ extern "C" {
   int run_gradient_descent(GDTraits<double> &traits);
   int run_gradient_descent_f(GDTraits<float> &traits);
 
-  void gd_errfunc_cpu(BPTraits<double>& traits);
+  void gd_errfunc_cpu(BPTraits<double> &traits);
 
   void nn_predict(BPTraits<double> &traits);
   void nn_predict_f(BPTraits<float> &traits);
@@ -149,21 +149,25 @@ extern "C" {
   void nn_predict_cpu(BPTraits<double> &traits);
   void nn_predict_cpu_f(BPTraits<float> &traits);
 
-  void rand_weights(RandTraits<double>& traits);
-  void rand_weights_f(RandTraits<float>& traits);
+  void rand_weights(RandTraits<double> &traits);
+  void rand_weights_f(RandTraits<float> &traits);
+
+  NERVCUDA_EXPORT void mat_vec_mult(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA);
+  NERVCUDA_EXPORT void mat_vec_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *x, float *y, bool tpA);
+  NERVCUDA_EXPORT void mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA);
 
 #ifndef __CUDACC__
-  nerv::StrategyManager& get_strategy_manager();
+  nerv::StrategyManager &get_strategy_manager();
 
-  NERVCUDA_EXPORT int create_strategy(const Strategy::CreationTraits& traits);
+  NERVCUDA_EXPORT int create_strategy(const Strategy::CreationTraits &traits);
   NERVCUDA_EXPORT int destroy_strategy(int id);
-  NERVCUDA_EXPORT int evaluate_strategy(int id, Strategy::EvalTraits& traits);
-  NERVCUDA_EXPORT int add_strategy_model(int id, Model::CreationTraits& traits);
+  NERVCUDA_EXPORT int evaluate_strategy(int id, Strategy::EvalTraits &traits);
+  NERVCUDA_EXPORT int add_strategy_model(int id, Model::CreationTraits &traits);
 #endif
 };
 
 template<typename T>
-void rand_weights_device(RandDeviceTraits<T>& traits);
+void rand_weights_device(RandDeviceTraits<T> &traits);
 
 template<typename T>
 void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0);
