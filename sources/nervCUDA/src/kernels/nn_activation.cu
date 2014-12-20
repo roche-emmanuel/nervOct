@@ -99,6 +99,22 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
       ComputeActivation <<< dimGrid, dimBlock, 0, stream>>>(traits);
     }
 
+    // Once we are done computing all the weights, if we use softmax, then we have to renormalize
+    // the activation values on the latest layer.
+    if(d_traits.use_softmax && i==(nt-1)) {
+      // Compute the normalization value for each sample
+      // Using the hx matrix as the A matrix.
+      // We transpose this matrix and multiply it by the one vector to get the sum on each row
+      // When transposed we have one row per sample.
+      // And we store the result in sotfmax_norms.
+      mat_vec_mult_device(d_traits.handle, CUBLAS_OP_T, nrows, ncols, d_traits.inputs+traits.input_offset, d_traits.sotfmax_ones, d_traits.sotfmax_norms);
+
+      // Once we have the sotfmax_norms vector
+      // we can renormalize the hx matrix in an element wise fashion.
+
+
+    }
+
     // update the offsets:
     traits.wbias_offset += ncols;
     traits.theta_offset += lsizes[i + 1] * (lsizes[i] + 1);

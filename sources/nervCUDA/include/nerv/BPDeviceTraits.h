@@ -22,7 +22,7 @@ struct BPDeviceTraits : public BPTraits<T>
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
-      handle(nullptr)
+      handle(nullptr), sotfmax_ones(nullptr), sotfmax_norms(nullptr)
   {
     if (withStream)
     {
@@ -96,12 +96,6 @@ struct BPDeviceTraits : public BPTraits<T>
     THROW_IF(stream, "Stream already allocated.")
     owned_stream = true;
     checkCudaErrors(cudaStreamCreate(&stream));
-
-    // check if softmax is enabled, and in that case create the handle
-    if (use_softmax)
-    {
-      checkCublasErrors(cublasCreate(&handle));
-    }
   }
 
   // T* predictions() {
@@ -121,6 +115,9 @@ public:
   T *regw; // array containing the L2 regularization weights.
   cudaStream_t stream;
   cublasHandle_t handle;
+
+  T *sotfmax_ones;
+  T *sotfmax_norms;
 
   T *X_train;
   T *y_train;
@@ -160,31 +157,7 @@ protected:
 
     nsamples = rhs.nsamples_train;
 
-    // if (rhs.X)
-    // {
-    //   // perform transposition of X matrix:
-    //   // THe input X matrix is of dimensions nsamples*lsizes[0]
-    //   // We need to convert that to lsizes[0]*nsamples;
-    //   T *X_data = new T[nx()];
-    //   unsigned int nf = lsizes[0];
-
-    //   for (unsigned int r = 0; r < nsamples; r++)
-    //   {
-    //     for (unsigned int c = 0; c < nf; ++c)
-    //     {
-    //       X_data[nf*r+c] = rhs.X[nsamples*c+r];
-    //     }
-    //   }
-
-    //   X_train = createDeviceBuffer(nx(), X_data);
-    //   delete [] X_data;
-    // }
-    // else
-    // {
-
     X_train = createDeviceBuffer(nx(), rhs.X);
-    // }
-
     y_train = createDeviceBuffer(ny(), rhs.yy);
 
     X = X_train;
@@ -192,23 +165,6 @@ protected:
 
     if (rhs.X_cv)
     {
-      // // perform transposition of X matrix:
-      // // THe input X_cv matrix is of dimensions nsamples_cv*lsizes[0]
-      // // We need to convert that to lsizes[0]*nsamples_cv;
-      // T *X_data = new T[nx_cv()];
-      // unsigned int nf = lsizes[0];
-
-      // for (unsigned int r = 0; r < nsamples_cv; r++)
-      // {
-      //   for (unsigned int c = 0; c < nf; ++c)
-      //   {
-      //     X_data[nf*r+c] = rhs.X_cv[nsamples_cv*c+r];
-      //   }
-      // }
-
-      // X_cv = createDeviceBuffer(nx_cv(), X_data); //rhs.X_cv);
-      // delete [] X_data;
-
       X_cv = createDeviceBuffer(nx_cv(), rhs.X_cv);
     }
 
@@ -232,6 +188,17 @@ protected:
       // Prepare an array to hold the bias weights:
       wbias = createDeviceBuffer((nl - 1) * nsamples);
       rX = createDeviceBuffer(lsizes[0] * nsamples);
+    }
+
+    // check if softmax is enabled, and in that case create the handle
+    if (use_softmax)
+    {
+      // allocate the CUBLAS handle:
+      checkCublasErrors(cublasCreate(&handle));
+
+      // Allocate the need device buffers:
+      sotfmax_ones = createDeviceBuffer(lsizes[nl-1]);
+      sotfmax_norms = createDeviceBuffer(nsamples);
     }
   }
 
