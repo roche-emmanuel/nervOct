@@ -238,3 +238,4 @@
 - Preparing to add support for sotfmax.
 - Added kernel for matrix vector multiplication with Cublas.
 - Added test for matrix vector multiplication.
+- Added declaration for matrix vector mult method.

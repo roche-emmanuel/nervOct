@@ -200,4 +200,8 @@ void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *
 template<typename T>
 void reduce_cost_reg_device(T *d_params, T *d_regw, unsigned int n, T &output, cudaStream_t stream = 0);
 
+template<typename T>
+void mat_vec_mult_device(cublasHandle_t handle, cublasOperation_t trans, unsigned int nrows, unsigned int ncols,
+                         T *A, T *x, T *y);
+
 #endif
