@@ -63,7 +63,8 @@ struct BPTraits : public BPTraitsBase<T>
   BPTraits()
     :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
        nsamples_train(0), nl(0), lsizes(nullptr), X_cv(nullptr), y_cv(nullptr),
-       nsamples_cv(0), hx(nullptr), dropouts(nullptr), debug(false) {};
+       nsamples_cv(0), hx(nullptr), dropouts(nullptr), debug(false),
+       use_softmax(false) {};
 
   virtual ~BPTraits() {}
 
@@ -77,6 +78,7 @@ struct BPTraits : public BPTraitsBase<T>
   bool compute_grads;
     
   bool debug;
+  bool use_softmax;
 
   T cost;
   T *wmults;

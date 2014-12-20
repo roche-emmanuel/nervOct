@@ -38,6 +38,7 @@ cfg = config();
 
 % 4. Prepare a training set:
 % cfg.use_PCA = true;
+% cfg.shuffle_training_data = false;
 % tr = nnPrepareTraining(1:1,cfg);	
 % tr.early_stopping = true;
 % tr.max_iterations = 100;

@@ -235,3 +235,4 @@
 - Preparing for addition of learning rate decay.
 - Added support for gradient descent advanced parameters.
 - Tested learning with PCA activated.
+- Preparing to add support for sotfmax.
