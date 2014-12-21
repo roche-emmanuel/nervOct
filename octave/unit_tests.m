@@ -127,8 +127,8 @@ fprintf('Testing Training...\n')
 % test tests_training_4
 % test tests_training_5
 % test tests_training_6
-% test tests_training_7
+test tests_training_7
 % test tests_training_8
-test tests_training_9
+% test tests_training_9
 
 more on;

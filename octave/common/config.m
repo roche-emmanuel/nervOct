@@ -41,7 +41,7 @@ cfg.num_pred_bars=5;
 cfg.dataset_ratios = [0.75 0.25 0.0];
 
 cfg.spread=0.00008;
-cfg.min_gain=cfg.spread*1.2;
+cfg.min_gain=cfg.spread*1.5;
 cfg.max_lost=cfg.spread*0.5;
 
 % Target symbol pair to train on:
@@ -107,7 +107,9 @@ cfg.default_validation_window_size = 20;
 cfg.default_eval_frequency = 32;
 
 % Default methods used to build feature and label matrices:
-cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix;
-cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix;
+% cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix;
+cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix_C;
+% cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix;
+cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix_AtTime;
 
 end

@@ -29,33 +29,33 @@
 %!  desc.epsilon = 0.0001;
 %!  desc.momentum = 0.99;
 %!	desc.verbose = true;
-%!	desc.maxiter = 60000;
+%!	desc.maxiter = 30000;
 %!	desc.evalFrequency = 32;
 %!	desc.miniBatchSize = 128;
 %!	desc.validationWindowSize = 100;
 %!	desc.minCostDecrease = 0.0;
 %!	desc.learningDecay = 0.9999;
-%!	desc.lambda = 0.1;
+%!	desc.lambda = 0.01;
 
 %!	desc.X_cv = tr.X_cv;
 %!	desc.y_cv = nnBuildLabelMatrix(tr.y_cv(:,cfg.target_symbol_pair))';
 
 %!	[weights, costs, iters] = nn_gradient_descent(desc);
 
-%!	% Display the weight matrices:
-%!	nt = numel(lsizes)-1;
-%!	pos = 1;
-%!	for i=1:nt,
-%!		n = lsizes(i+1);
-%!		m = lsizes(i)+1;
-%!		count = n*m;
-%!		mat = reshape(weights(pos:pos+count-1),n,m);
-%!		pos += count;
-%!		fprintf('Theta %d:\n',i)
-%!		nr = min(10,size(mat,1));
-%!		nc = min(10,size(mat,2));
-%!		mat(1:nr,1:nc)
-%!	end
+%	% Display the weight matrices:
+%	nt = numel(lsizes)-1;
+%	pos = 1;
+%	for i=1:nt,
+%		n = lsizes(i+1);
+%		m = lsizes(i)+1;
+%		count = n*m;
+%		mat = reshape(weights(pos:pos+count-1),n,m);
+%		pos += count;
+%		fprintf('Theta %d:\n',i)
+%		nr = min(10,size(mat,1));
+%		nc = min(10,size(mat,2));
+%		mat(1:nr,1:nc)
+%	end
 
 %!	nn.weights = weights;
 %!	[y yy] = nnPredict(nn,desc.X_train);
@@ -78,3 +78,8 @@
 %!	hold off;
 %!  max(costs)
 
+%!	% Now we save the generated network:
+%!	nn.mu = tr.mu;
+%!	nn.sigma = tr.sigma;
+%!	fname = [cfg.datapath '/nn_512_3_weeks_1_4.mat'];
+%!	save('-binary',fname,'nn');

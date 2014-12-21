@@ -14,21 +14,17 @@
 %!	fname = [cfg.datapath '/training_weeks_1_1.mat'];
 %!	load(fname);
 %!	tr.early_stopping = true;
-%!	tr.max_iterations = 15;
+%!	tr.max_iterations = 0;
 %!	tr.regularization_param = 0.0;
 
 %!	%tr.dropouts = [0.8, 0.5, 0.5, 0.5];
 %!	%tr.dropouts = [0.8, 0.5];
 
-%!	% Modify the y_train array to get more buy and sell labels:
-%!	m = size(tr.y_train,1);
-%!	%tr.y_train = [zeros(m,5) mod(1:m, 3)'];
-
 %!	tr.y_train(1:20,:)
 
 %!	%nn = nnInitNetwork([tr.num_features 512 128 32 3],cfg);
 %!	nn = nnInitNetwork([tr.num_features 512 3],cfg);
-%!	nn = nnInitNetwork([tr.num_features 32 3],cfg);
+%!	%nn = nnInitNetwork([tr.num_features 32 3],cfg);
 %!	nn = nnTrainNetworkNERV(tr,nn,cfg);
 %!  %nn = nnTrainNetwork(tr,nn,cfg);
 %!	nn.mu = tr.mu;

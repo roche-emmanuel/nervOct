@@ -35,40 +35,26 @@ total_nweeks = size(week_datasets,2);
 assert(max(nweeks)<=total_nweeks,'Invalid access to out of range week: %d>%d',max(nweeks),total_nweeks)
 
 for i=1:nweeks
-  if isempty(week_datasets{1,i})
-  	fprintf('Ignoring invalid week %d',i)
+	wid = weeks(i);
+  if isempty(week_datasets{1,wid})
+  	fprintf('Ignoring invalid week %d',wid)
     continue;
   end
 
   % Build the features and labels:
-  data = week_datasets{1,i};
-	assert(size(data,1)==cfg.num_week_minutes,'Unexpected number of rows in week dataset for week %d: n=%d',i,size(data,1));
+  data = week_datasets{1,wid};
+	assert(size(data,1)==cfg.num_week_minutes,'Unexpected number of rows in week dataset for week %d: n=%d',wid,size(data,1));
 
   week_features = cfg.buildFeatureMatrixFunc(data,cfg); 
   week_labels = cfg.buildLabelMatrixFunc(data,cfg); 
 
   % Append the data:
-	assert(size(week_features,1)==nrows,'Unexpected number of rows in feature matrix for week %d: n=%d',i,size(week_features,1));
+	assert(size(week_features,1)==nrows,'Unexpected number of rows in feature matrix for week %d: n=%d',wid,size(week_features,1));
 	X = [X; week_features];
 
-	assert(size(week_labels,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',i,size(week_labels,1));	
+	assert(size(week_labels,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',wid,size(week_labels,1));	
 	y = [y; week_labels];
 end
-
-% load the week data:
-% for i=1:nweeks,
-% 	loaded = load(sprintf(fpattern,weeks(i)));
-
-% 	% Append the features:
-% 	Xnew = loaded.week_features;
-% 	assert(size(Xnew,1)==nrows,'Unexpected number of rows in feature matrix for week %d: n=%d',i,size(Xnew,1));
-% 	X = [X; Xnew];
-	
-% 	% append the labels:
-% 	ynew = loaded.week_labels;
-% 	assert(size(ynew,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',i,size(ynew,1));	
-% 	y = [y; ynew];
-% end
 
 fprintf('Splitting datasets...\n')
 
@@ -143,7 +129,7 @@ lpos = mean(y_train(:,cfg.target_symbol_pair)==1)*100.0;
 spos = mean(y_train(:,cfg.target_symbol_pair)==2)*100.0;
 npos = mean(y_train(:,cfg.target_symbol_pair)==0)*100.0;
 
-assert(lpos+spos+npos == 100.0,'Invalid label values.')
+assert(abs(lpos+spos+npos - 100.0)< 1e-10,'Invalid label values, sum is: %.16f',lpos+spos+npos)
 
 fprintf('Long position ratio: %f%%\n',lpos)
 fprintf('Short position ratio: %f%%\n',spos)
