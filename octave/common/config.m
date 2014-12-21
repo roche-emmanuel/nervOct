@@ -106,4 +106,8 @@ cfg.default_validation_window_size = 20;
 % Default initial evaluation frequency when using cross validation window in back propagation.
 cfg.default_eval_frequency = 32;
 
+% Default methods used to build feature and label matrices:
+cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix;
+cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix;
+
 end

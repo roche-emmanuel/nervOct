@@ -45,12 +45,12 @@ cfg = config();
 % fname = [cfg.datapath '/training_week_1_1_pca.mat'];
 % save('-binary',fname,'tr');
 
-% cfg.use_PCA = false;
-% tr = nnPrepareTraining(1:1,cfg);	
-% tr.early_stopping = true;
-% tr.max_iterations = 0;
-% fname = [cfg.datapath '/training_weeks_1_1.mat'];
-% save('-binary',fname,'tr');
+cfg.use_PCA = false;
+tr = nnPrepareTraining(1:1,cfg);	
+tr.early_stopping = true;
+tr.max_iterations = 0;
+fname = [cfg.datapath '/training_weeks_1_1.mat'];
+save('-binary',fname,'tr');
 
 % tr = nnPrepareTraining(1:2,cfg);	
 % tr.early_stopping = true;

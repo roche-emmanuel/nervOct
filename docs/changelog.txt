@@ -241,3 +241,4 @@
 - Added declaration for matrix vector mult method.
 - Added initialization for cublas handle.
 - Preparing for usage of softmax computation in nn_activation.
+- Updated nnPrepareTraining to use complete week datasets directly.

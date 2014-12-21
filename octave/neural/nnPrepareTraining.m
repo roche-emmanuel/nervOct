@@ -26,20 +26,49 @@ nrows = cfg.num_week_minutes - cfg.num_pred_bars - cfg.num_input_bars + 1;
 
 fprintf('Loading weeks data...\n')
 
-% load the week data:
-for i=1:nweeks,
-	loaded = load(sprintf(fpattern,weeks(i)));
+% Here we load the complete week dataset:
+week_datasets = loadData(cfg.datapath,cfg.week_dataset_name,'week_data');
 
-	% Append the features:
-	Xnew = loaded.week_features;
-	assert(size(Xnew,1)==nrows,'Unexpected number of rows in feature matrix for week %d: n=%d',i,size(Xnew,1));
-	X = [X; Xnew];
-	
-	% append the labels:
-	ynew = loaded.week_labels;
-	assert(size(ynew,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',i,size(ynew,1));	
-	y = [y; ynew];
+% Retrieve the total number of weeks:
+total_nweeks = size(week_datasets,2);
+
+assert(max(nweeks)<=total_nweeks,'Invalid access to out of range week: %d>%d',max(nweeks),total_nweeks)
+
+for i=1:nweeks
+  if isempty(week_datasets{1,i})
+  	fprintf('Ignoring invalid week %d',i)
+    continue;
+  end
+
+  % Build the features and labels:
+  data = week_datasets{1,i};
+	assert(size(data,1)==cfg.num_week_minutes,'Unexpected number of rows in week dataset for week %d: n=%d',i,size(data,1));
+
+  week_features = cfg.buildFeatureMatrixFunc(data,cfg); 
+  week_labels = cfg.buildLabelMatrixFunc(data,cfg); 
+
+  % Append the data:
+	assert(size(week_features,1)==nrows,'Unexpected number of rows in feature matrix for week %d: n=%d',i,size(week_features,1));
+	X = [X; week_features];
+
+	assert(size(week_labels,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',i,size(week_labels,1));	
+	y = [y; week_labels];
 end
+
+% load the week data:
+% for i=1:nweeks,
+% 	loaded = load(sprintf(fpattern,weeks(i)));
+
+% 	% Append the features:
+% 	Xnew = loaded.week_features;
+% 	assert(size(Xnew,1)==nrows,'Unexpected number of rows in feature matrix for week %d: n=%d',i,size(Xnew,1));
+% 	X = [X; Xnew];
+	
+% 	% append the labels:
+% 	ynew = loaded.week_labels;
+% 	assert(size(ynew,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',i,size(ynew,1));	
+% 	y = [y; ynew];
+% end
 
 fprintf('Splitting datasets...\n')
 
