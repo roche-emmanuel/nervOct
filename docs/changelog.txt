@@ -243,3 +243,4 @@
 - Preparing for usage of softmax computation in nn_activation.
 - Updated nnPrepareTraining to use complete week datasets directly.
 - Added improved feature and label generation functions.
+- Added support for prices buffer for strategy evaluation and lot_multiplier.

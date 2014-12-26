@@ -111,5 +111,6 @@ cfg.default_eval_frequency = 32;
 cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix_C;
 % cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix;
 cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix_AtTime;
+cfg.buildPriceMatrixFunc = @buildPriceMatrix;
 
 end

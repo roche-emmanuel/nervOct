@@ -116,10 +116,10 @@ addpath([pname '/neural']);
 % fprintf('Testing nnComputeLearningCurves...\n')
 % test nnComputeLearningCurves
 
-% fprintf('Testing Trade Strategy...\n')
-% test tests_trade_strategy
+fprintf('Testing Trade Strategy...\n')
+test tests_trade_strategy
 
-fprintf('Testing Training...\n')
+% fprintf('Testing Training...\n')
 % test tests_training_1
 % test tests_training_2
 % test tests_training_2b
@@ -127,7 +127,7 @@ fprintf('Testing Training...\n')
 % test tests_training_4
 % test tests_training_5
 % test tests_training_6
-test tests_training_7
+% test tests_training_7
 % test tests_training_8
 % test tests_training_9
 

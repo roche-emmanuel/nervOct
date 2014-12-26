@@ -68,6 +68,11 @@ unsigned int read_uint(octave_scalar_map &desc, std::string key, bool optional =
   return read_desc_value<unsigned int>(desc, key, optional, def);
 }
 
+double read_double(octave_scalar_map &desc, std::string key, bool optional = false, double def = 0)
+{
+  return read_desc_value<double>(desc, key, optional, def);
+}
+
 Matrix read_matrix(octave_scalar_map &desc, std::string key, bool optional = false, Matrix def = Matrix())
 {
   return read_desc_value<Matrix>(desc, key, optional, def);
@@ -147,6 +152,14 @@ DEFUN_DLD (trade_strategy, args, nargout,
       traits.inputs_nrows = inputs.dim1();
       traits.inputs_ncols = inputs.dim2();
 
+      // Retrieve the prices to use here:
+      Matrix prices = read_matrix(desc,"prices");
+      traits.prices = (double*)prices.data();
+      traits.prices_nrows = prices.dim1();
+      traits.prices_ncols = prices.dim2();
+
+      traits.lot_multiplier = read_double(desc,"lot_multiplier",true,1.0);
+      
       CHECK(g_intf.evaluate_strategy(sid,traits)==ST_SUCCESS,"Could not evaluate strategy.");
     }
     else if (cmd == "add_model")

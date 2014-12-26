@@ -33,6 +33,11 @@ void Strategy::evaluate(EvalTraits &traits)
   value_type *balance_ptr = traits.balance;
 
   THROW_IF(!iptr || nfeatures <= 0 || nsamples <= 0, "Invalid input data");
+  THROW_IF(!traits.prices,"Invalid prices data");
+  THROW_IF(traits.prices_nrows!=4,"Invalid number of price rows: "<<traits.prices_nrows);
+  THROW_IF(traits.prices_ncols!=traits.inputs_ncols,"Mismatch in prices and inputs number of samples: "<<traits.prices_ncols<<"!="<<traits.inputs_ncols);
+
+  value_type* prices = traits.prices;
 
   value_type stop_lost = -1.0;
   value_type ref_price = -1.0;
@@ -66,7 +71,7 @@ void Strategy::evaluate(EvalTraits &traits)
     digest(dtraits);
 
     // extract the current price from the input data:
-    cur_price = getPrice(iptr, PRICE_CLOSE);
+    cur_price = getPrice(prices, PRICE_CLOSE);
 
     // Check the ref price and stop lost values:
     if (cur_pos != POS_NONE)
@@ -77,7 +82,7 @@ void Strategy::evaluate(EvalTraits &traits)
     if (cur_pos == POS_LONG)
     {
       // Retrieve the latest low price:
-      cur_low = getPrice(iptr, PRICE_LOW);
+      cur_low = getPrice(prices, PRICE_LOW);
 
       if (cur_low <= stop_lost)
       {
@@ -129,7 +134,7 @@ void Strategy::evaluate(EvalTraits &traits)
 
     if (cur_pos == POS_SHORT)
     {
-      cur_high = getPrice(iptr, PRICE_HIGH);
+      cur_high = getPrice(prices, PRICE_HIGH);
 
       // First check if at some point in this minute we went above the stop_lost value:
       if (cur_high >= stop_lost)
@@ -187,7 +192,7 @@ void Strategy::evaluate(EvalTraits &traits)
 
       if(cur_pos != POS_NONE) {
         num_transactions++;
-        num_lots = dtraits.confidence*100.0; // TODO: remove this multiplier from here!!
+        num_lots = dtraits.confidence*traits.lot_multiplier;
         num_lots = floor(num_lots*100.0)/100.0;
         logDEBUG("Performing transaction with lot size: "<<num_lots<<" confidence="<<dtraits.confidence)
       }
@@ -218,18 +223,15 @@ void Strategy::evaluate(EvalTraits &traits)
 
     // Move to the next minute:
     iptr += nfeatures;
+    prices += 4;
   }
 
   logDEBUG("Final balance is: " << balance);
 }
 
-Strategy::value_type Strategy::getPrice(value_type *iptr, int type, int symbol) const
+Strategy::value_type Strategy::getPrice(value_type *prices, int type) const
 {
-  if (symbol <= 0)
-    symbol = _target_symbol;
-
-  int index = 4 * (symbol - 1) + type;
-  return iptr[index];
+  return prices[type];
 }
 
 void Strategy::digest(DigestTraits &traits)

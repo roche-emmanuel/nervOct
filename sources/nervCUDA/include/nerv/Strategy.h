@@ -26,7 +26,7 @@ enum StrategyTradeSymbol
 
 enum StrategyPriceType
 {
-  PRICE_OPEN = 1,
+  PRICE_OPEN = 0,
   PRICE_LOW,
   PRICE_HIGH,
   PRICE_CLOSE
@@ -59,7 +59,8 @@ public:
   {
     EvalTraits()
       : inputs(nullptr), inputs_nrows(0), inputs_ncols(0),
-      balance(nullptr) {}
+      prices(nullptr), prices_nrows(0), prices_ncols(0),
+      balance(nullptr), lot_multiplier(1.0) {}
 
     // input array containing 1 minute of data per column.
     // Each column contains the minute id, following by the
@@ -73,6 +74,17 @@ public:
     // Buffer that may be provided to hold the actual balance value for each minute.
     // This buffer may also be NULL.
     value_type* balance;
+
+    // Buffer containing the open/low/high/close prices for the target symbol;
+    // We should have one set of values per minute per column.
+    // thus the prices_nrows value should always be 4.
+    value_type* prices;
+    int prices_nrows;
+    int prices_ncols;
+
+    // Multiplier applied on the number of lots to be invested to control the risk
+    // of the transactions:
+    value_type lot_multiplier;
   };
 
   struct DigestTraits
@@ -116,7 +128,7 @@ protected:
   // Retrieve the current price for a given symbol.
   // if the default value -1 is used for symbol, then the current
   // target symbol is used.
-  value_type getPrice(value_type *iptr, int type, int symbol = 0) const;
+  value_type getPrice(value_type *prices, int type) const;
 
   int _id;
 

@@ -21,6 +21,9 @@ X = [];
 % prepare the matrix to hold the labels:
 y = [];
 
+% Matrix used to hodl the prices:
+prices = [];
+
 % Number of rows to expect per week:
 nrows = cfg.num_week_minutes - cfg.num_pred_bars - cfg.num_input_bars + 1;
 
@@ -45,6 +48,7 @@ for i=1:nweeks
   data = week_datasets{1,wid};
 	assert(size(data,1)==cfg.num_week_minutes,'Unexpected number of rows in week dataset for week %d: n=%d',wid,size(data,1));
 
+	week_prices = cfg.buildPriceMatrixFunc(data,cfg);
   week_features = cfg.buildFeatureMatrixFunc(data,cfg); 
   week_labels = cfg.buildLabelMatrixFunc(data,cfg); 
 
@@ -54,6 +58,9 @@ for i=1:nweeks
 
 	assert(size(week_labels,1)==nrows,'Unexpected number of rows in label matrix for week %d: n=%d',wid,size(week_labels,1));	
 	y = [y; week_labels];
+
+	assert(size(week_prices,1)==nrows,'Unexpected number of rows in price matrix for week %d: n=%d',wid,size(week_prices,1));	
+	prices = [prices; week_prices];
 end
 
 fprintf('Splitting datasets...\n')
@@ -63,6 +70,7 @@ fprintf('Splitting datasets...\n')
 ratios = cfg.dataset_ratios;
 [X_train, X_cv, X_test] = splitDataset(X, ratios(1), ratios(2), ratios(3));
 [y_train, y_cv, y_test] = splitDataset(y, ratios(1), ratios(2), ratios(3));
+[prices_train, prices_cv, prices_test] = splitDataset(prices, ratios(1), ratios(2), ratios(3));
 
 % Once the datasets are separated, we need to compute and apply feature normalization:
 % The normalisation is computed fromt the train dataset only:
@@ -75,6 +83,11 @@ fprintf('Applying normalization...\n')
 trdata.X_train_raw = X_train;
 trdata.X_cv_raw = X_cv;
 trdata.X_test_raw = X_test;
+
+% We also store the prices matrices:
+trdata.prices_train = prices_train;
+trdata.prices_cv = prices_cv;
+trdata.prices_test = prices_test;
 
 % Then we apply the normalization on all datasets:
 X_train = applyNormalization(X_train,mu,sigma);

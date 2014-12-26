@@ -81,5 +81,5 @@
 %!	% Now we save the generated network:
 %!	nn.mu = tr.mu;
 %!	nn.sigma = tr.sigma;
-%!	fname = [cfg.datapath '/nn_512_3_weeks_1_4.mat'];
+%!	fname = [cfg.datapath '/nn_512_3_weeks_1_8.mat'];
 %!	save('-binary',fname,'nn');

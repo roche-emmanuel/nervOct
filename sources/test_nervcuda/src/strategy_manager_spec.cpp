@@ -50,9 +50,13 @@ BOOST_AUTO_TEST_CASE( test_strategy_evaluate )
 
   evt.inputs_nrows = random_int(20, 30);
   evt.inputs_ncols = random_int(20, 30);
+  evt.prices_nrows = 4;
+  evt.prices_ncols = evt.inputs_ncols;
 
   int count = evt.inputs_ncols * evt.inputs_nrows;
   evt.inputs = new Strategy::value_type[count];
+  evt.prices = new Strategy::value_type[count];
+
   for (int c = 0; c < evt.inputs_ncols; ++c)
   {
     for (int r = 0; r < evt.inputs_nrows; ++r)
@@ -61,11 +65,16 @@ BOOST_AUTO_TEST_CASE( test_strategy_evaluate )
       // an indication of the current minute in the week:
       evt.inputs[evt.inputs_nrows * c + r] = r == 0 ? c : random_real(0.0, 10.0);
     }
+    for (int r = 0; r < evt.prices_nrows; ++r)
+    {
+      evt.prices[evt.prices_nrows * c + r] = random_real(0.0, 10.0);
+    }    
   }
 
   BOOST_CHECK(intf.evaluate_strategy(id, evt) == ST_SUCCESS);
 
   delete [] evt.inputs;
+  delete [] evt.prices;
 
   BOOST_CHECK(intf.destroy_strategy(id) == ST_SUCCESS);
 }
@@ -75,9 +84,9 @@ class TestStrategy : public Strategy
 public:
   TestStrategy(const Strategy::CreationTraits &traits) : Strategy(traits) {}
 
-  Strategy::value_type test_getPrice(value_type *iptr, int type, int symbol = 0) const
+  Strategy::value_type test_getPrice(value_type *iptr, int type) const
   {
-    return getPrice(iptr, type, symbol);
+    return getPrice(iptr, type);
   }
 };
 
@@ -89,7 +98,7 @@ BOOST_AUTO_TEST_CASE( test_strategy_get_price )
   TestStrategy *s = new TestStrategy(traits);
 
   // test the getPrice Method:
-  int count = 1 + 4 * 6;
+  int count = 4;
   typedef Strategy::value_type value_t;
 
   value_t *iptr = new value_t[count];
@@ -98,16 +107,13 @@ BOOST_AUTO_TEST_CASE( test_strategy_get_price )
     iptr[i] = (value_t)(i);
   }
 
-  value_t pred = 1.0;
+  value_t pred = 0.0;
   value_t val;
-  for (int sym = 0; sym < 6; ++sym)
+  for (int pt = 0; pt < 4; ++pt)
   {
-    for (int pt = 0; pt < 4; ++pt)
-    {
-      val = s->test_getPrice(iptr, pt + 1, sym + 1);
-      BOOST_CHECK_MESSAGE(abs(val - pred) <= 1e-10, "Mismatch in price value for symbol=" << (sym + 1) << ", ptype=" << (pt + 1) << ": " << val << "!=" << pred);
-      pred += 1.0;
-    }
+    val = s->test_getPrice(iptr, pt);
+    BOOST_CHECK_MESSAGE(abs(val - pred) <= 1e-10, "Mismatch in price value for ptype=" << pt << ": " << val << "!=" << pred);
+    pred += 1.0;
   }
 
   delete [] iptr;
@@ -141,9 +147,10 @@ BOOST_AUTO_TEST_CASE( test_strategy_add_nls_network )
   unsigned int nf = mt.lsizes[0];
   mt.mu = tr.createArray(nf);
   mt.sigma = tr.createArray(nf);
-  for(unsigned int i=0;i<nf;++i) {
-    mt.mu[i] = random_real(0.0,1.0);
-    mt.sigma[i] = random_real(0.01,10.0);
+  for (unsigned int i = 0; i < nf; ++i)
+  {
+    mt.mu[i] = random_real(0.0, 1.0);
+    mt.sigma[i] = random_real(0.01, 10.0);
   }
 
   BOOST_CHECK(intf.add_strategy_model(id, mt) == ST_SUCCESS);
@@ -164,6 +171,8 @@ BOOST_AUTO_TEST_CASE( test_strategy_eval_with_model )
 
   evt.inputs_nrows = random_int(20, 30);
   evt.inputs_ncols = random_int(20, 30);
+  evt.prices_nrows = 4;
+  evt.prices_ncols = evt.inputs_ncols;
 
   TrainingSet<double> tr(3, 5, 3, 6, 50, 100, 3, evt.inputs_nrows);
 
@@ -185,15 +194,18 @@ BOOST_AUTO_TEST_CASE( test_strategy_eval_with_model )
   unsigned int nf = mt.lsizes[0];
   mt.mu = tr.createArray(nf);
   mt.sigma = tr.createArray(nf);
-  for(unsigned int i=0;i<nf;++i) {
-    mt.mu[i] = random_real(0.0,1.0);
-    mt.sigma[i] = random_real(0.01,10.0);
+  for (unsigned int i = 0; i < nf; ++i)
+  {
+    mt.mu[i] = random_real(0.0, 1.0);
+    mt.sigma[i] = random_real(0.01, 10.0);
   }
 
   BOOST_CHECK(intf.add_strategy_model(id, mt) == ST_SUCCESS);
 
   int count = evt.inputs_ncols * evt.inputs_nrows;
   evt.inputs = new Strategy::value_type[count];
+  evt.prices = new Strategy::value_type[count];
+
   for (int c = 0; c < evt.inputs_ncols; ++c)
   {
     for (int r = 0; r < evt.inputs_nrows; ++r)
@@ -202,11 +214,16 @@ BOOST_AUTO_TEST_CASE( test_strategy_eval_with_model )
       // an indication of the current minute in the week:
       evt.inputs[evt.inputs_nrows * c + r] = r == 0 ? c : random_real(0.0, 10.0);
     }
+    for (int r = 0; r < evt.prices_nrows; ++r)
+    {
+      evt.prices[evt.prices_nrows * c + r] = random_real(0.0, 10.0);
+    }
   }
 
   BOOST_CHECK(intf.evaluate_strategy(id, evt) == ST_SUCCESS);
 
   delete [] evt.inputs;
+  delete [] evt.prices;
 
   BOOST_CHECK(intf.destroy_strategy(id) == ST_SUCCESS);
 }

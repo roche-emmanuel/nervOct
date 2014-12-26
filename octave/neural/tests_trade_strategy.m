@@ -51,6 +51,26 @@
 
 %!error <trade_strategy: params value is not defined.> no_params_model()
 
+% ==> Should throw an error if the inputs are missing for evaluation:
+
+%!function no_prices()
+%!	cdesc.target_symbol = 6;
+%!	sid = trade_strategy('create',cdesc);
+%!	
+%!	% Prepare the evaluation traits:
+%!	nf = 1 + 4*6*3;
+%!	nsamples = 100;
+%!	evd.inputs = rand(nf,nsamples);
+%!	
+%!	% Perform evaluation:
+%!	trade_strategy('evaluate',sid,evd);
+%!
+%!	% once a strategy is create it should be possible to destroy it:
+%!	trade_strategy('destroy',sid)
+%!endfunction
+
+%!error <trade_strategy: prices value is not defined.> no_prices()
+
 % ==> It should create a valid strategy when the traits are OK:
 %!test
 %!	desc.target_symbol = 6;
@@ -68,6 +88,7 @@
 %!	nf = 1 + 4*6*3;
 %!	nsamples = 100;
 %!	evdesc.inputs = rand(nf,nsamples);
+%!	evdesc.prices = rand(4,nsamples);
 %!	
 %!	% Perform evaluation:
 %!	trade_strategy('evaluate',sid,evdesc);
@@ -92,7 +113,8 @@
 %!	nf = 1 + 4*6*3;
 %!	nsamples = 100;
 %!	evdesc.inputs = rand(nf,nsamples)*100.0;
-%!	
+%!	evdesc.prices = rand(4,nsamples);
+%!
 %!	% Perform evaluation:
 %!	trade_strategy('evaluate',sid,evdesc);
 %!
@@ -104,7 +126,8 @@
 %!	cfg = config();
 %! 	fname = [cfg.datapath '/training_weeks_1_1.mat'];
 %! 	load(fname);
-%! 	fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_1.mat'];
+%! 	%fname = [cfg.datapath '/nn_512_128_32_3_drop_weeks_1_1.mat'];
+%! 	fname = [cfg.datapath '/nn_512_3_weeks_1_8.mat'];
 %! 	load(fname);
 %!
 %!	nnEvaluateNetwork(tr,nn,cfg)
@@ -123,8 +146,15 @@
 %!	% Prepare the evaluation traits:
 %!	evdesc.inputs = tr.X_cv_raw';
 %!	
+%!	% Also inject the cv prices for the evaluation:
+%!	sym = cfg.target_symbol_pair;
+%!	evdesc.prices = (tr.prices_cv(:,2+4*(sym-1):5+4*(sym-1)))';
+%!
 %!	% We also add a matrix to hold the computed balance data:
 %!	evdesc.balance = zeros(size(evdesc.inputs,2),1);
+%!
+%!	% Add a lot multiplier:
+%!	evdesc.lot_multiplier = 5.0;
 %!
 %!	% Perform evaluation:
 %!	trade_strategy('evaluate',sid,evdesc);
@@ -137,7 +167,7 @@
 %! 	h = gcf();	
 %!	x=1:size(evdesc.balance,1);
 %! 	plot(x, evdesc.balance, 'LineWidth', 2, 'Color','b');
-%! 	legend('Jcv');
+%! 	legend('Balance');
 %! 	title('Balance progress');
 %! 	xlabel('Number of minutes');
 %! 	ylabel('Account in EURO');
