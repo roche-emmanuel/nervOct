@@ -253,3 +253,4 @@
 - Added support to convert the price features to rate of returns.
 - Added support for removal of number of minutes as feature.
 - Restored the confidence multiplier.
+- Testing various layer sizes.

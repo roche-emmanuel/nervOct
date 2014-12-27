@@ -59,7 +59,7 @@ tr.ping_frequency = 500;
 fname = [cfg.datapath '/training_weeks_1_12.mat'];
 save('-binary',fname,'tr');
 
-nn = nnInitNetwork([tr.num_features, 512, 3],cfg);
+nn = nnInitNetwork([tr.num_features, 512, 128, 3],cfg);
 nn = nnTrainNetworkNERV(tr,nn,cfg);
 
 % nn = nnSelectRandomNetwork(10,[512 3],tr,cfg,true)
@@ -111,7 +111,7 @@ hold off;
 % Now we save the generated network:
 nn.mu = tr.mu;
 nn.sigma = tr.sigma;
-fname = [cfg.datapath '/nn_512_3_weeks_1_12.mat'];
+fname = [cfg.datapath '/nn_512_128_3_weeks_1_12.mat'];
 save('-binary',fname,'nn');
 
 more on;

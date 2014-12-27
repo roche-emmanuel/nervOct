@@ -2,6 +2,7 @@
 - test real training conditions.
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
+- Adapt the initial stop lost to match the desired sigma
 
 ** result evalution:
 
@@ -10,7 +11,8 @@
 3. Tested with cfg.min_gain = cfg.spread*3.0; => FB: 2736 (and weird graph...)
 4. Test with rate of return convertion. => FB: 2452 (but nice graph)
 5. Tested with removal of number of minutes as feature. => FB: 2457
-6. Tested with confidence multiplier (and lot multiplier of 0.1). => FB: 2993.21 (with only a few transactions)
+6. Tested with confidence multiplier (and lot multiplier of 0.1). => FB: 2993.21 (with only a few transactions) (accuracy 0.42)
+7. Tested with layer sizes [256 3]. => FB: 2982.39 (accuracy 0.42)
 
 
 *** CUDA infos:

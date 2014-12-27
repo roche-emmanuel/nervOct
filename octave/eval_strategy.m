@@ -22,7 +22,7 @@ cfg = config();
 
 fname = [cfg.datapath '/training_weeks_1_12.mat'];
 load(fname);
-fname = [cfg.datapath '/nn_512_3_weeks_1_12.mat'];
+fname = [cfg.datapath '/nn_256_3_weeks_1_12.mat'];
 load(fname);
 
 % Evaluate the strategy:
