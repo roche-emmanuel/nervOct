@@ -55,7 +55,10 @@ void Strategy::evaluate(EvalTraits &traits)
   // Initial position should be NONE:
   int cur_pos = POS_NONE;
 
-  int num_transactions = 0;
+  int num_long_win_transactions = 0;
+  int num_long_lost_transactions = 0;
+  int num_short_win_transactions = 0;
+  int num_short_lost_transactions = 0;
 
   DigestTraits dtraits;
   dtraits.input_size = nfeatures;
@@ -96,17 +99,19 @@ void Strategy::evaluate(EvalTraits &traits)
         if (gain > 0)
         {
           gross_profit += gain;
+          num_long_win_transactions++;
         }
         else
         {
           gross_lost += -gain; // take the negative value here.
+          num_long_lost_transactions++;
         }
 
         // We assume here that we are trading the EURO symbol on our account.
         // Then the profit depends on the lot size:
         profit = num_lots * 100000.0 * (stop_lost / ref_price - 1.0);
         balance += profit;
-        logDEBUG("New Balance value: " << balance);
+        // logDEBUG("New Balance value: " << balance);
 
         // Leave the current position:
         ref_price = -1.0;
@@ -147,17 +152,19 @@ void Strategy::evaluate(EvalTraits &traits)
         if (gain > 0)
         {
           gross_profit += gain;
+          num_short_win_transactions++;
         }
         else
         {
           gross_lost += -gain;
+          num_short_lost_transactions++;
         }
 
         // We assume here that we are trading the EURO symbol on our account.
         // Then the profit depends on the lot size:
         profit = num_lots * 100000.0 * (ref_price / buy_price - 1.0);
         balance += profit;
-        logDEBUG("New Balance value: " << balance);
+        // logDEBUG("New Balance value: " << balance);
 
         // Leave the current position:
         ref_price = -1.0;
@@ -199,8 +206,8 @@ void Strategy::evaluate(EvalTraits &traits)
 
       if (cur_pos != POS_NONE)
       {
-        num_transactions++;
         num_lots = dtraits.confidence * traits.lot_multiplier;
+        // num_lots = 1.0 * traits.lot_multiplier;
         num_lots = floor(num_lots * 100.0) / 100.0;
         logDEBUG("Performing transaction with lot size: " << num_lots << " confidence=" << dtraits.confidence)
       }
@@ -237,6 +244,10 @@ void Strategy::evaluate(EvalTraits &traits)
   logDEBUG("Final balance is: " << balance);
   logDEBUG("Gross profit: " << gross_profit);
   logDEBUG("Gross loss: " << gross_lost);
+  logDEBUG("Number of long winning transactions: " << num_long_win_transactions);
+  logDEBUG("Number of long loosing transactions: " << num_long_lost_transactions);
+  logDEBUG("Number of short winning transactions: " << num_short_win_transactions);
+  logDEBUG("Number of short loosing transactions: " << num_short_lost_transactions);
 }
 
 Strategy::value_type Strategy::getPrice(value_type *prices, int type) const

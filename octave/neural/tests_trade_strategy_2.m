@@ -15,7 +15,7 @@
 %! 	fname = [cfg.datapath '/nn_512_3_weeks_1_12.mat'];
 %! 	load(fname);
 %!
-%!	nnEvaluateNetwork(tr,nn,cfg)
+%!	%nnEvaluateNetwork(tr,nn,cfg)
 %!	cdesc.target_symbol = 6;
 %!	sid = trade_strategy('create',cdesc);
 %!
@@ -57,3 +57,13 @@
 %! 	xlabel('Number of minutes');
 %! 	ylabel('Account in EURO');
 %! 	hold off;
+
+% 	figure; hold on;
+% 	h = gcf();	
+%	x=1:size(evdesc.balance,1);
+% 	plotyy(x, evdesc.balance,x, evdesc.prices(4,:));
+% 	legend('Balance','Prices');
+% 	title('Balance progress');
+% 	xlabel('Number of minutes');
+% 	ylabel('Account in EURO');
+% 	hold off;
