@@ -14,7 +14,8 @@
 %!test
 %!	cfg = config();
 %!	cfg.use_PCA = false;
-%!	tr = nnPrepareTraining(1:8,cfg);
+%!	cfg.dataset_ratios = [0.60 0.20 0.20];
+%!	tr = nnPrepareTraining(1:12,cfg);
 %!	nf = tr.num_features;
 %!	lsizes = [nf, 512, 3]
 %!	desc.lsizes = lsizes;
@@ -81,5 +82,5 @@
 %!	% Now we save the generated network:
 %!	nn.mu = tr.mu;
 %!	nn.sigma = tr.sigma;
-%!	fname = [cfg.datapath '/nn_512_3_weeks_1_8.mat'];
+%!	fname = [cfg.datapath '/nn_512_3_weeks_1_12.mat'];
 %!	save('-binary',fname,'nn');

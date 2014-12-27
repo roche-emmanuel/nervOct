@@ -33,14 +33,15 @@ void Strategy::evaluate(EvalTraits &traits)
   value_type *balance_ptr = traits.balance;
 
   THROW_IF(!iptr || nfeatures <= 0 || nsamples <= 0, "Invalid input data");
-  THROW_IF(!traits.prices,"Invalid prices data");
-  THROW_IF(traits.prices_nrows!=4,"Invalid number of price rows: "<<traits.prices_nrows);
-  THROW_IF(traits.prices_ncols!=traits.inputs_ncols,"Mismatch in prices and inputs number of samples: "<<traits.prices_ncols<<"!="<<traits.inputs_ncols);
+  THROW_IF(!traits.prices, "Invalid prices data");
+  THROW_IF(traits.prices_nrows != 4, "Invalid number of price rows: " << traits.prices_nrows);
+  THROW_IF(traits.prices_ncols != traits.inputs_ncols, "Mismatch in prices and inputs number of samples: " << traits.prices_ncols << "!=" << traits.inputs_ncols);
 
-  value_type* prices = traits.prices;
+  value_type *prices = traits.prices;
 
   value_type stop_lost = -1.0;
   value_type ref_price = -1.0;
+  value_type buy_price = -1.0;
   value_type num_lots = 0.0;
 
   value_type mean_spread = 0.00008;
@@ -90,6 +91,7 @@ void Strategy::evaluate(EvalTraits &traits)
         // So the transaction was closed in the process.
 
         // Now we just need to compute the actual gain:
+        // stop_lost is the sell price and ref_price is the buy price.
         gain = stop_lost - ref_price;
         if (gain > 0)
         {
@@ -104,7 +106,7 @@ void Strategy::evaluate(EvalTraits &traits)
         // Then the profit depends on the lot size:
         profit = num_lots * 100000.0 * (stop_lost / ref_price - 1.0);
         balance += profit;
-        logDEBUG("New Balance value: "<<balance);
+        logDEBUG("New Balance value: " << balance);
 
         // Leave the current position:
         ref_price = -1.0;
@@ -140,7 +142,8 @@ void Strategy::evaluate(EvalTraits &traits)
       if (cur_high >= stop_lost)
       {
         // We have to close this transaction.
-        gain = ref_price - stop_lost;
+        buy_price = stop_lost + mean_spread;
+        gain = ref_price - buy_price;
         if (gain > 0)
         {
           gross_profit += gain;
@@ -152,27 +155,31 @@ void Strategy::evaluate(EvalTraits &traits)
 
         // We assume here that we are trading the EURO symbol on our account.
         // Then the profit depends on the lot size:
-        profit = num_lots * 100000.0 * (ref_price / stop_lost - 1.0);
+        profit = num_lots * 100000.0 * (ref_price / buy_price - 1.0);
         balance += profit;
-        logDEBUG("New Balance value: "<<balance);
+        logDEBUG("New Balance value: " << balance);
 
         // Leave the current position:
         ref_price = -1.0;
+        buy_price = -1.0;
         stop_lost = -1.0;
         cur_pos = POS_NONE;
       }
       else
       {
+        // Compute the current buy price:
+        buy_price = cur_price + mean_spread;
+
         // we didn't reach any stop lost yet.
         // So here we check if we are still in the "fluctuation area"
         // or if we should move to the "take highest profit" mode:
-        if (cur_price < ref_price)
+        if (buy_price < ref_price)
         {
           // update the stop lost:
-          new_stop = cur_price + 0.5 * std::min(ref_price - cur_price, mean_spread);
+          new_stop = buy_price + 0.5 * std::min(ref_price - buy_price, mean_spread);
 
           // Only update the stop_lost if we are lowering its value:
-          stop_lost = std::min(stop_lost, new_stop);
+          stop_lost = std::min(stop_lost, new_stop - mean_spread);
         }
         else
         {
@@ -190,11 +197,12 @@ void Strategy::evaluate(EvalTraits &traits)
         cur_pos = dtraits.position;
       }
 
-      if(cur_pos != POS_NONE) {
+      if (cur_pos != POS_NONE)
+      {
         num_transactions++;
-        num_lots = dtraits.confidence*traits.lot_multiplier;
-        num_lots = floor(num_lots*100.0)/100.0;
-        logDEBUG("Performing transaction with lot size: "<<num_lots<<" confidence="<<dtraits.confidence)
+        num_lots = dtraits.confidence * traits.lot_multiplier;
+        num_lots = floor(num_lots * 100.0) / 100.0;
+        logDEBUG("Performing transaction with lot size: " << num_lots << " confidence=" << dtraits.confidence)
       }
 
       if (cur_pos == POS_LONG)
@@ -227,6 +235,8 @@ void Strategy::evaluate(EvalTraits &traits)
   }
 
   logDEBUG("Final balance is: " << balance);
+  logDEBUG("Gross profit: " << gross_profit);
+  logDEBUG("Gross loss: " << gross_lost);
 }
 
 Strategy::value_type Strategy::getPrice(value_type *prices, int type) const
@@ -280,12 +290,13 @@ void Strategy::destroyAllModels()
 
 void Strategy::createModel(Model::CreationTraits &traits)
 {
-  Model* m = nullptr;
-  if(traits.type == MODEL_NLS_NETWORK) {
+  Model *m = nullptr;
+  if (traits.type == MODEL_NLS_NETWORK)
+  {
     m = new NLSNetworkModel(traits);
   }
 
-  THROW_IF(!m,"Invalid model type: "<< traits.type);
+  THROW_IF(!m, "Invalid model type: " << traits.type);
 
   // add the new model to the list:
   _models.push_back(m);

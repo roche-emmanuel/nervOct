@@ -46,10 +46,11 @@ cfg = config();
 % save('-binary',fname,'tr');
 
 cfg.use_PCA = false;
-tr = nnPrepareTraining(1:1,cfg);	
+cfg.dataset_ratios = [0.60 0.20 0.20];
+tr = nnPrepareTraining(1:12,cfg);	
 tr.early_stopping = true;
 tr.max_iterations = 0;
-fname = [cfg.datapath '/training_weeks_1_1.mat'];
+fname = [cfg.datapath '/training_weeks_1_12.mat'];
 save('-binary',fname,'tr');
 
 % tr = nnPrepareTraining(1:2,cfg);	
