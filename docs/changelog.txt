@@ -252,3 +252,4 @@
 - Added support for ping frequency in gradient descent.
 - Added support to convert the price features to rate of returns.
 - Added support for removal of number of minutes as feature.
+- Restored the confidence multiplier.

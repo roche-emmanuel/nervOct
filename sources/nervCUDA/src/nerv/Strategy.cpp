@@ -219,11 +219,18 @@ void Strategy::evaluate(EvalTraits &traits)
 
       if (cur_pos != POS_NONE)
       {
-        // num_lots = dtraits.confidence * traits.lot_multiplier;
+        num_lots = dtraits.confidence * traits.lot_multiplier;
         // num_lots = 1.0 * traits.lot_multiplier;
-        // num_lots = floor(num_lots * 100.0) / 100.0;
-        num_lots = 0.01;
-        logDEBUG("Performing transaction with lot size: " << num_lots << " confidence=" << dtraits.confidence)
+        num_lots = floor(num_lots * 100.0) / 100.0;
+        // num_lots = 0.01;
+
+        if(num_lots<0.001) {
+          // We are actually not entering any position in that case.
+          cur_pos = POS_NONE;
+        }
+        else {
+          logDEBUG("Performing transaction with lot size: " << num_lots << " confidence=" << dtraits.confidence)
+        }
       }
 
       if (cur_pos == POS_LONG)

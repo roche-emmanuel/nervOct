@@ -49,7 +49,7 @@ evdesc.prices = (tr.prices_test(:,2+4*(sym-1):5+4*(sym-1)))';
 evdesc.balance = zeros(size(evdesc.inputs,2),1);
 
 % Add a lot multiplier:
-evdesc.lot_multiplier = 5.0;
+evdesc.lot_multiplier = 0.1;
 
 % Perform evaluation:
 trade_strategy('evaluate',sid,evdesc);

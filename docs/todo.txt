@@ -3,7 +3,6 @@
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
 
-
 ** result evalution:
 
 1. Tested with initial settings => Final balance: 2592
@@ -11,7 +10,7 @@
 3. Tested with cfg.min_gain = cfg.spread*3.0; => FB: 2736 (and weird graph...)
 4. Test with rate of return convertion. => FB: 2452 (but nice graph)
 5. Tested with removal of number of minutes as feature. => FB: 2457
-
+6. Tested with confidence multiplier (and lot multiplier of 0.1). => FB: 2993.21 (with only a few transactions)
 
 
 *** CUDA infos:
