@@ -51,6 +51,8 @@ public:
   unsigned int miniBatchSize;
   unsigned int validationWindowSize;
 
+  unsigned int pingFrequency;
+
   CvCostFunc cvCostCB;
   void* userdata;
 
@@ -83,6 +85,7 @@ protected:
     userdata = nullptr;
 
     evalFrequency = 128;
+    pingFrequency = 0;
   }
 };
 

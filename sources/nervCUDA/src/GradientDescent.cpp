@@ -175,6 +175,8 @@ T GradientDescent<T>::run()
   value_type learning_rate = _traits.epsilon;
   value_type minCvCostDecrease = _traits.minCostDecrease;
 
+  unsigned int ping = _traits.pingFrequency;
+
   if (_traits.verbose)
   {
     trDEBUG(THIS, "Using learning rate: " << _traits.epsilon);
@@ -327,6 +329,10 @@ T GradientDescent<T>::run()
 
     // Finally move to the next cycle:
     iter++;
+
+    if(ping && (iter%ping==0)) {
+      trDEBUG(THIS,"On iteration "<<iter<<"...");
+    }
   }
 
   // Download the parameters from the theta buffer on the GPU:

@@ -49,6 +49,7 @@ tr.validation_window_size = 100;
 tr.min_cost_decrease = 0.0;
 tr.learning_decay = 0.9999;
 tr.regularization_param = 0.01;
+tr.ping_frequency = 500;
 
 fname = [cfg.datapath '/training_weeks_1_12.mat'];
 save('-binary',fname,'tr');

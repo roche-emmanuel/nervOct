@@ -34,6 +34,10 @@ desc.lambda = training.regularization_param;
 desc.minCostDecrease = training.min_cost_decrease;
 desc.learningDecay = training.learning_decay;
 
+if isfield(training,'ping_frequency')
+desc.pingFrequency = training.ping_frequency;
+end
+
 if isfield(training,'dropouts')
 % fprintf('Setting up dropout...\n');
 desc.dropouts = training.dropouts;

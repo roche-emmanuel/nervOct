@@ -125,6 +125,13 @@ public:
       traits.miniBatchSize = (unsigned int)val.double_value();
     }
 
+    val = desc.contents("pingFrequency");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: pingFrequency is not a double type");
+      traits.pingFrequency = (unsigned int)val.double_value();
+    }
+
     val = desc.contents("learningDecay");
     if (val.is_defined())
     {
