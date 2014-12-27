@@ -131,5 +131,6 @@ test tests_trade_strategy_2
 % test tests_training_7
 % test tests_training_8
 % test tests_training_9
+% test tests_training_10
 
 more on;

@@ -204,6 +204,8 @@ void Strategy::evaluate(EvalTraits &traits)
         cur_pos = dtraits.position;
       }
 
+      // cur_pos = POS_LONG;
+
       if (cur_pos != POS_NONE)
       {
         num_lots = dtraits.confidence * traits.lot_multiplier;
