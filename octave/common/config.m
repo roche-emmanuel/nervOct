@@ -113,4 +113,8 @@ cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix_C;
 cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix_AtTime;
 cfg.buildPriceMatrixFunc = @buildPriceMatrix;
 
+
+% Set to true if we should use rate of return conversion when preparing the feature matrix:
+cfg.use_rate_of_returns = true;
+
 end

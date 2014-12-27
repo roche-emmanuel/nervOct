@@ -63,6 +63,19 @@ for i=1:nweeks
 	prices = [prices; week_prices];
 end
 
+% Check if we should use rate of returns:
+if cfg.use_rate_of_returns
+	fprintf('Converting features to rate of returns...\n')
+
+	% We have to divide each line by the previous line:
+	X(2:end,2:end) = X(2:end,2:end) ./ X(1:end-1,2:end);
+
+	% Remove the first line for all matrices:
+	X(1,:) = [];
+	y(1,:) = [];
+	prices(1,:) = [];
+end
+
 fprintf('Splitting datasets...\n')
 
 % Now that we have the raw feature and label matrices, we have to separate them in train/cv/test sets using the set ratios 

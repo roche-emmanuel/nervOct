@@ -2,7 +2,7 @@
 - test real training conditions.
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
-- Add ping flag for gradient descent
+- Add support to remove the number of minutes from the features.
 
 
 ** result evalution:
@@ -10,7 +10,7 @@
 1. Tested with initial settings => Final balance: 2592
 2. Tested with cfg.min_gain = cfg.spread*4.0; instead of cfg.spread*1.5; => Final balance: 3000 (no transactions)
 3. Tested with cfg.min_gain = cfg.spread*3.0; => FB: 2736 (and weird graph...)
-4. Test with rate of return convertion. =>
+4. Test with rate of return convertion. => 2452 (but nice graph)
 
 
 

@@ -34,8 +34,12 @@ cfg = config();
 cfg.use_sparse_init = false;
 cfg.use_PCA = false;
 cfg.dataset_ratios = [0.60 0.20 0.20];
+cfg.use_rate_of_returns = true;
 
 tr = nnPrepareTraining(1:12,cfg);	
+
+% tr.X_train_raw(1:20,1:20)
+% error('Testing');
 
 tr.train_ratio = 1.0;
 tr.early_stopping = true;
