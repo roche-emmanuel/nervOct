@@ -25,11 +25,14 @@ desc.X_train = X;
 desc.y_train = yy;
 desc.params = network.weights;
 desc.epsilon = training.learning_rate;
+desc.verbose = training.verbose;
 desc.momentum = training.momentum;
 desc.maxiter = training.max_iterations;
 desc.evalFrequency = training.eval_frequency;
 desc.miniBatchSize = training.mini_batch_size;
 desc.lambda = training.regularization_param;
+desc.minCostDecrease = training.min_cost_decrease;
+desc.learningDecay = training.learning_decay;
 
 if isfield(training,'dropouts')
 % fprintf('Setting up dropout...\n');
