@@ -76,6 +76,11 @@ if cfg.use_rate_of_returns
 	prices(1,:) = [];
 end
 
+% Check here if we should discard the number of minutes as features:
+if cfg.discard_nmins_feature
+	X(:,1) = [];
+end
+
 fprintf('Splitting datasets...\n')
 
 % Now that we have the raw feature and label matrices, we have to separate them in train/cv/test sets using the set ratios 

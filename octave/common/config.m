@@ -117,4 +117,7 @@ cfg.buildPriceMatrixFunc = @buildPriceMatrix;
 % Set to true if we should use rate of return conversion when preparing the feature matrix:
 cfg.use_rate_of_returns = true;
 
+% Set to true if we want to discard the number of minutes as feature.
+cfg.discard_nmins_feature = true;
+
 end

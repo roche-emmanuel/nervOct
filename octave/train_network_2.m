@@ -35,6 +35,7 @@ cfg.use_sparse_init = false;
 cfg.use_PCA = false;
 cfg.dataset_ratios = [0.60 0.20 0.20];
 cfg.use_rate_of_returns = true;
+cfg.discard_nmins_feature = true;
 
 tr = nnPrepareTraining(1:12,cfg);	
 
