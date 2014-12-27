@@ -37,6 +37,19 @@ void Strategy::evaluate(EvalTraits &traits)
   THROW_IF(traits.prices_nrows != 4, "Invalid number of price rows: " << traits.prices_nrows);
   THROW_IF(traits.prices_ncols != traits.inputs_ncols, "Mismatch in prices and inputs number of samples: " << traits.prices_ncols << "!=" << traits.inputs_ncols);
 
+  // Validate the price buffer:
+  value_type* ptr = traits.prices;
+  for(int i=0;i<nsamples;++i) {
+    value_type hp = ptr[PRICE_HIGH];
+    value_type lp = ptr[PRICE_LOW];
+    value_type op = ptr[PRICE_OPEN];
+    value_type cp = ptr[PRICE_CLOSE];
+    CHECK(hp>=op && hp>=lp && hp>=cp,"Invalid High price at index "<<i);
+    CHECK(lp<=op && lp<=hp && lp<=cp,"Invalid Low price at index "<<i);
+
+    ptr+=4;
+  }
+
   value_type *prices = traits.prices;
 
   value_type stop_lost = -1.0;
@@ -109,7 +122,7 @@ void Strategy::evaluate(EvalTraits &traits)
 
         // We assume here that we are trading the EURO symbol on our account.
         // Then the profit depends on the lot size:
-        profit = num_lots * 100000.0 * (stop_lost / ref_price - 1.0);
+        profit = num_lots * 100000.0 * ((stop_lost / ref_price) - 1.0);
         balance += profit;
         // logDEBUG("New Balance value: " << balance);
 
@@ -204,13 +217,12 @@ void Strategy::evaluate(EvalTraits &traits)
         cur_pos = dtraits.position;
       }
 
-      // cur_pos = POS_LONG;
-
       if (cur_pos != POS_NONE)
       {
-        num_lots = dtraits.confidence * traits.lot_multiplier;
+        // num_lots = dtraits.confidence * traits.lot_multiplier;
         // num_lots = 1.0 * traits.lot_multiplier;
-        num_lots = floor(num_lots * 100.0) / 100.0;
+        // num_lots = floor(num_lots * 100.0) / 100.0;
+        num_lots = 0.01;
         logDEBUG("Performing transaction with lot size: " << num_lots << " confidence=" << dtraits.confidence)
       }
 

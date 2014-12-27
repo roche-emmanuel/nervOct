@@ -27,8 +27,8 @@ enum StrategyTradeSymbol
 enum StrategyPriceType
 {
   PRICE_OPEN = 0,
-  PRICE_LOW,
   PRICE_HIGH,
+  PRICE_LOW,
   PRICE_CLOSE
 };
 

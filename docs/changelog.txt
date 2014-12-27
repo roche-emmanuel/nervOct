@@ -247,3 +247,4 @@
 - Fixing trade startegy evaluation process.
 - testing trade strategy.
 - Added training 10 on 24 weeks.
+- Added train_network_1 method.

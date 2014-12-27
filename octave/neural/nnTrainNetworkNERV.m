@@ -55,9 +55,9 @@ if isfield(training,'dropouts')
 weights = nnRescaleParameters(weights, desc.lsizes, desc.dropouts);
 end
 
-pred_jcv = nnCostFunction(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
+% pred_jcv = nnCostFunction(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
 % pred_jcv = nn_cost_function_cuda(weights,desc.lsizes,desc.X_cv,desc.y_cv,0)
-jcv_error = abs(Jcv-pred_jcv)
+% jcv_error = abs(Jcv-pred_jcv)
 
 network.weights = weights;
 network.costs = costs;
