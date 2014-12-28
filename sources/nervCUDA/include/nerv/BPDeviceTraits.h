@@ -263,7 +263,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
       wmult(1.0), layer_dropout(1.0),
       randStates(nullptr),
       wbias(nullptr), wbias_offset(0),
-      wX(nullptr) {};
+      wX(nullptr), with_softmax(false) {};
 
   // BPComputeTraits(const BPComputeTraits &) = delete;
   BPComputeTraits &operator=(const BPComputeTraits &) = delete;
@@ -308,6 +308,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
 
   T wmult;
   T layer_dropout;
+
+  bool with_softmax;
 };
 
 };

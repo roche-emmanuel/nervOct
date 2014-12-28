@@ -89,8 +89,17 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
 
   if (row < nrows && col < ncols)
   {
-    // compute the sigmoid of the value:
-    zval = 1.0 / (1.0 + exp(-zval * traits.wmult));
+    // We should check here if we need to apply a sotfmax activation
+    // or a regular sigmoid activation:
+    if (traits.with_softmax)
+    {
+      zval = exp(zval * traits.wmult);
+    }
+    else
+    {
+      // compute the sigmoid of the value:
+      zval = 1.0 / (1.0 + exp(-zval * traits.wmult));
+    }
 
     if (withDropout)
     {
@@ -98,7 +107,8 @@ __global__ void ComputeActivation(BPComputeTraits<T> traits)
       if (debugMode)
       {
         // Compute a fake random value:
-        if(abs(sin((T)(nrows*col+row))) > traits.layer_dropout) {
+        if (abs(sin((T)(nrows * col + row))) > traits.layer_dropout)
+        {
           zval = 0.0;
         }
       }
