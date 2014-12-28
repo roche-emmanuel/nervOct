@@ -197,8 +197,17 @@ protected:
       checkCublasErrors(cublasCreate(&handle));
 
       // Allocate the need device buffers:
-      sotfmax_ones = createDeviceBuffer(lsizes[nl-1]);
+      unsigned int nout = lsizes[nl - 1];
+      T* ones = new T[nout];
+      for (unsigned int i = 0; i < nout; ++i)
+      {
+        ones[i] = 1.0;
+      }
+
+      sotfmax_ones = createDeviceBuffer(nout, ones);
       sotfmax_norms = createDeviceBuffer(nsamples);
+
+      delete [] ones;
     }
   }
 

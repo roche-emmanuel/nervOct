@@ -257,3 +257,4 @@
 - Added rangeToString and lsizesToString support functions.
 - Added test for mat_elem_col_mult and _div methods.
 - Added full implementation for softmax usage.
+- Added initial test for predict with sotfmax

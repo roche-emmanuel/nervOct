@@ -24,7 +24,7 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
   else
   {
     // Assign a random drop for the wX buffer:
-    THROW_IF(!d_traits.rX,"Invalid rX buffer.");
+    THROW_IF(!d_traits.rX, "Invalid rX buffer.");
 
     r_traits.target = d_traits.rX;
     r_traits.size = lsizes[0] * nsamples;
@@ -32,10 +32,10 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
     r_traits.threshold = dropouts[0];
 
     rand_weights_device(r_traits);
-    
+
     r_traits.values = nullptr;
 
-    d_traits.wX = d_traits.rX; 
+    d_traits.wX = d_traits.rX;
   }
 
   // Ensure we have the proper generic settings for the rand weights computation:
@@ -70,7 +70,7 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
     traits.niter = ncolT;
 
     // Update the sotfmax state for this layer computations:
-    traits.with_softmax = d_traits.use_softmax && i==(nt-1);
+    traits.with_softmax = d_traits.use_softmax && i == (nt - 1);
 
     if (wmults)
       traits.wmult = wmults[i];
@@ -102,27 +102,29 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
       ComputeActivation <<< dimGrid, dimBlock, 0, stream>>>(traits);
     }
 
-    // Once we are done computing all the weights, if we use softmax, then we have to renormalize
-    // the activation values on the latest layer.
-    if(traits.with_softmax) {
-      // Compute the normalization value for each sample
-      // Using the hx matrix as the A matrix.
-      // We transpose this matrix and multiply it by the one vector to get the sum on each row
-      // When transposed we have one row per sample.
-      // And we store the result in sotfmax_norms.
-      mat_vec_mult_device(d_traits.handle, CUBLAS_OP_T, nrows, ncols, d_traits.inputs+traits.input_offset, d_traits.sotfmax_ones, d_traits.sotfmax_norms);
-
-      // Once we have the sotfmax_norms vector
-      // we can renormalize the hx matrix in an element wise fashion.
-      // TODO: add here a method to rescale tthe hx matrix element wise per column.
-      mat_elem_col_div_device(nrows, ncols, d_traits.inputs+traits.input_offset, d_traits.sotfmax_norms);
-    }
-
     // update the offsets:
     traits.wbias_offset += ncols;
     traits.theta_offset += lsizes[i + 1] * (lsizes[i] + 1);
     traits.input_offset = traits.next_input_offset;
     traits.next_input_offset += nrows * ncols;
+
+    // Once we are done computing all the weights, if we use softmax, then we have to renormalize
+    // the activation values on the latest layer.
+    // Note that we update the traits offsets first because here we want to use input_offset as
+    // a pointer on the hx matrix that was just written.
+    if (traits.with_softmax)
+    {
+      // Compute the normalization value for each sample
+      // Using the hx matrix as the A matrix.
+      // We transpose this matrix and multiply it by the one vector to get the sum on each row
+      // When transposed we have one row per sample.
+      // And we store the result in sotfmax_norms.
+      mat_vec_mult_device(d_traits.handle, CUBLAS_OP_T, nrows, ncols, d_traits.inputs + traits.input_offset, d_traits.sotfmax_ones, d_traits.sotfmax_norms);
+
+      // Once we have the sotfmax_norms vector
+      // we can renormalize the hx matrix in an element wise fashion.
+      mat_elem_col_div_device(nrows, ncols, d_traits.inputs + traits.input_offset, d_traits.sotfmax_norms);
+    }
   }
 
   return traits.input_offset;
@@ -184,6 +186,9 @@ void _nn_predict_cpu(BPTraits<T> &traits)
 
   int next_input_offset = 0; //nsamples*lsizes[1];
   T mult = 1.0; // default weight multiplier value.
+  bool with_softmax;
+
+  T *sotf_norms = nullptr;
 
   for (unsigned int i = 0; i < nt; ++i)
   {
@@ -198,6 +203,13 @@ void _nn_predict_cpu(BPTraits<T> &traits)
       mult = wmults[i];
 
     T xw;
+
+    with_softmax = traits.use_softmax && i == (nt - 1);
+    if (with_softmax)
+    {
+      sotf_norms = new T[ncols];
+      memset(sotf_norms, 0, ncols * sizeof(T));
+    }
 
     for (unsigned int c = 0; c < ncols; ++c)
     {
@@ -222,7 +234,7 @@ void _nn_predict_cpu(BPTraits<T> &traits)
           {
             xw = 1.0;
             // if(traits.dropouts && (abs(sin(nsamples * j + c)) > traits.dropouts[0]))
-            if(traits.dropouts && (abs(sin(ncolT * c + j)) > traits.dropouts[0]))
+            if (traits.dropouts && (abs(sin(ncolT * c + j)) > traits.dropouts[0]))
             {
               xw = 0.0;
             }
@@ -240,6 +252,13 @@ void _nn_predict_cpu(BPTraits<T> &traits)
         // The compute value is a(r,c)
         T zval = (T)(1.0 / (1.0 + exp(-val * mult)));
 
+        if (with_softmax)
+        {
+          // Update the activation method to use sotfmax instead:
+          zval = exp(val * mult);
+          sotf_norms[c] += zval;
+        }
+
         if (traits.dropouts)
         {
           T drop = 1.0;
@@ -256,6 +275,21 @@ void _nn_predict_cpu(BPTraits<T> &traits)
 
         inputs[next_input_offset + nrows * c + r] = zval;
       }
+    }
+
+    if (with_softmax)
+    {
+      // Re normalize all the elements:
+      for (unsigned int c = 0; c < ncols; ++c)
+      {
+        for (unsigned int r = 0; r < nrows; ++r)
+        {
+          inputs[next_input_offset + nrows * c + r] /= sotf_norms[c];
+        }
+      }
+
+      delete [] sotf_norms;
+      sotf_norms = nullptr;
     }
 
     // update the offsets:
