@@ -112,6 +112,7 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
       // Once we have the sotfmax_norms vector
       // we can renormalize the hx matrix in an element wise fashion.
       // TODO: add here a method to rescale tthe hx matrix element wise per column.
+      mat_elem_col_div_device(nrows, ncols, d_traits.inputs+traits.input_offset, d_traits.sotfmax_norms);
 
       // TODO: also add in the computeActivation method the selection of the appropriate activation function h(x) = exp(thetaT * x(i));
     }

@@ -2,6 +2,7 @@
 - test real training conditions.
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
+- Finalize implementation of softmax
 - Adapt the initial stop lost to match the desired sigma
 
 ** result evalution:

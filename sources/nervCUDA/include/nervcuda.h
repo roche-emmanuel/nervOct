@@ -156,6 +156,10 @@ extern "C" {
   NERVCUDA_EXPORT void mat_vec_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *x, float *y, bool tpA);
   NERVCUDA_EXPORT void mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA);
 
+  NERVCUDA_EXPORT void mat_elem_col_mult(unsigned int nrows, unsigned int ncols, double *A, double *y, bool div);
+  NERVCUDA_EXPORT void mat_elem_col_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *y, bool div);
+  NERVCUDA_EXPORT void mat_elem_col_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *y, bool div);
+
 #ifndef __CUDACC__
   nerv::StrategyManager &get_strategy_manager();
 
@@ -203,5 +207,11 @@ void reduce_cost_reg_device(T *d_params, T *d_regw, unsigned int n, T &output, c
 template<typename T>
 void mat_vec_mult_device(cublasHandle_t handle, cublasOperation_t trans, unsigned int nrows, unsigned int ncols,
                          T *A, T *x, T *y);
+
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+void mat_elem_col_mult_device(unsigned int nrows, unsigned int ncols, T *A, T *y);
+
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
+void mat_elem_col_div_device(unsigned int nrows, unsigned int ncols, T *A, T *y);
 
 #endif
