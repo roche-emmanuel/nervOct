@@ -148,6 +148,13 @@ T GradientDescent<T>::run()
     }
   }
 
+  if(_traits.dropouts) {
+    if (_traits.verbose)
+    {
+      trDEBUG(THIS, "Using dropouts: [" << _traits.dropouts[0]<<" "<<_traits.dropouts[1]<<" ...]");
+    }
+  }
+
   bool earlyStopping = false;
   if (_validationWindowSize > 0)
   {

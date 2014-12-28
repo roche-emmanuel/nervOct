@@ -26,6 +26,24 @@ function np = compute_np(lsizes)
 	end
 end
 
+function str = rangeToString(range)
+	mini = min(range);
+	maxi = max(range);
+	str = [int2str(mini) '_' int2str(maxi)];
+end
+
+function str = lsizesToString(lsizes)
+	str = [int2str(lsizes(1))];
+	num = numel(lsizes)
+	for i=2:num
+		str = [str '_' int2str(lsizes(i))]
+	end
+end
+
+% Testing week range:
+trange = 1:12;
+plsizes = [512 3];
+
 cfg = config();
 % fname = [cfg.datapath '/training_weeks_1_12.mat'];
 % load(fname);
@@ -37,7 +55,10 @@ cfg.dataset_ratios = [0.60 0.20 0.20];
 cfg.use_rate_of_returns = true;
 cfg.discard_nmins_feature = true;
 
-tr = nnPrepareTraining(1:12,cfg);	
+
+tr = nnPrepareTraining(trange,cfg);	
+
+% fprintf('Range string is %s.\n',rangeToString(1:12))
 
 % tr.X_train_raw(1:20,1:20)
 % error('Testing');
@@ -55,14 +76,16 @@ tr.min_cost_decrease = 0.0;
 tr.learning_decay = 0.9999;
 tr.regularization_param = 0.01;
 tr.ping_frequency = 500;
+% tr.dropouts = [0.8 0.5];
 
-fname = [cfg.datapath '/training_weeks_1_12.mat'];
+fname = [cfg.datapath '/training_weeks_' rangeToString(trange) '.mat'];
 save('-binary',fname,'tr');
 
-nn = nnInitNetwork([tr.num_features, 512, 128, 3],cfg);
+lsizes = [tr.num_features plsizes];
+nn = nnInitNetwork(lsizes,cfg);
 nn = nnTrainNetworkNERV(tr,nn,cfg);
 
-% nn = nnSelectRandomNetwork(10,[512 3],tr,cfg,true)
+% nn = nnSelectRandomNetwork(10,plsizes,tr,cfg,true)
 
 X_train = tr.X_train;
 y_train = nnBuildLabelMatrix(tr.y_train(:,cfg.target_symbol_pair))';
@@ -111,7 +134,7 @@ hold off;
 % Now we save the generated network:
 nn.mu = tr.mu;
 nn.sigma = tr.sigma;
-fname = [cfg.datapath '/nn_512_128_3_weeks_1_12.mat'];
+fname = [cfg.datapath '/nn_' lsizesToString(plsizes) '_weeks_' rangeToString(trange) '.mat'];
 save('-binary',fname,'nn');
 
 more on;

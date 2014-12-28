@@ -254,3 +254,4 @@
 - Added support for removal of number of minutes as feature.
 - Restored the confidence multiplier.
 - Testing various layer sizes.
+- Added rangeToString and lsizesToString support functions.
