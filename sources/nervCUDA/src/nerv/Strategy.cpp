@@ -57,8 +57,10 @@ void Strategy::evaluate(EvalTraits &traits)
   value_type buy_price = -1.0;
   value_type num_lots = 0.0;
 
-  value_type mean_spread = 0.00008;
-  value_type max_lost = mean_spread * 0.5;
+  value_type mean_spread = 0.00001*traits.mean_spread;
+  logDEBUG("Using mean spread value: "<< mean_spread);
+  value_type max_lost = 0.00001* traits.max_lost;
+  logDEBUG("Using max lost value: "<< max_lost);
 
   value_type gross_profit = 0.0;
   value_type gross_lost = 0.0;

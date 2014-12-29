@@ -158,8 +158,11 @@ DEFUN_DLD (trade_strategy, args, nargout,
       traits.prices_nrows = prices.dim1();
       traits.prices_ncols = prices.dim2();
 
+      traits.mean_spread = read_double(desc,"mean_spread",true,8.0);
+      traits.max_lost = read_double(desc,"max_lost",true,4.0);
       traits.lot_multiplier = read_double(desc,"lot_multiplier",true,1.0);
       
+
       CHECK(g_intf.evaluate_strategy(sid,traits)==ST_SUCCESS,"Could not evaluate strategy.");
     }
     else if (cmd == "add_model")

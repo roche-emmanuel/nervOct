@@ -263,3 +263,4 @@
 - Updated computation of cost with softmax regression.
 - Added generalized softmax cost computation.
 - Added support for softmax usage in octave.
+- Added support to control max lsot and mean spread for strategy evaluation.

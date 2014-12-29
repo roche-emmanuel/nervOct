@@ -22,7 +22,7 @@ cfg = config();
 
 fname = [cfg.datapath '/training_weeks_1_12.mat'];
 load(fname);
-fname = [cfg.datapath '/nn_256_3_weeks_1_12.mat'];
+fname = [cfg.datapath '/nn_512_3_weeks_1_12.mat'];
 load(fname);
 
 % Evaluate the strategy:
@@ -49,7 +49,10 @@ evdesc.prices = (tr.prices_test(:,2+4*(sym-1):5+4*(sym-1)))';
 evdesc.balance = zeros(size(evdesc.inputs,2),1);
 
 % Add a lot multiplier:
-evdesc.lot_multiplier = 0.1;
+evdesc.lot_multiplier = 0.3;
+
+evdesc.mean_spread = 8;
+evdesc.max_lost = 20;
 
 % Perform evaluation:
 trade_strategy('evaluate',sid,evdesc);

@@ -60,7 +60,8 @@ public:
     EvalTraits()
       : inputs(nullptr), inputs_nrows(0), inputs_ncols(0),
       prices(nullptr), prices_nrows(0), prices_ncols(0),
-      balance(nullptr), lot_multiplier(1.0) {}
+      balance(nullptr), lot_multiplier(1.0),
+      mean_spread(8.0), max_lost(4.0) {}
 
     // input array containing 1 minute of data per column.
     // Each column contains the minute id, following by the
@@ -85,6 +86,12 @@ public:
     // Multiplier applied on the number of lots to be invested to control the risk
     // of the transactions:
     value_type lot_multiplier;
+
+    // Mean spread value to use during the evaluation (in number of pips)
+    value_type mean_spread;
+
+    // Max lost value to use during the evaluation (in number of pips)
+    value_type max_lost;
   };
 
   struct DigestTraits
