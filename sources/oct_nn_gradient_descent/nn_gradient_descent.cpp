@@ -153,6 +153,13 @@ public:
       traits.verbose = val.bool_value();
     }
 
+    val = desc.contents("useSoftmax");
+    if (val.is_defined())
+    {
+      CHECK(val.is_bool_type(), "nn_gradient_descent: useSoftmax is not a bool type");
+      traits.use_softmax = val.bool_value();
+    }
+
     val = desc.contents("validationWindowSize");
     if (val.is_defined())
     {

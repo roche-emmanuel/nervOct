@@ -33,6 +33,7 @@ desc.miniBatchSize = training.mini_batch_size;
 desc.lambda = training.regularization_param;
 desc.minCostDecrease = training.min_cost_decrease;
 desc.learningDecay = training.learning_decay;
+desc.useSoftmax = training.with_softmax;
 
 if isfield(training,'ping_frequency')
 desc.pingFrequency = training.ping_frequency;

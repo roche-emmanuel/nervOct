@@ -34,9 +34,9 @@ end
 
 function str = lsizesToString(lsizes)
 	str = [int2str(lsizes(1))];
-	num = numel(lsizes)
+	num = numel(lsizes);
 	for i=2:num
-		str = [str '_' int2str(lsizes(i))]
+		str = [str '_' int2str(lsizes(i))];
 	end
 end
 
@@ -76,6 +76,7 @@ tr.min_cost_decrease = 0.0;
 tr.learning_decay = 0.9999;
 tr.regularization_param = 0.01;
 tr.ping_frequency = 500;
+tr.with_softmax = true;
 % tr.dropouts = [0.8 0.5];
 
 fname = [cfg.datapath '/training_weeks_' rangeToString(trange) '.mat'];
