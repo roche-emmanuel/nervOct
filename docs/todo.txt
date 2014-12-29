@@ -3,7 +3,8 @@
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
 - Adapt the initial stop lost to match the desired sigma
-
+- Add support for sotfmax usage in octave.
+- Implement generalized softmax cost computation.
 
 ** result evalution:
 

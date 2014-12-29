@@ -174,7 +174,7 @@ template<typename T>
 void rand_weights_device(RandDeviceTraits<T> &traits);
 
 template<typename T>
-void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0);
+void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0, bool with_sotfmax = false);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 int nn_activation_device(BPDeviceTraits<T> &d_traits);

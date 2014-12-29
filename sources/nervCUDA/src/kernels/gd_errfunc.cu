@@ -32,7 +32,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
     // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
     T J = 0.0;
     unsigned int count = nsamples * lsizes[nt];
-    reduce_cost_device(d_hx, d_traits.yy, count, J, stream);
+    reduce_cost_device(d_hx, d_traits.yy, count, J, stream, d_traits.use_softmax);
 
     J /= (T)nsamples;
 
