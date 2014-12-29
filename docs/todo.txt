@@ -3,8 +3,6 @@
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
 - Adapt the initial stop lost to match the desired sigma
-- Add softmax test with dropout
-- Check lambda usage for gradient computation
 
 
 ** result evalution:

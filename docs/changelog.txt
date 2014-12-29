@@ -259,3 +259,4 @@
 - Added full implementation for softmax usage.
 - Added initial test for predict with sotfmax
 - Added norm test for softmax.
+- Checked proper usage of lambda for gradient computation.
