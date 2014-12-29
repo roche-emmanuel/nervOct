@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE( test_nn_predict )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+  typedef void (*PredictFunc)(BPTraits<value_type> &traits);
   // typedef void (*PredictFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
   //                             value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
@@ -50,9 +50,10 @@ BOOST_AUTO_TEST_CASE( test_nn_predict )
     value_type bias = tr.random_real(0.0, 1.0);
 
     // Prepare the weight multipliers:
-    value_type* wmults = tr.createArray(tr.nt());
-    for(unsigned int j=0;j<tr.nt();++j) {
-      wmults[j] = tr.random_real(0.0,1.0);
+    value_type *wmults = tr.createArray(tr.nt());
+    for (unsigned int j = 0; j < tr.nt(); ++j)
+    {
+      wmults[j] = tr.random_real(0.0, 1.0);
     }
 
     // Prepare the matrices for hx and pred_hx:
@@ -99,7 +100,7 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+  typedef void (*PredictFunc)(BPTraits<value_type> &traits);
   // typedef void (*PredictFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
   //                             value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
@@ -120,11 +121,12 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
     value_type bias = tr.random_real(0.0, 1.0);
 
     // Prepare the weight multipliers:
-    value_type* wmults = tr.createArray(tr.nt());
-    for(unsigned int j=0;j<tr.nt();++j) {
-      wmults[j] = tr.random_real(0.0,1.0);
+    value_type *wmults = tr.createArray(tr.nt());
+    for (unsigned int j = 0; j < tr.nt(); ++j)
+    {
+      wmults[j] = tr.random_real(0.0, 1.0);
     }
-    
+
     // Prepare the matrices for hx and pred_hx:
     unsigned int ny = tr.y_train_size();
     value_type *hx = tr.createArray(ny);
@@ -144,7 +146,7 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_float )
 
     // nn_predict(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), hx, bias, wmults);
     // nn_predict_cpu(tr.nl(), tr.lsizes(), tr.nsamples(), tr.params(), tr.X_train(), pred_hx, bias, wmults);
-    
+
     nn_predict(traits);
     traits.hx = pred_hx;
     nn_predict_cpu(traits);
@@ -169,7 +171,7 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_dropout )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+  typedef void (*PredictFunc)(BPTraits<value_type> &traits);
 
   // We should be able to retrieve the train function:
   PredictFunc nn_predict = (PredictFunc) GetProcAddress(h, "nn_predict");
@@ -183,7 +185,7 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_dropout )
   for (unsigned int i = 0; i < num; ++i)
   {
     // Prepare a random training set:
-    TrainingSet<value_type> tr(std::vector<unsigned int>{100,100,100,32},1000,TrainingSet<value_type>::TRAIN_DEBUG);
+    TrainingSet<value_type> tr(std::vector<unsigned int> {100, 100, 100, 32}, 1000, TrainingSet<value_type>::TRAIN_DEBUG);
     // TrainingSet<value_type> tr(std::vector<unsigned int>{50,30,20,10},1000,TrainingSet<value_type>::TRAIN_DEBUG);
     // TrainingSet<value_type> tr(std::vector<unsigned int>{5,4,3},10,TrainingSet<value_type>::TRAIN_DEBUG);
 
@@ -195,9 +197,10 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_dropout )
     value_type *pred_hx = tr.createArray(ny);
 
     // Prepare the weight multipliers:
-    value_type* dropouts = tr.createArray(tr.nt());
-    for(unsigned int j=0;j<tr.nt();++j) {
-      dropouts[j] = tr.random_real(0.0,1.0);
+    value_type *dropouts = tr.createArray(tr.nt());
+    for (unsigned int j = 0; j < tr.nt(); ++j)
+    {
+      dropouts[j] = tr.random_real(0.0, 1.0);
     }
 
     // dropouts[0] = 1.0;
@@ -244,7 +247,7 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_softmax )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*PredictFunc)(BPTraits<value_type>& traits);
+  typedef void (*PredictFunc)(BPTraits<value_type> &traits);
   // typedef void (*PredictFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
   //                             value_type * params, value_type * X, value_type * hx, value_type bias, value_type * wmults);
 
@@ -265,9 +268,10 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_softmax )
     value_type bias = tr.random_real(0.0, 1.0);
 
     // Prepare the weight multipliers:
-    value_type* wmults = tr.createArray(tr.nt());
-    for(unsigned int j=0;j<tr.nt();++j) {
-      wmults[j] = tr.random_real(0.0,1.0);
+    value_type *wmults = tr.createArray(tr.nt());
+    for (unsigned int j = 0; j < tr.nt(); ++j)
+    {
+      wmults[j] = tr.random_real(0.0, 1.0);
     }
 
     // Prepare the matrices for hx and pred_hx:
@@ -301,6 +305,18 @@ BOOST_AUTO_TEST_CASE( test_nn_predict_with_softmax )
       value_type v1 = hx[j];
       value_type v2 = pred_hx[j];
       BOOST_CHECK_MESSAGE(abs(v1 - v2) <= 2 * epsilon, "Mismatch on hx element " << j << ": " << v1 << "!=" << v2);
+    }
+
+    // Check that for each column in hx the sum of the predictions is close to 1.0:
+    unsigned int nout = traits.lsizes[traits.nl-1];
+    value_type tval;
+    for (unsigned int j = 1; j < traits.nsamples_train; ++j)
+    {
+      tval = 0.0;
+      for(unsigned int r=0;r<nout;++r) {
+        tval += hx[nout*j+r];
+      }
+      BOOST_CHECK_MESSAGE(abs(tval - 1.0) <= 10 * epsilon, "Invalid probability sum for sample " << j << ": " << tval << "!=" << 1.0);
     }
   }
 
