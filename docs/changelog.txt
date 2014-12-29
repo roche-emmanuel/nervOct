@@ -261,3 +261,4 @@
 - Added norm test for softmax.
 - Checked proper usage of lambda for gradient computation.
 - Updated computation of cost with softmax regression.
+- Added generalized softmax cost computation.

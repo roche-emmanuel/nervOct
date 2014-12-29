@@ -237,9 +237,19 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
     T J = 0.0;
 
     unsigned int count = nsamples * lsizes[nt];
-    for (unsigned int j = 0; j < count; ++j)
+    if (traits.use_softmax)
     {
-      J -= yy[j] * log(hx[j]) + (1.0 - yy[j]) * log(1.0 - hx[j]);
+      for (unsigned int j = 0; j < count; ++j)
+      {
+        J -= yy[j] * log(hx[j]);
+      }
+    }
+    else
+    {
+      for (unsigned int j = 0; j < count; ++j)
+      {
+        J -= yy[j] * log(hx[j]) + (1.0 - yy[j]) * log(1.0 - hx[j]);
+      }
     }
 
     J /= (double)nsamples;
