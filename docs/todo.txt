@@ -3,6 +3,7 @@
 - format the dataset to match the desired input for strategy evaluation.
 - Add tests for digest methods
 - Adapt the initial stop lost to match the desired sigma
+- Consider adding f'(z(nl)) when computing last delta ?
 
 
 ** result evalution:

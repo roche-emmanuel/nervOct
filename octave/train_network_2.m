@@ -42,19 +42,20 @@ end
 
 % Testing week range:
 trange = 1:12;
-plsizes = [512 3];
+plsizes = [512 32 3];
 
 cfg = config();
 % fname = [cfg.datapath '/training_weeks_1_12.mat'];
 % load(fname);
 
 % Prepare the config:
-cfg.use_sparse_init = false;
+cfg.num_input_bars=120;
+cfg.num_pred_bars=5;
+cfg.use_sparse_init = true;
 cfg.use_PCA = false;
 cfg.dataset_ratios = [0.60 0.20 0.20];
 cfg.use_rate_of_returns = true;
 cfg.discard_nmins_feature = true;
-
 
 tr = nnPrepareTraining(trange,cfg);	
 
@@ -74,7 +75,7 @@ tr.mini_batch_size = 128;
 tr.validation_window_size = 100;
 tr.min_cost_decrease = 0.0;
 tr.learning_decay = 0.9999;
-tr.regularization_param = 0.01;
+tr.regularization_param = 0.001;
 tr.ping_frequency = 500;
 tr.with_softmax = true;
 % tr.dropouts = [0.8 0.5];
@@ -82,7 +83,7 @@ tr.with_softmax = true;
 fname = [cfg.datapath '/training_weeks_' rangeToString(trange) '.mat'];
 save('-binary',fname,'tr');
 
-lsizes = [tr.num_features plsizes];
+lsizes = [tr.num_features plsizes]
 nn = nnInitNetwork(lsizes,cfg);
 nn = nnTrainNetworkNERV(tr,nn,cfg);
 
