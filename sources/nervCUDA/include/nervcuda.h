@@ -164,6 +164,10 @@ extern "C" {
   NERVCUDA_EXPORT void spae_kl_divergence_f(float* kl, float* rho, float sp, unsigned int n);
   NERVCUDA_EXPORT void spae_kl_divergence_cpu(double* kl, double* rho, double sp, unsigned int n);
 
+  NERVCUDA_EXPORT void spae_sparse_delta(double* delta, double* rho, double beta, double sp, unsigned int n);
+  NERVCUDA_EXPORT void spae_sparse_delta_f(float* delta, float* rho, float beta, float sp, unsigned int n);
+  NERVCUDA_EXPORT void spae_sparse_delta_cpu(double* delta, double* rho, double beta, double sp, unsigned int n);
+
 #ifndef __CUDACC__
   nerv::StrategyManager &get_strategy_manager();
 

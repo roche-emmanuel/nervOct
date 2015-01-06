@@ -50,6 +50,16 @@ void _spae_sparse_delta(T* delta, T* rho, T beta, T sp, unsigned int n)
 	checkCudaErrors(cudaFree(d_rho));
 }
 
+template <typename T>
+void _spae_sparse_delta_cpu(T* delta, T* rho, T beta, T sp, unsigned int n)
+{
+	T r;
+	for(unsigned int i=0;i<n;++i) {
+		r = rho[i];
+		delta[i] = beta*( -sp/r + (1.0-sp)/(1.0-r));
+	}
+}
+
 extern "C" {
 
 void spae_sparse_delta(double* delta, double* rho, double beta, double sp, unsigned int n)
@@ -60,6 +70,11 @@ void spae_sparse_delta(double* delta, double* rho, double beta, double sp, unsig
 void spae_sparse_delta_f(float* delta, float* rho, float beta, float sp, unsigned int n)
 {
 	_spae_sparse_delta(delta,rho,beta,sp,n);
+}
+
+void spae_sparse_delta_cpu(double* delta, double* rho, double beta, double sp, unsigned int n)
+{
+	_spae_sparse_delta_cpu(delta,rho,beta,sp,n);
 }
 
 }
