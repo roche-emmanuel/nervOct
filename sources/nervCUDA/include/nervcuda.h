@@ -176,6 +176,9 @@ void rand_weights_device(RandDeviceTraits<T> &traits);
 template<typename T>
 void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0, bool with_sotfmax = false);
 
+template<typename T>
+void reduce_sum_device(T *d_idata, unsigned int n, T &output, cudaStream_t stream = 0);
+
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 int nn_activation_device(BPDeviceTraits<T> &d_traits);
 
@@ -195,6 +198,9 @@ template<typename T>
 void mix_vectors_device(T *d_res, T *d_vec1, T *d_vec2, T w1, T w2, unsigned int size, cudaStream_t stream = 0);
 
 template<typename T>
+void spae_kl_divergence_device(T* d_kl, T* d_rho, T sp, unsigned int size, cudaStream_t stream = 0);
+
+template<typename T>
 void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, unsigned int ncolB,
                     const T *d_A, const T *d_B, T *d_C, bool tpA, bool tpB);
 
@@ -206,7 +212,7 @@ void reduce_cost_reg_device(T *d_params, T *d_regw, unsigned int n, T &output, c
 
 template<typename T>
 void mat_vec_mult_device(cublasHandle_t handle, cublasOperation_t trans, unsigned int nrows, unsigned int ncols,
-                         T *A, T *x, T *y);
+                         T *A, T *x, T *y, T alpha = 1.0);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
 void mat_elem_col_mult_device(unsigned int nrows, unsigned int ncols, T *A, T *y);

@@ -231,8 +231,10 @@ void reduce_sum_launcher(int size, int threads, int blocks, int whichKernel, T *
   }
 }
 
-template <typename T>
-void _reduce_sum(T* inputs, unsigned int n, T& output)
+// with this version we consider that the input matrices are
+// already allocated on the device.
+template<typename T>
+void reduce_sum_device(T *d_idata, unsigned int n, T &output, cudaStream_t stream)
 {
   int maxThreads = 256;
   int maxBlocks = 64;
@@ -244,24 +246,13 @@ void _reduce_sum(T* inputs, unsigned int n, T& output)
   int numThreads = 0;
   getNumBlocksAndThreads(whichKernel, n, maxBlocks, maxThreads, numBlocks, numThreads);
 
-
-  // Allocate the input array:
-  size_t size = n * sizeof(T);
-  T* d_idata = NULL;
-  checkCudaErrors(cudaMalloc(&d_idata, size));
-  checkCudaErrors(cudaMemcpy(d_idata, inputs, size, cudaMemcpyHostToDevice));
-
   // Allocate output array:
-  size = numBlocks*sizeof(T);
-  T* d_odata = NULL;
+  size_t size = numBlocks * sizeof(T);
+  T *d_odata = NULL;
   checkCudaErrors(cudaMalloc(&d_odata, size));
-  checkCudaErrors(cudaMemcpy(d_odata, inputs, size, cudaMemcpyHostToDevice));
 
   // Allocate mem for the result on host side
-  T *h_odata = (T *) malloc(numBlocks*sizeof(T));
-
-  // warm-up
-  // reduce<T>(size, numThreads, numBlocks, whichKernel, d_idata, d_odata);
+  T *h_odata = (T *) malloc(numBlocks * sizeof(T));
 
   T gpu_result = 0.0;
   bool needReadBack = true;
@@ -270,43 +261,43 @@ void _reduce_sum(T* inputs, unsigned int n, T& output)
   reduce_sum_launcher(n, numThreads, numBlocks, whichKernel, d_idata, d_odata);
 
   // sum partial block sums on GPU
-  int s=numBlocks;
+  int s = numBlocks;
   int kernel = whichKernel;
 
   while (s > cpuFinalThreshold)
   {
-      int threads = 0, blocks = 0;
-      getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
+    int threads = 0, blocks = 0;
+    getNumBlocksAndThreads(kernel, s, maxBlocks, maxThreads, blocks, threads);
 
-      reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata);
+    reduce_sum_launcher(s, threads, blocks, kernel, d_odata, d_odata, stream);
 
-      if (kernel < 3)
-      {
-          s = (s + threads - 1) / threads;
-      }
-      else
-      {
-          s = (s + (threads*2-1)) / (threads*2);
-      }
+    if (kernel < 3)
+    {
+      s = (s + threads - 1) / threads;
+    }
+    else
+    {
+      s = (s + (threads * 2 - 1)) / (threads * 2);
+    }
   }
 
   if (s > 1)
   {
-      // copy result from device to host
-      checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(T), cudaMemcpyDeviceToHost));
+    // copy result from device to host
+    checkCudaErrors(cudaMemcpy(h_odata, d_odata, s * sizeof(T), cudaMemcpyDeviceToHost));
 
-      for (int i=0; i < s; i++)
-      {
-          gpu_result += h_odata[i];
-      }
+    for (int i = 0; i < s; i++)
+    {
+      gpu_result += h_odata[i];
+    }
 
-      needReadBack = false;
+    needReadBack = false;
   }
 
   if (needReadBack)
   {
-      // copy final sum from device to host
-      checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost));
+    // copy final sum from device to host
+    checkCudaErrors(cudaMemcpy(&gpu_result, d_odata, sizeof(T), cudaMemcpyDeviceToHost));
   }
 
   // store the result:
@@ -316,8 +307,21 @@ void _reduce_sum(T* inputs, unsigned int n, T& output)
   free(h_odata);
 
   // Free device memory
-  checkCudaErrors(cudaFree(d_idata));
   checkCudaErrors(cudaFree(d_odata));
+}
+
+template<typename T>
+void _reduce_sum(T *inputs, unsigned int n, T &output)
+{
+  // Allocate the input array:
+  size_t size = n * sizeof(T);
+  T* d_idata = NULL;
+  checkCudaErrors(cudaMalloc(&d_idata, size));
+  checkCudaErrors(cudaMemcpy(d_idata, inputs, size, cudaMemcpyHostToDevice));
+
+  reduce_sum_device(d_idata, n, output);
+
+  checkCudaErrors(cudaFree(d_idata));
 }
 
 extern "C" {

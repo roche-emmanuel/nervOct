@@ -22,7 +22,8 @@ struct BPDeviceTraits : public BPTraits<T>
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
-      handle(nullptr), sotfmax_ones(nullptr), sotfmax_norms(nullptr)
+      handle(nullptr), sotfmax_ones(nullptr), sotfmax_norms(nullptr),
+      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr)
   {
     if (withStream)
     {
@@ -127,6 +128,11 @@ public:
 
   curandState *randStates;
 
+  // Sparse auto encoder variables:
+  T* spae_ones;
+  T* spae_rho;
+  T* spae_kl;
+
 protected:
   BufferList _buffers;
   bool owned_stream;
@@ -194,11 +200,14 @@ protected:
     if (use_softmax)
     {
       // allocate the CUBLAS handle:
-      checkCublasErrors(cublasCreate(&handle));
+      if (!handle)
+      {
+        checkCublasErrors(cublasCreate(&handle));
+      }
 
       // Allocate the need device buffers:
       unsigned int nout = lsizes[nl - 1];
-      T* ones = new T[nout];
+      T *ones = new T[nout];
       for (unsigned int i = 0; i < nout; ++i)
       {
         ones[i] = 1.0;
@@ -206,6 +215,28 @@ protected:
 
       sotfmax_ones = createDeviceBuffer(nout, ones);
       sotfmax_norms = createDeviceBuffer(nsamples);
+
+      delete [] ones;
+    }
+
+    if (spae_beta > 0.0)
+    {
+      // allocate the CUBLAS handle:
+      if (!handle)
+      {
+        checkCublasErrors(cublasCreate(&handle));
+      }
+
+      // Allocate the need device buffers:
+      T *ones = new T[nsamples];
+      for (unsigned int i = 0; i < nsamples; ++i)
+      {
+        ones[i] = 1.0;
+      }
+
+      spae_ones = createDeviceBuffer(nsamples, ones);
+      spae_rho = createDeviceBuffer(lsizes[1]);
+      spae_kl = createDeviceBuffer(lsizes[1]);
 
       delete [] ones;
     }

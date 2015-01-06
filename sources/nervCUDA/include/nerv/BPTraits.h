@@ -64,7 +64,7 @@ struct BPTraits : public BPTraitsBase<T>
     :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
        nsamples_train(0), nl(0), lsizes(nullptr), X_cv(nullptr), y_cv(nullptr),
        nsamples_cv(0), hx(nullptr), dropouts(nullptr), debug(false),
-       use_softmax(false) {};
+       use_softmax(false), spae_beta(0.0), spae_sparsity(0.0) {};
 
   virtual ~BPTraits() {}
 
@@ -88,6 +88,10 @@ struct BPTraits : public BPTraitsBase<T>
   T *y_cv;
 
   T* hx; // to store result of prediction
+
+  // Sparse auto encoder parameters:
+  T spae_beta;
+  T spae_sparsity;
 
   // Compute the number of parameters:
   unsigned int np() const

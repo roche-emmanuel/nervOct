@@ -5,9 +5,8 @@
 // Method used to compute op(A)*x using CUBLAS:
 template<typename T>
 void mat_vec_mult_device(cublasHandle_t handle, cublasOperation_t trans, unsigned int nrows, unsigned int ncols,
-                         T *A, T *x, T *y)
+                         T *A, T *x, T *y, T alpha)
 {
-  T alpha = (T)1.0;
   T beta = (T)0.0;
 
   cublasSgemv(handle, trans, nrows, ncols, &alpha, A, nrows, x, 1, &beta, y, 1);
@@ -15,9 +14,8 @@ void mat_vec_mult_device(cublasHandle_t handle, cublasOperation_t trans, unsigne
 
 template<>
 void mat_vec_mult_device<double>(cublasHandle_t handle, cublasOperation_t trans, unsigned int nrows, unsigned int ncols,
-                                 double *A, double *x, double *y)
+                                 double *A, double *x, double *y, double alpha)
 {
-  double alpha = 1.0;
   double beta = 0.0;
   checkCublasErrors(cublasDgemv(handle, trans, nrows, ncols, &alpha, A, nrows, x, 1, &beta, y, 1));
 }
@@ -48,7 +46,7 @@ void _mat_vec_mult(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, boo
   // cudaStream_t stream;
   // checkCublasErrors(cublasSetStream(handle, stream));
 
-  mat_vec_mult_device(handle, tpA ? CUBLAS_OP_T : CUBLAS_OP_N, nrows, ncols, d_A, d_x, d_y);
+  mat_vec_mult_device(handle, tpA ? CUBLAS_OP_T : CUBLAS_OP_N, nrows, ncols, d_A, d_x, d_y, (T)1.0);
 
   checkCublasErrors(cublasDestroy(handle));
 

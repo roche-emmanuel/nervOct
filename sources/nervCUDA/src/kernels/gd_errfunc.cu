@@ -23,6 +23,20 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
 
   T *d_hx = d_traits.inputs + traits.input_offset;
 
+  // Here we should compute the rho vector if it is needed.
+  // eg. if we are computing a sparse autoencoder layer.
+  if (d_traits.spae_beta > 0)
+  {
+    // the a2 activation values should be the first matrix reported in the inputs.
+    // So we should use an input offset of 0.
+    // The dimensions of the matrix should be: lsizes[1]*nsamples
+    // eg. each column in the matrix is the activation vector for a given sample.
+    // So we need to sum on each row by multiplying by a vector of ones with nsamples elements.
+    // The result rho should be divided by nsamples and will have lsizes[1] elements.
+    T alpha = (T)1.0 / (T)nsamples;
+    mat_vec_mult_device(d_traits.handle, CUBLAS_OP_N, lsizes[1], nsamples, d_traits.inputs, d_traits.spae_ones, d_traits.spae_rho, alpha);
+  }
+
   // Here we can compute the cost now:
   // but only if requested:
   if (d_traits.compute_cost)
@@ -40,6 +54,19 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
     reduce_cost_reg_device(d_traits.params, d_traits.regw, np, Jreg, stream);
 
     J += (T)((Jreg * d_traits.lambda) / (2.0 * nsamples));
+
+    if (d_traits.spae_beta > 0)
+    {
+      // If we are computing a sparse auto encoder we should add here the Kullback-Leibler (KL) 
+      // divergence component to the cost:
+      spae_kl_divergence_device(d_traits.spae_kl, d_traits.spae_rho, d_traits.spae_sparsity, lsizes[1], stream);
+
+      // Now reduce the KL vector to its sum:
+      T Jsp = 0.0;
+      reduce_sum_device(d_traits.spae_kl, lsizes[1], Jsp, stream);
+      J += d_traits.spae_beta * Jsp;
+    }
+
     d_traits.cost = J;
   }
 

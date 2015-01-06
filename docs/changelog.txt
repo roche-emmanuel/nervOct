@@ -265,3 +265,4 @@
 - Added support for softmax usage in octave.
 - Added support to control max lsot and mean spread for strategy evaluation.
 - Trying to train network with 3 layers.
+- Implementing sparse auto encoder support.
