@@ -21,7 +21,7 @@ void mat_vec_mult_device<double>(cublasHandle_t handle, cublasOperation_t trans,
 }
 
 template <typename T>
-void _mat_vec_mult(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, bool tpA)
+void _mat_vec_mult(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, bool tpA, T alpha)
 {
   size_t size;
 
@@ -46,7 +46,7 @@ void _mat_vec_mult(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, boo
   // cudaStream_t stream;
   // checkCublasErrors(cublasSetStream(handle, stream));
 
-  mat_vec_mult_device(handle, tpA ? CUBLAS_OP_T : CUBLAS_OP_N, nrows, ncols, d_A, d_x, d_y, (T)1.0);
+  mat_vec_mult_device(handle, tpA ? CUBLAS_OP_T : CUBLAS_OP_N, nrows, ncols, d_A, d_x, d_y, alpha);
 
   checkCublasErrors(cublasDestroy(handle));
 
@@ -58,7 +58,7 @@ void _mat_vec_mult(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, boo
 }
 
 template <typename T>
-void _mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, bool tpA)
+void _mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y, bool tpA, T alpha)
 {
   // perform the matrix multiplication:
   unsigned int nr = tpA ? ncols : nrows;
@@ -71,25 +71,25 @@ void _mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, T *A, T *x, T *y,
       // We retrieve the element A(r,c) and x(c)
       val += (tpA ? A[nrows * r + c] : A[nrows * c + r]) * x[c];
     }
-    y[r] = val;
+    y[r] = val*alpha;
   }
 }
 
 extern "C" {
 
-  void mat_vec_mult(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA)
+  void mat_vec_mult(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA, double alpha)
   {
-    _mat_vec_mult(nrows, ncols, A, x, y, tpA);
+    _mat_vec_mult(nrows, ncols, A, x, y, tpA, alpha);
   }
 
-  void mat_vec_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *x, float *y, bool tpA)
+  void mat_vec_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *x, float *y, bool tpA, float alpha)
   {
-    _mat_vec_mult(nrows, ncols, A, x, y, tpA);
+    _mat_vec_mult(nrows, ncols, A, x, y, tpA, alpha);
   }
 
-  void mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA)
+  void mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA, double alpha)
   {
-    _mat_vec_mult_cpu(nrows, ncols, A, x, y, tpA);
+    _mat_vec_mult_cpu(nrows, ncols, A, x, y, tpA, alpha);
   }
 
 }

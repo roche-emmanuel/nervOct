@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE( test_mat_vec_mult )
   HMODULE h = LoadLibrary("nervCUDA.dll");
   BOOST_CHECK(h != nullptr);
 
-  typedef void (*MultFunc)(unsigned int nrows, unsigned int ncols, value_type * A, value_type * x, value_type * y, bool tpA);
+  typedef void (*MultFunc)(unsigned int nrows, unsigned int ncols, value_type * A, value_type * x, value_type * y, bool tpA, value_type alpha);
 
   // We should be able to retrieve the train function:
   MultFunc mat_mult = (MultFunc) GetProcAddress(h, "mat_vec_mult");
@@ -43,6 +43,8 @@ BOOST_AUTO_TEST_CASE( test_mat_vec_mult )
     unsigned int nrows = random_uint(10, 30);
     unsigned int ncols = random_uint(10, 30);
     unsigned int dotp = random_uint(0, 1);
+
+    value_type alpha = random_real(0.0,1.0);
 
     unsigned int count = nrows * ncols;
     value_type *A = new value_type[count];
@@ -67,14 +69,14 @@ BOOST_AUTO_TEST_CASE( test_mat_vec_mult )
     if (dotp)
     {
       logDEBUG("Testing with transpose...");
-      mat_mult(nrows, ncols, A, y, x, true);
-      mat_mult_cpu(nrows, ncols, A, y, x_pred, true);
+      mat_mult(nrows, ncols, A, y, x, true, alpha);
+      mat_mult_cpu(nrows, ncols, A, y, x_pred, true, alpha);
     }
     else
     {
       logDEBUG("Testing without transpose...");
-      mat_mult(nrows, ncols, A, x, y, false);
-      mat_mult_cpu(nrows, ncols, A, x, y_pred, false);
+      mat_mult(nrows, ncols, A, x, y, false, alpha);
+      mat_mult_cpu(nrows, ncols, A, x, y_pred, false, alpha);
     }
 
     if (dotp)

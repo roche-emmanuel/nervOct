@@ -152,9 +152,9 @@ extern "C" {
   void rand_weights(RandTraits<double> &traits);
   void rand_weights_f(RandTraits<float> &traits);
 
-  NERVCUDA_EXPORT void mat_vec_mult(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA);
-  NERVCUDA_EXPORT void mat_vec_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *x, float *y, bool tpA);
-  NERVCUDA_EXPORT void mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA);
+  NERVCUDA_EXPORT void mat_vec_mult(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA, double alpha);
+  NERVCUDA_EXPORT void mat_vec_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *x, float *y, bool tpA, float alpha);
+  NERVCUDA_EXPORT void mat_vec_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *x, double *y, bool tpA, double alpha);
 
   NERVCUDA_EXPORT void mat_elem_col_mult(unsigned int nrows, unsigned int ncols, double *A, double *y, bool div);
   NERVCUDA_EXPORT void mat_elem_col_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *y, bool div);
