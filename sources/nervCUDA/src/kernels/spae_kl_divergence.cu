@@ -49,6 +49,16 @@ void _spae_kl_divergence(T* kl, T* rho, T sp, unsigned int n)
 	checkCudaErrors(cudaFree(d_rho));
 }
 
+template <typename T>
+void _spae_kl_divergence_cpu(T* kl, T* rho, T sp, unsigned int n)
+{
+	T r;
+	for(unsigned int i=0;i<n;++i) {
+		r = rho[i];
+		kl[i] = sp*log(sp/r) + (1.0 - sp)*log((1.0-sp)/(1.0-r));
+	}
+}
+
 extern "C" {
 
 void spae_kl_divergence(double* kl, double* rho, double sp, unsigned int n)
@@ -59,6 +69,11 @@ void spae_kl_divergence(double* kl, double* rho, double sp, unsigned int n)
 void spae_kl_divergence_f(float* kl, float* rho, float sp, unsigned int n)
 {
 	_spae_kl_divergence(kl,rho,sp,n);
+}
+
+void spae_kl_divergence_cpu(double* kl, double* rho, double sp, unsigned int n)
+{
+	_spae_kl_divergence_cpu(kl,rho,sp,n);
 }
 
 }

@@ -160,6 +160,10 @@ extern "C" {
   NERVCUDA_EXPORT void mat_elem_col_mult_f(unsigned int nrows, unsigned int ncols, float *A, float *y, bool div);
   NERVCUDA_EXPORT void mat_elem_col_mult_cpu(unsigned int nrows, unsigned int ncols, double *A, double *y, bool div);
 
+  NERVCUDA_EXPORT void spae_kl_divergence(double* kl, double* rho, double sp, unsigned int n);
+  NERVCUDA_EXPORT void spae_kl_divergence_f(float* kl, float* rho, float sp, unsigned int n);
+  NERVCUDA_EXPORT void spae_kl_divergence_cpu(double* kl, double* rho, double sp, unsigned int n);
+
 #ifndef __CUDACC__
   nerv::StrategyManager &get_strategy_manager();
 
