@@ -191,6 +191,8 @@ T GradientDescent<T>::run()
     trDEBUG(THIS, "Using max momentum: " << _mumax);
     trDEBUG(THIS, "Using lambda: " << _traits.lambda);
     trDEBUG(THIS, "Using minCvCostDecrease: " << _traits.minCostDecrease);
+    trDEBUG(THIS, "Using spae_beta: " << _traits.spae_beta);
+    trDEBUG(THIS, "Using spae_sparsity: " << _traits.spae_sparsity);
   }
 
   value_type mu; // current momentum.

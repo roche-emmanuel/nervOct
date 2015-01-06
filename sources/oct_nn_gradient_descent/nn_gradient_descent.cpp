@@ -139,6 +139,22 @@ public:
       traits.learningDecay = val.double_value();
     }
 
+    val = desc.contents("spaeBeta");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: spaeBeta is not a double type");
+      CHECK(0.0 < val.double_value(), "nn_gradient_descent: out of range spaeBeta value");
+      traits.spae_beta = val.double_value();
+    }
+
+    val = desc.contents("spaeSparsity");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_gradient_descent: spaeSparsity is not a double type");
+      CHECK(0.0 < val.double_value() && val.double_value() < 1.0, "nn_gradient_descent: out of range spaeSparsity value");
+      traits.spae_sparsity = val.double_value();
+    }
+
     val = desc.contents("minCostDecrease");
     if (val.is_defined())
     {

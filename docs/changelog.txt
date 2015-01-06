@@ -268,3 +268,4 @@
 - Implementing sparse auto encoder support.
 - Added support for derivative component in last delta computation.
 - Added support for delta computation with sparsity.
+- Added nervtech implementation for UFLDL exercise 1.

@@ -33,7 +33,9 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
     // eg. each column in the matrix is the activation vector for a given sample.
     // So we need to sum on each row by multiplying by a vector of ones with nsamples elements.
     // The result rho should be divided by nsamples and will have lsizes[1] elements.
+
     T alpha = (T)1.0 / (T)nsamples;
+    // logDEBUG("Computing rho vector with alpha=" << alpha);
     mat_vec_mult_device(d_traits.handle, CUBLAS_OP_N, lsizes[1], nsamples, d_traits.inputs, d_traits.spae_ones, d_traits.spae_rho, alpha);
   }
 
@@ -65,6 +67,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
       T Jsp = 0.0;
       reduce_sum_device(d_traits.spae_kl, lsizes[1], Jsp, stream);
       J += d_traits.spae_beta * Jsp;
+      // logDEBUG("Computed sparsity penalty: Jsp=" << d_traits.spae_beta * Jsp);
     }
 
     d_traits.cost = J;
