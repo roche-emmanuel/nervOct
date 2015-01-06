@@ -62,6 +62,9 @@ template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void InitLastDelta(BPComputeTraits<T> traits);
 
 template<typename T, unsigned int blockSize = BLOCK_SIZE>
+__global__ void InitLastDeltaDeriv(BPComputeTraits<T> traits);
+
+template<typename T, unsigned int blockSize = BLOCK_SIZE>
 __global__ void ComputeDelta(BPComputeTraits<T> traits);
 
 template<typename T, bool withDropout = false, unsigned int blockSize = BLOCK_SIZE>

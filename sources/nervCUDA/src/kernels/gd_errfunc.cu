@@ -105,8 +105,17 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
 
     if (i == nt)
     {
-      // we should just copy the difference of hx and yy into the z matrix.
-      InitLastDelta <<< dimGrid, dimBlock, 0, stream>>>(traits);
+      if(d_traits.spae_beta > 0) {
+        // We want to take the sigmoid derivative into account for the last delta too:
+        // Note that this implementation should NOT be used when we use a cross entropy cost function
+        // or a softmax final layer (which is a generalization of cross entropy)
+        // So for now we actually only use this implementation when building a sparse auto encoder layer.
+        InitLastDeltaDeriv <<< dimGrid, dimBlock, 0, stream>>>(traits);        
+      }
+      else {
+        // we should just copy the difference of hx and yy into the z matrix.
+        InitLastDelta <<< dimGrid, dimBlock, 0, stream>>>(traits);        
+      }
     }
     else
     {
