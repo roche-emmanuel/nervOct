@@ -57,7 +57,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
 
     if (d_traits.spae_beta > 0)
     {
-      // If we are computing a sparse auto encoder we should add here the Kullback-Leibler (KL) 
+      // If we are computing a sparse auto encoder we should add here the Kullback-Leibler (KL)
       // divergence component to the cost:
       spae_kl_divergence_device(d_traits.spae_kl, d_traits.spae_rho, d_traits.spae_sparsity, lsizes[1], stream);
 
@@ -105,24 +105,36 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
 
     if (i == nt)
     {
-      if(d_traits.spae_beta > 0) {
+      if (d_traits.spae_beta > 0)
+      {
         // We want to take the sigmoid derivative into account for the last delta too:
         // Note that this implementation should NOT be used when we use a cross entropy cost function
         // or a softmax final layer (which is a generalization of cross entropy)
         // So for now we actually only use this implementation when building a sparse auto encoder layer.
-        InitLastDeltaDeriv <<< dimGrid, dimBlock, 0, stream>>>(traits);        
+        InitLastDeltaDeriv <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
-      else {
+      else
+      {
         // we should just copy the difference of hx and yy into the z matrix.
-        InitLastDelta <<< dimGrid, dimBlock, 0, stream>>>(traits);        
+        InitLastDelta <<< dimGrid, dimBlock, 0, stream>>>(traits);
       }
     }
     else
     {
-      // We compute the delta from the previous delta:
-      // We start this computation for delta(nt-1). this matrix is build from theta(nt-1) and delta(nt).
-      // also in the process we use the input matrix z(nt-2)
-      ComputeDelta <<< dimGrid, dimBlock, 0, stream>>>(traits);
+      if (d_traits.spae_beta > 0 && i==(nt-1))
+      {
+        // We are about to compute the hidden layer deltas
+        // So first we need to prepare the sparse vector:
+        spae_sparse_delta_device(d_traits.spae_delta, d_traits.spae_rho, d_traits.spae_beta, d_traits.spae_sparsity, lsizes[1], stream);
+        ComputeDelta<T, true> <<< dimGrid, dimBlock, 0, stream>>>(traits);
+      }
+      else
+      {
+        // We compute the delta from the previous delta:
+        // We start this computation for delta(nt-1). this matrix is build from theta(nt-1) and delta(nt).
+        // also in the process we use the input matrix z(nt-2)
+        ComputeDelta <<< dimGrid, dimBlock, 0, stream>>>(traits);
+      }
 
       // once the computation is done for that layer we move to the previous layer:
       traits.theta_offset -= lsizes[i] * (lsizes[i - 1] + 1);

@@ -1,7 +1,7 @@
 #include <nervCUDA.h>
 #include <nerv_kernels.h>
 
-template<typename T, unsigned int blockSize>
+template<typename T, bool withSparsity, unsigned int blockSize>
 __global__ void ComputeDelta(BPComputeTraits<T> traits)
 // unsigned int theta_offset, unsigned int input_offset,  unsigned int delta_offset, unsigned int next_delta_offset,
 // unsigned int nrows, unsigned int ncols, unsigned int niter, T* nn_params, T* inputs, T* deltas)
@@ -65,11 +65,16 @@ __global__ void ComputeDelta(BPComputeTraits<T> traits)
     // we have to multiply that value by the corresponding sigmoid gradient value from the input matrix at the same location.
     int index = nrows * col + row;
     T sig = traits.inputs[traits.input_offset + index];
+    if(withSparsity) {
+      dval += traits.spae_delta[row];
+    }
+
     traits.deltas[traits.next_delta_offset + index] = dval * sig * (1.0 - sig);
   }
 }
 
 // Explicit instanciation:
 template __global__ void ComputeDelta<double>(BPComputeTraits<double> traits);
-
 template __global__ void ComputeDelta<float>(BPComputeTraits<float> traits);
+template __global__ void ComputeDelta<double,true>(BPComputeTraits<double> traits);
+template __global__ void ComputeDelta<float,true>(BPComputeTraits<float> traits);

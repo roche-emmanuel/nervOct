@@ -201,6 +201,9 @@ template<typename T>
 void spae_kl_divergence_device(T* d_kl, T* d_rho, T sp, unsigned int size, cudaStream_t stream = 0);
 
 template<typename T>
+void spae_sparse_delta_device(T* d_delta, T* d_rho, T beta, T sp, unsigned int size, cudaStream_t stream = 0);
+
+template<typename T>
 void matmult_device(unsigned int nrowA, unsigned int ncolA, unsigned int nrowB, unsigned int ncolB,
                     const T *d_A, const T *d_B, T *d_C, bool tpA, bool tpB);
 

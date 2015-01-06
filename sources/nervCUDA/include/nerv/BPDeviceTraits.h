@@ -23,7 +23,7 @@ struct BPDeviceTraits : public BPTraits<T>
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
       handle(nullptr), sotfmax_ones(nullptr), sotfmax_norms(nullptr),
-      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr)
+      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr), spae_delta(nullptr)
   {
     if (withStream)
     {
@@ -132,6 +132,7 @@ public:
   T* spae_ones;
   T* spae_rho;
   T* spae_kl;
+  T* spae_delta;
 
 protected:
   BufferList _buffers;
@@ -237,6 +238,7 @@ protected:
       spae_ones = createDeviceBuffer(nsamples, ones);
       spae_rho = createDeviceBuffer(lsizes[1]);
       spae_kl = createDeviceBuffer(lsizes[1]);
+      spae_delta = createDeviceBuffer(lsizes[1]);
 
       delete [] ones;
     }
@@ -303,7 +305,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
       wmult(1.0), layer_dropout(1.0),
       randStates(nullptr),
       wbias(nullptr), wbias_offset(0),
-      wX(nullptr), with_softmax(false) {};
+      wX(nullptr), with_softmax(false),
+      spae_delta(nullptr) {};
 
   // BPComputeTraits(const BPComputeTraits &) = delete;
   BPComputeTraits &operator=(const BPComputeTraits &) = delete;
@@ -314,6 +317,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
     inputs = rhs.inputs;
     deltas = rhs.deltas;
     grads = rhs.grads;
+    spae_delta = rhs.spae_delta;
     yy = rhs.yy;
     X = rhs.X;
     bias = rhs.bias;
@@ -345,6 +349,8 @@ struct BPComputeTraits : public BPTraitsBase<T>
   curandState *randStates;
   T *wbias;
   T *wX;
+
+  T* spae_delta;
 
   T wmult;
   T layer_dropout;

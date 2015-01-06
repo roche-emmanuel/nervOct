@@ -267,3 +267,4 @@
 - Trying to train network with 3 layers.
 - Implementing sparse auto encoder support.
 - Added support for derivative component in last delta computation.
+- Added support for delta computation with sparsity.
