@@ -37,7 +37,8 @@ public:
     CHECK(_h, "ERROR: cannot load nervCUDA library! err=" << GetLastError());
 
     // Try loading the functions of interest:
-    _costfunc = (CostFunc) GetProcAddress(_h, "gd_errfunc_cpu");
+    // _costfunc = (CostFunc) GetProcAddress(_h, "gd_errfunc_cpu");
+    _costfunc = (CostFunc) GetProcAddress(_h, "gd_errfunc");
     CHECK(_costfunc, "ERROR: cannot find gd_errfunc_cpu method! err=" << GetLastError());
   }
 
