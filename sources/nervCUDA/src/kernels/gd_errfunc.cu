@@ -124,7 +124,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
     }
     else
     {
-      if (d_traits.spae_beta > 0 && i==(nt-1))
+      if (d_traits.spae_beta > 0 && i == (nt - 1))
       {
         // We are about to compute the hidden layer deltas
         // So first we need to prepare the sparse vector:
@@ -265,11 +265,33 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
   T *deltas = traits.deltas;
   T *params = traits.params;
   T *gradients = traits.grads;
-
+  T *rho = nullptr;
   T *ptr;
 
   // First step is to compute the predictions, inside the input array.
   nn_predict_cpu(traits);
+
+  unsigned int nh = lsizes[1];
+  T sp = traits.spae_sparsity;
+
+  // if spae_beta is positive then we need to prepare the rho vector:
+  if (traits.spae_beta > 0.0)
+  {
+    rho = new T[nh];
+
+    // Now use the activation values to fill the rho vector:
+    T val;
+    for (unsigned int r = 0; r < nh; ++r)
+    {
+      val = 0.0;
+      for (unsigned int c = 0; c < nsamples; ++c)
+      {
+        val += inputs[nh * c + r];
+      }
+
+      rho[r] = val / (T)nsamples;
+    }
+  }
 
   // Compute the value of J on the cpu:
 
@@ -322,12 +344,28 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
 
     J += Jreg * traits.lambda / (2.0 * nsamples);
 
+    // Also check here if we need to apply the spare penalty:
+    if (traits.spae_beta > 0.0)
+    {
+      // sum over the KL divergence values:
+      T Jsp = 0.0;
+      T r;
+      for (unsigned int j = 0; j < nh; ++j)
+      {
+        r = rho[j];
+        Jsp += sp * log(sp / r) + (1.0 - sp) * log((1.0 - sp) / (1.0 - r));
+      }
+
+      J += traits.spae_beta * Jsp;
+    }
+
     traits.cost = J;
   }
 
   if (!traits.compute_grads)
   {
     // we don't need to compute the gradients.
+    // TODO: should release the previously allocated arrays here.
     return;
   }
 
@@ -355,6 +393,8 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
 
   ptr = traits.deltas;
 
+  T rval;
+
   for (unsigned int i = nt; i > 0; --i)
   {
     unsigned int nrows = lsizes[i];
@@ -364,10 +404,24 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
 
     if (i == nt)
     {
-      // We just write the difference of hx and yy in the deltas array:
-      for (unsigned int j = 0; j < count; ++j)
+      if (traits.spae_beta > 0.0)
       {
-        (*ptr++) = hx[j] - yy[j];
+        // Also take into account the final derivative:
+        // We just write the difference of hx and yy in the deltas array:
+        T hval;
+        for (unsigned int j = 0; j < count; ++j)
+        {
+          hval = hx[j];
+          (*ptr++) = (hval - yy[j]) * hval * (1.0 - hval);
+        }
+      }
+      else
+      {
+        // We just write the difference of hx and yy in the deltas array:
+        for (unsigned int j = 0; j < count; ++j)
+        {
+          (*ptr++) = hx[j] - yy[j];
+        }
       }
     }
     else
@@ -388,6 +442,14 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
           // Then we multiply by the sigmoid gradient at z(r,c):
           double sig = inputs[input_offset + nrows * c + r];
           // deltas[next_delta_offset + nrows*c + r] = next_delta_offset + nrows*c + r;
+
+          // Check here if we should apply the sparse penalty:
+          if (i == (nt - 1) && traits.spae_beta > 0.0)
+          {
+            rval = rho[r];
+            val += traits.spae_beta * ( -sp / rval + (1.0 - sp) / (1.0 - rval));
+          }
+
           deltas[next_delta_offset + nrows * c + r] = val * sig * (1.0 - sig);
         }
       }
@@ -491,6 +553,11 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
   {
     delete [] traits.grads;
     traits.grads = nullptr;
+  }
+
+  if (rho)
+  {
+    delete [] rho;
   }
 }
 

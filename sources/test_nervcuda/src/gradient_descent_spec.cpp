@@ -1398,5 +1398,124 @@ BOOST_AUTO_TEST_CASE( test_gd_errfunc_dropout_with_softmax )
   BOOST_CHECK(FreeLibrary(h));
 }
 
+BOOST_AUTO_TEST_CASE( test_gd_errfunc_spae )
+{
+  HMODULE h = LoadLibrary("nervCUDA.dll");
+  BOOST_CHECK(h != nullptr);
+
+  // typedef void (*CostFunc)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+  //                          double * nn_params, double * X, double * yy, double lambda, double & J, double * gradients, double * deltas, double * inputs);
+  typedef void (*CostFunc)(BPTraits<double> &traits);
+
+  // typedef void (*CostFuncCPU)(unsigned int nl, unsigned int *lsizes, unsigned int nsamples,
+  //                             double * nn_params, double * X, double * yy, double lambda, double * activation, unsigned int ninputs, double * inputs, double & J, double * gradients, double * deltas);
+
+  // We should be able to retrieve the train function:
+  CostFunc costfunc = (CostFunc) GetProcAddress(h, "gd_errfunc");
+  BOOST_CHECK(costfunc != nullptr);
+  // CostFuncCPU costfunc_cpu = (CostFuncCPU) GetProcAddress(h, "gd_errfunc_cpu");
+  CostFunc costfunc_cpu = (CostFunc) GetProcAddress(h, "gd_errfunc_cpu");
+  BOOST_CHECK(costfunc_cpu != nullptr);
+
+  // Now we use the mult mat method to compute a few matrices multiplication:
+  unsigned int num = 10; // number of tests to perform.
+
+  for (unsigned int i = 0; i < num; ++i)
+  {
+    // We have to fix the number of inputs and outputs to get a proper
+    // sparse autoencoding network:
+    unsigned int ni = random_uint(10,20);
+    TrainingSet<double> tr(3, 3, 6, 10, 500, 1000, ni, ni);
+
+    unsigned int *lsizes = tr.lsizes();
+
+    // logDEBUG("Layer dimensions are:")
+    // for(unsigned int j=0;j<tr.nl();++j) {
+    //   logDEBUG("Layer "<<j<<": "<<lsizes[j]);
+    // }
+
+    // unsigned int np = tr.np();
+    unsigned int nsamples = tr.nsamples();
+    double lambda = tr.lambda();
+    unsigned int nl = tr.nl();
+    unsigned int nt = tr.nt();
+
+    BPTraits<double> traits;
+    traits.nl = nl;
+    traits.lsizes = lsizes;
+    traits.nsamples_train = nsamples;
+
+    traits.params = tr.params();
+    traits.X = tr.X_train();
+    traits.yy = tr.y_train();
+    traits.lambda = lambda;
+    traits.compute_cost = true; // Note that this is disabled by default.
+
+    // Enable the sparse autoencoding:
+    traits.spae_beta = random_real(0.01,4.0);
+    traits.spae_sparsity = random_real(0.01,0.99);
+
+    unsigned int np = traits.np();
+    unsigned int nd = traits.nd();
+
+    // prepare the output gradient array:
+    double *grads = tr.createArray(np);
+    double *pred_grads = tr.createArray(np);
+
+    double *inputs = tr.createArray(nd);
+    double *pred_input = tr.createArray(nd);
+
+    double *deltas = tr.createArray(nd);
+    double *pred_deltas = tr.createArray(nd);
+
+    cudaDeviceSynchronize();
+
+    // Now we call the cost function method:
+    traits.grads = grads;
+    traits.deltas = deltas;
+    traits.inputs = inputs;
+
+    // costfunc(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, J, grads, deltas, inputs);
+    costfunc(traits);
+    double J = traits.cost;
+
+    // And we call the same on the CPU:
+    traits.deltas = pred_deltas;
+    traits.inputs = pred_input;
+    traits.grads = pred_grads;
+
+    // costfunc_cpu(nl, lsizes, nsamples, tr.params(), tr.X_train(), tr.y_train(), lambda, pred_act, input_size, pred_input, pred_J, pred_grads, pred_deltas);
+    costfunc_cpu(traits);
+    double pred_J = traits.cost;
+
+    BOOST_CHECK_MESSAGE(abs(J - pred_J) < 1e-10, "Mismatch in J value: " << J << "!=" << pred_J);
+
+    // Compare the content of the input array:
+    for (unsigned int j = 0; j < nd; ++j)
+    {
+      double v1 = inputs[j];
+      double v2 = pred_input[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 1e-10, "Mismatch on inputs element " << j << ": " << v1 << "!=" << v2);
+    }
+
+    // Also compare the delta arrays:
+    for (unsigned int j = 0; j < nd; ++j)
+    {
+      double v1 = deltas[j];
+      double v2 = pred_deltas[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 1e-10, "Mismatch on deltas element " << j << ": " << v1 << "!=" << v2);
+    }
+
+    // Compare the grads arrays:
+    for (unsigned int j = 0; j < np; ++j)
+    {
+      double v1 = grads[j];
+      double v2 = pred_grads[j];
+      BOOST_CHECK_MESSAGE(abs(v1 - v2) < 1e-10, "Mismatch on gradient element " << j << ": " << v1 << "!=" << v2);
+    }
+  }
+
+  BOOST_CHECK(FreeLibrary(h));
+}
 
 BOOST_AUTO_TEST_SUITE_END()

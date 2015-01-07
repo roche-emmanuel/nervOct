@@ -272,3 +272,4 @@
 - Added test for mat_vec_mult with alpha multiplier.
 - Added test for spae_kl_divergence.
 - Added test for spae_sparse_delta.
+- Added test for errfunc with spae enabled.
