@@ -137,11 +137,11 @@ extern "C" {
 
   void gd_errfunc(BPTraits<double> &traits);
   void gd_errfunc_f(BPTraits<float> &traits);
+  void gd_errfunc_cpu(BPTraits<double> &traits);
 
   int run_gradient_descent(GDTraits<double> &traits);
   int run_gradient_descent_f(GDTraits<float> &traits);
 
-  void gd_errfunc_cpu(BPTraits<double> &traits);
 
   void nn_predict(BPTraits<double> &traits);
   void nn_predict_f(BPTraits<float> &traits);

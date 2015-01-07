@@ -273,3 +273,4 @@
 - Added test for spae_kl_divergence.
 - Added test for spae_sparse_delta.
 - Added test for errfunc with spae enabled.
+- Added octave plugin nn_costfunc
