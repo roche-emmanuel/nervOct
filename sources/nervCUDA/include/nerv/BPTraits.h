@@ -6,6 +6,13 @@
 namespace nerv
 {
 
+enum CostMode {
+  COST_DEFAULT,
+  COST_CROSS_ENTROPY,
+  COST_SOFTMAX,
+  COST_RMS
+};
+
 template<typename T>
 struct RandTraits
 {
@@ -64,7 +71,8 @@ struct BPTraits : public BPTraitsBase<T>
     :  wmults(nullptr), cost(0.0), compute_cost(false), compute_grads(true),
        nsamples_train(0), nl(0), lsizes(nullptr), X_cv(nullptr), y_cv(nullptr),
        nsamples_cv(0), hx(nullptr), dropouts(nullptr), debug(false),
-       use_softmax(false), spae_beta(0.0), spae_sparsity(0.0) {};
+       use_softmax(false), spae_beta(0.0), spae_sparsity(0.0),
+       cost_mode(COST_DEFAULT) {};
 
   virtual ~BPTraits() {}
 
@@ -79,6 +87,8 @@ struct BPTraits : public BPTraitsBase<T>
     
   bool debug;
   bool use_softmax;
+
+  unsigned int cost_mode;
 
   T cost;
   T *wmults;

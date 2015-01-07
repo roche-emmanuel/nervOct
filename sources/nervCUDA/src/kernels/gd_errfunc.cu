@@ -48,14 +48,17 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
     // same dimensions for the yy matrix, and we want to perform reduction other those 2 matrices
     T J = 0.0;
     unsigned int count = nsamples * lsizes[nt];
-    reduce_cost_device(d_hx, d_traits.yy, count, J, stream, d_traits.use_softmax);
+    reduce_cost_device(d_hx, d_traits.yy, count, J, stream, d_traits.cost_mode);
 
     J /= (T)nsamples;
 
-    T Jreg = 0.0;
-    reduce_cost_reg_device(d_traits.params, d_traits.regw, np, Jreg, stream);
+    if (d_traits.lambda > 0)
+    {
+      T Jreg = 0.0;
+      reduce_cost_reg_device(d_traits.params, d_traits.regw, np, Jreg, stream);
 
-    J += (T)((Jreg * d_traits.lambda) / (2.0 * nsamples));
+      J += (T)((Jreg * d_traits.lambda) / (2.0 * nsamples));
+    }
 
     if (d_traits.spae_beta > 0)
     {
@@ -108,7 +111,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
 
     if (i == nt)
     {
-      if (d_traits.spae_beta > 0)
+      if (d_traits.cost_mode == COST_RMS)
       {
         // We want to take the sigmoid derivative into account for the last delta too:
         // Note that this implementation should NOT be used when we use a cross entropy cost function
@@ -268,6 +271,27 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
   T *rho = nullptr;
   T *ptr;
 
+  // Here we need to select the proper cost mode:
+  unsigned int cmode = traits.cost_mode;
+  if (cmode == COST_DEFAULT)
+  {
+    if (traits.use_softmax)
+    {
+      // logDEBUG("Updating cost mode to sotfmax cost");
+      cmode = COST_SOFTMAX;
+    }
+    else if (traits.spae_beta > 0.0)
+    {
+      // logDEBUG("Updating cost mode to SPAE cost");
+      cmode = COST_RMS;
+    }
+    else
+    {
+      // logDEBUG("Updating cost mode to cross entropy cost");
+      cmode = COST_CROSS_ENTROPY;
+    }
+  }
+
   // First step is to compute the predictions, inside the input array.
   nn_predict_cpu(traits);
 
@@ -310,18 +334,27 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
     T J = 0.0;
 
     unsigned int count = nsamples * lsizes[nt];
-    if (traits.use_softmax)
+    if (cmode == COST_SOFTMAX)
     {
       for (unsigned int j = 0; j < count; ++j)
       {
         J -= yy[j] * log(hx[j]);
       }
     }
-    else
+    else if (cmode == COST_CROSS_ENTROPY)
     {
       for (unsigned int j = 0; j < count; ++j)
       {
         J -= yy[j] * log(hx[j]) + (1.0 - yy[j]) * log(1.0 - hx[j]);
+      }
+    }
+    else // in RMS mode
+    {
+      T dif;
+      for (unsigned int j = 0; j < count; ++j)
+      {
+        dif = hx[j] - yy[j];
+        J += 0.5 * dif * dif;
       }
     }
 
@@ -404,7 +437,7 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
 
     if (i == nt)
     {
-      if (traits.spae_beta > 0.0)
+      if (cmode == COST_RMS)
       {
         // Also take into account the final derivative:
         // We just write the difference of hx and yy in the deltas array:

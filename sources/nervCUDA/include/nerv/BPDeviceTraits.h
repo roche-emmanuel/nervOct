@@ -162,6 +162,22 @@ protected:
     // use operator= from base class:
     BPTraits<T>::operator=(rhs);
 
+    // Update the cost mode if needed:
+    if(cost_mode == COST_DEFAULT) {
+      if(use_softmax) {
+        // logDEBUG("Updating cost mode to sotfmax cost");
+        cost_mode = COST_SOFTMAX;
+      }
+      else if(spae_beta>0.0) {
+        // logDEBUG("Updating cost mode to SPAE cost");
+        cost_mode = COST_RMS;        
+      }
+      else {
+        // logDEBUG("Updating cost mode to cross entropy cost");
+        cost_mode = COST_CROSS_ENTROPY;                
+      }
+    }
+
     nsamples = rhs.nsamples_train;
 
     X_train = createDeviceBuffer(nx(), rhs.X);

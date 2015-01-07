@@ -49,7 +49,7 @@ public:
   }
 
   inline void compute_cost(const Matrix &lsizes_mat, const Matrix &X_train, const Matrix &y_train,
-                           const Matrix &params, octave_scalar_map &desc, double &cost)
+                           const Matrix &params, octave_scalar_map &desc, double &cost, Matrix& grads)
   {
     // Here we can already check that the feature matrix dimensions match
     // the lsizes description:
@@ -91,7 +91,7 @@ public:
     if (val.is_defined())
     {
       CHECK(val.is_double_type(), "nn_costfunc: spaeBeta is not a double type");
-      CHECK(0.0 < val.double_value(), "nn_costfunc: out of range spaeBeta value");
+      CHECK(0.0 <= val.double_value(), "nn_costfunc: out of range spaeBeta value");
       traits.spae_beta = val.double_value();
     }
 
@@ -108,6 +108,13 @@ public:
     {
       CHECK(val.is_bool_type(), "nn_costfunc: useSoftmax is not a bool type");
       traits.use_softmax = val.bool_value();
+    }
+
+    val = desc.contents("costMode");
+    if (val.is_defined())
+    {
+      CHECK(val.is_double_type(), "nn_costfunc: costMode is not a double type");
+      traits.cost_mode = (unsigned int)val.double_value();
     }
 
     val = desc.contents("debug");
@@ -153,6 +160,9 @@ public:
     traits.compute_cost = true;
     traits.compute_grads = true;
 
+    // add the gradient matrix:
+    traits.grads = (double*)grads.data();
+    
     // perform actual gradient descent:
     _costfunc(traits);
 
@@ -206,13 +216,13 @@ DEFUN_DLD (nn_costfunc, args, nargout,
   CHECK_RET(params_val.is_defined(), "nn_costfunc: params value is not defined");
   CHECK_RET(params_val.is_matrix_type(), "nn_costfunc: params is not a matrix type");
 
-  // Matrix params = params_val.matrix_value();
+  Matrix params = params_val.matrix_value();
   // params.make_unique();
 
-  Matrix params_orig = params_val.matrix_value();
-  unsigned int np2 = params_orig.numel();
-  Matrix params = Matrix(np2, 1);
-  memcpy((void *)params.data(), params_orig.data(), np2 * sizeof(double));
+  // Matrix params_orig = params_val.matrix_value();
+  // unsigned int np2 = params_orig.numel();
+  // Matrix params = Matrix(np2, 1);
+  // memcpy((void *)params.data(), params_orig.data(), np2 * sizeof(double));
 
   // The desc structure should contain an y_train element.
   octave_value y_train_val = desc.contents("y_train");
@@ -240,10 +250,11 @@ DEFUN_DLD (nn_costfunc, args, nargout,
   double Jcv = 0.0;
 
   // Call the gradient descent method:
-  g_nerv.compute_cost(lsizes, X_train, y_train, params, desc, Jcv);
+  Matrix grads = Matrix(params.numel(),1);
+  g_nerv.compute_cost(lsizes, X_train, y_train, params, desc, Jcv, grads);
 
   result.append(Jcv);
-  result.append(params);
+  result.append(grads);
 
   return result;
 }

@@ -3,7 +3,8 @@ function patches = sampleIMAGES()
 % Returns 10000 patches for training
 
 % fprintf('Loading images...\n')
-load('ufldl/ex1/IMAGES.mat');    % load images from disk 
+% load('ufldl/ex1/IMAGES.mat');    % load images from disk 
+load IMAGES;    % load images from disk 
 % fprintf('Done Loading images.\n')
 
 patchsize = 8;  % we'll use 8x8 patches 

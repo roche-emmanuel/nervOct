@@ -182,7 +182,7 @@ template<typename T>
 void rand_weights_device(RandDeviceTraits<T> &traits);
 
 template<typename T>
-void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0, bool with_sotfmax = false);
+void reduce_cost_device(T *d_hx, T *d_yy, unsigned int n, T &output, cudaStream_t stream = 0, unsigned int mode = COST_CROSS_ENTROPY);
 
 template<typename T>
 void reduce_sum_device(T *d_idata, unsigned int n, T &output, cudaStream_t stream = 0);

@@ -31,7 +31,7 @@ hiddenSize = 25;     % number of hidden units
 sparsityParam = 0.01;   % desired average activation of the hidden units.
                      % (This was denoted by the Greek alphabet rho, which looks like a lower-case "p",
 		     %  in the lecture notes). 
-lambda = 0.0001;     % weight decay parameter       
+lambda = 0.0; %0.0001;     % weight decay parameter       
 beta = 3;            % weight of sparsity penalty term       
 
 
@@ -50,38 +50,38 @@ theta = initializeParameters(hiddenSize, visibleSize);
 [cost, grad] = sparseAutoencoderCost(theta, visibleSize, hiddenSize, lambda, ...
                                      sparsityParam, beta, patches);
 
-fprintf('Initial cost is: %f.\n',cost)
+fprintf('Octave cost is: %f.\n',cost)
+
 
 % Train the network:
 desc.lsizes = [visibleSize hiddenSize visibleSize];
-desc.X_train = patches';
+desc.X_train = patches;
 desc.y_train = patches;
 desc.params = theta;
-desc.epsilon = 0.01;
-desc.verbose = true;
-desc.momentum = 0.99;
-desc.maxiter = 1;
-desc.evalFrequency = 32;
-desc.miniBatchSize = 0; % Do not use minibatch.
 desc.lambda = lambda;
-desc.minCostDecrease = 0.00001;
-desc.learningDecay = 0.9999;
 desc.useSoftmax = false;
-desc.pingFrequency = 100;
-desc.validationWindowSize = 100;
-desc.X_cv = patches';
-desc.y_cv = patches;
 desc.spaeBeta = beta;
-desc.spaeSparsity = 0.01;
+desc.spaeSparsity = sparsityParam;
+desc.costMode = 3; % 3 => COST_RMS.
 
-[weights, costs, iters, Jcv] = nn_gradient_descent(desc);
+[nn_cost, nn_grad] = nn_costfunc(desc);
+% [weights, costs, iters, Jcv] = nn_gradient_descent(desc);
+fprintf('Plugin cost is: %f.\n',nn_cost)
+
+assert(abs(cost-nn_cost) < 1e-10, 'Mismatch in cost values: %f != %f', cost, nn_cost);
+
+% disp([nn_grad grad]); 
+
+diff = norm(nn_grad-grad)/norm(nn_grad+grad);
+disp(diff); % Should be small. In our implementation, these values are
+assert(diff< 1e-10,'Mismatch in computed gradients')
 
 
 %%======================================================================
 %% STEP 5: Visualization 
 
-W1 = reshape(weights(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
-display_network(W1', 12); 
+% W1 = reshape(weights(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
+% display_network(W1', 12); 
 
 % print -djpeg weights.jpg   % save the visualization to a file 
 
@@ -94,6 +94,6 @@ display_network(W1', 12);
 % xlabel('Number of epochs');
 % ylabel('Cv Cost');
 % hold off;
-fprintf('Final cost is: %f.\n',Jcv)
+% fprintf('Final cost is: %f.\n',Jcv)
 
 more on;

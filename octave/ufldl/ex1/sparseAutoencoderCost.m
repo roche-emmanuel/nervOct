@@ -15,10 +15,20 @@ warning ("error", "Octave:broadcast");
 % We first convert theta to the (W1, W2, b1, b2) matrix/vector format, so that this 
 % follows the notation convention of the lecture notes. 
 
-W1 = reshape(theta(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
-W2 = reshape(theta(hiddenSize*visibleSize+1:2*hiddenSize*visibleSize), visibleSize, hiddenSize);
-b1 = theta(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
-b2 = theta(2*hiddenSize*visibleSize+hiddenSize+1:end);
+count1 = hiddenSize*(visibleSize+1);
+count2 = visibleSize*(hiddenSize+1);
+
+W1 = reshape(theta(1:count1), hiddenSize, visibleSize+1);
+W2 = reshape(theta(count1+1:count1+count2), visibleSize, hiddenSize+1);
+
+% Now extract the b1 and b2 vectors:
+b1 = W1(:,1);
+W1(:,1) = [];
+b2 = W2(:,1);
+W2(:,1) = [];
+
+% b1 = theta(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
+% b2 = theta(2*hiddenSize*visibleSize+hiddenSize+1:end);
 
 % Cost and gradient variables (your code needs to compute these values). 
 % Here, we initialize them to zeros. 
@@ -107,7 +117,7 @@ b2grad = sum(d3,2)/ns;
 % to a vector format (suitable for minFunc).  Specifically, we will unroll
 % your gradient matrices into a vector.
 
-grad = [W1grad(:) ; W2grad(:) ; b1grad(:) ; b2grad(:)];
+grad = [b1grad(:) ; W1grad(:) ; b2grad(:) ; W2grad(:)];
 
 end
 
