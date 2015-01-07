@@ -19,7 +19,6 @@ end
 
 addpath([pname '/common']);
 addpath([pname '/neural']);
-addpath([pname '/ufldl/minFunc']);
 addpath([pname '/ufldl/ex1']);
 
 %%======================================================================
@@ -48,6 +47,12 @@ display_network(patches(:,randi(size(patches,2),200,1)));
 %  Obtain random parameters theta
 theta = initializeParameters(hiddenSize, visibleSize);
 
+[cost, grad] = sparseAutoencoderCost(theta, visibleSize, hiddenSize, lambda, ...
+                                     sparsityParam, beta, patches);
+
+fprintf('Octave cost is: %f.\n',cost)
+
+
 % Train the network:
 desc.lsizes = [visibleSize hiddenSize visibleSize];
 desc.X_train = patches;
@@ -57,51 +62,20 @@ desc.lambda = lambda;
 desc.useSoftmax = false;
 desc.spaeBeta = beta;
 desc.spaeSparsity = sparsityParam;
-desc.costMode = 3; % 3 => COST_RMS. % We should not need to specify this if beta > 0.
+desc.costMode = 3; % 3 => COST_RMS.
 
-% [nn_cost, nn_grad] = nn_costfunc(desc);
+[nn_cost, nn_grad] = nn_costfunc(desc);
+% [weights, costs, iters, Jcv] = nn_gradient_descent(desc);
+fprintf('Plugin cost is: %f.\n',nn_cost)
 
+assert(abs(cost-nn_cost) < 1e-10, 'Mismatch in cost values: %f != %f', cost, nn_cost);
 
-%  Use minFunc to minimize the function
-% options.Method = 'sd'; % Here, we use L-BFGS to optimize our cost
-options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
-                          % function. Generally, for minFunc to work, you
-                          % need a function pointer with two outputs: the
-                          % function value and the gradient. In our problem,
-                          % sparseAutoencoderCost.m satisfies this.
-options.maxIter = 400;	  % Maximum number of iterations of L-BFGS to run 
-options.display = 'on';
-options.useMex = 0;
+disp([nn_grad grad]); 
 
-% options = struct('GradObj','on','Display','iter','MaxIter',400);
-% options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate','bfgs','InitialHessType','identity','GoalsExactAchieve',0);
-% options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate','bfgs','InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false);
+diff = norm(nn_grad-grad)/norm(nn_grad+grad);
+disp(diff); % Should be small. In our implementation, these values are
+assert(diff< 1e-10,'Mismatch in computed gradients')
 
-tic()
-
-[opttheta, cost] = minFunc( @(p) spae_costfunc(p,desc), theta, options);
-
-% [opttheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
-% [opttheta, cost] = fminunc( @(p) sparseAutoencoderCost(p, ...
-% [opttheta, cost] = fminlbfgs( @(p) sparseAutoencoderCost(p, ...
-                              %      visibleSize, hiddenSize, ...
-                              %      lambda, sparsityParam, ...
-                              %      beta, patches), ...
-                              % theta, options);
-
-
-
-%%======================================================================
-%% STEP 5: Visualization 
-
-W1 = reshape(opttheta(1:hiddenSize*(visibleSize+1)), hiddenSize, visibleSize+1);
-% Drop the first column:
-W1(:,1) = [];
-display_network(W1', 12); 
-
-print -djpeg 'ufldl/ex1/weights.jpg'   % save the visualization to a file 
-
-toc()
 
 %%======================================================================
 %% STEP 5: Visualization 
