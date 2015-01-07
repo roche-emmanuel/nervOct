@@ -57,7 +57,7 @@ void gd_errfunc_device(BPDeviceTraits<T> &d_traits)
       T Jreg = 0.0;
       reduce_cost_reg_device(d_traits.params, d_traits.regw, np, Jreg, stream);
 
-      J += (T)((Jreg * d_traits.lambda) / (2.0 * nsamples));
+      J += (T)((Jreg * d_traits.lambda) / 2.0);
     }
 
     if (d_traits.spae_beta > 0)
@@ -375,7 +375,7 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
       }
     }
 
-    J += Jreg * traits.lambda / (2.0 * nsamples);
+    J += Jreg * traits.lambda / 2.0;
 
     // Also check here if we need to apply the spare penalty:
     if (traits.spae_beta > 0.0)

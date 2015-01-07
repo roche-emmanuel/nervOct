@@ -68,7 +68,7 @@ void costFunc_device(unsigned int nl, unsigned int np, unsigned int* lsizes, uns
 	reduce_cost_reg_device(d_params, d_regw, np, Jreg);
 	// CHECK_KERNEL()
 
-	J += (Jreg*lambda)/(2.0*nsamples);
+	J += (Jreg*lambda)/(2.0);
 
 	// Prepare the computation of the delta matrices in reverse order:
 

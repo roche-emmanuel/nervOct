@@ -31,7 +31,7 @@ hiddenSize = 25;     % number of hidden units
 sparsityParam = 0.01;   % desired average activation of the hidden units.
                      % (This was denoted by the Greek alphabet rho, which looks like a lower-case "p",
 		     %  in the lecture notes). 
-lambda = 0.0; %0.0001;     % weight decay parameter       
+lambda = 0.0001;     % weight decay parameter       
 beta = 3;            % weight of sparsity penalty term       
 
 
@@ -70,7 +70,7 @@ fprintf('Plugin cost is: %f.\n',nn_cost)
 
 assert(abs(cost-nn_cost) < 1e-10, 'Mismatch in cost values: %f != %f', cost, nn_cost);
 
-% disp([nn_grad grad]); 
+disp([nn_grad grad]); 
 
 diff = norm(nn_grad-grad)/norm(nn_grad+grad);
 disp(diff); % Should be small. In our implementation, these values are

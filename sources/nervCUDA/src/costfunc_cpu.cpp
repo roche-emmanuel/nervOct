@@ -136,7 +136,7 @@ void costFuncCPU(unsigned int nl, unsigned int* lsizes, unsigned int nsamples,
     }
   }
 
-  J += Jreg*lambda/(2.0*nsamples);
+  J += Jreg*lambda/(2.0);
 
   // we will now compute the delta vectors:
   // Offset to use when reading the delta matrix in the current iteration
