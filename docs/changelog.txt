@@ -276,3 +276,4 @@
 - Added octave plugin nn_costfunc
 - Adding comparaison test for nn_costfunc.
 - Working on integration of L2 regularization.
+- Fix comparaison between nn_costfunc and sparseAutoencoderCost.

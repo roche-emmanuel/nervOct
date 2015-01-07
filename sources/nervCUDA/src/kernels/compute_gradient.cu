@@ -84,9 +84,10 @@ __global__ void ComputeGradient(BPComputeTraits<T> traits)
   {
     int index = nrows * col + row;
     T reg = (col == 0 ? 0.0 : traits.params[traits.theta_offset + index]);
+    CValue /= niter;
     CValue += traits.lambda * reg;
 
-    traits.grads[traits.grad_offset + index] = CValue / niter;
+    traits.grads[traits.grad_offset + index] = CValue;
   }
 }
 

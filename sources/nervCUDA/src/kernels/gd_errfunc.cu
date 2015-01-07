@@ -555,9 +555,10 @@ void _gd_errfunc_cpu(BPTraits<T> &traits)
 
         // Here we also need to add the regularization from the theta matrix:
         double reg = (c == 0 ? 0.0 : params[theta_offset + nrows * c + r]);
+        val /= niter;
         val += traits.lambda * reg;
 
-        gradients[grad_offset + nrows * c + r] = val / niter; //grad_offset + nrows*c + r; //val/niter;
+        gradients[grad_offset + nrows * c + r] = val; //grad_offset + nrows*c + r; //val/niter;
       }
     }
 
