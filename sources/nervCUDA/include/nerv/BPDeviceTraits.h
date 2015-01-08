@@ -22,7 +22,7 @@ struct BPDeviceTraits : public BPTraits<T>
   BPDeviceTraits(bool withStream = false)
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
-      handle(nullptr), sotfmax_ones(nullptr), sotfmax_norms(nullptr),
+      handle(nullptr), softmax_ones(nullptr), softmax_norms(nullptr),
       spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr), spae_delta(nullptr), id(0)
   {
     if (withStream)
@@ -32,7 +32,36 @@ struct BPDeviceTraits : public BPTraits<T>
   };
 
   BPDeviceTraits(const BPDeviceTraits &) = delete;
-  BPDeviceTraits &operator=(const BPDeviceTraits &) = delete;
+  BPDeviceTraits &operator=(const BPDeviceTraits &rhs)
+  {
+    // copy the elements:
+    BPTraits<T>::operator=(rhs);
+
+    // Retrieve all the traits details from the dev traits:
+    nsamples =rhs.nsamples;
+
+    regw = rhs.regw;
+    stream = rhs.stream;
+    handle = rhs.handle;
+
+    softmax_ones = rhs.softmax_ones;
+    softmax_norms = rhs.softmax_norms;
+
+    X_train = rhs.X_train;
+    y_train = rhs.y_train;
+    wbias = rhs.wbias;
+    wX = rhs.wX;
+    rX = rhs.rX;
+
+    randStates = rhs.randStates;
+
+    spae_ones = rhs.spae_ones;
+    spae_rho = rhs.spae_rho;
+    spae_kl = rhs.spae_kl;
+    spae_delta = rhs.spae_delta;
+
+    return *this;
+  }
 
   BPDeviceTraits(const BPTraits<T> &rhs)
   {
@@ -117,8 +146,8 @@ public:
   cudaStream_t stream;
   cublasHandle_t handle;
 
-  T *sotfmax_ones;
-  T *sotfmax_norms;
+  T *softmax_ones;
+  T *softmax_norms;
 
   T *X_train;
   T *y_train;
@@ -129,10 +158,10 @@ public:
   curandState *randStates;
 
   // Sparse auto encoder variables:
-  T* spae_ones;
-  T* spae_rho;
-  T* spae_kl;
-  T* spae_delta;
+  T *spae_ones;
+  T *spae_rho;
+  T *spae_kl;
+  T *spae_delta;
 
   // Id used when using the BPTraitsManager:
   int id;
@@ -166,18 +195,22 @@ protected:
     BPTraits<T>::operator=(rhs);
 
     // Update the cost mode if needed:
-    if(cost_mode == COST_DEFAULT) {
-      if(use_softmax) {
+    if (cost_mode == COST_DEFAULT)
+    {
+      if (use_softmax)
+      {
         // logDEBUG("Updating cost mode to sotfmax cost");
         cost_mode = COST_SOFTMAX;
       }
-      else if(spae_beta>0.0) {
+      else if (spae_beta > 0.0)
+      {
         // logDEBUG("Updating cost mode to SPAE cost");
-        cost_mode = COST_RMS;        
+        cost_mode = COST_RMS;
       }
-      else {
+      else
+      {
         // logDEBUG("Updating cost mode to cross entropy cost");
-        cost_mode = COST_CROSS_ENTROPY;                
+        cost_mode = COST_CROSS_ENTROPY;
       }
     }
 
@@ -233,8 +266,8 @@ protected:
         ones[i] = 1.0;
       }
 
-      sotfmax_ones = createDeviceBuffer(nout, ones);
-      sotfmax_norms = createDeviceBuffer(nsamples);
+      softmax_ones = createDeviceBuffer(nout, ones);
+      softmax_norms = createDeviceBuffer(nsamples);
 
       delete [] ones;
     }
@@ -369,7 +402,7 @@ struct BPComputeTraits : public BPTraitsBase<T>
   T *wbias;
   T *wX;
 
-  T* spae_delta;
+  T *spae_delta;
 
   T wmult;
   T layer_dropout;

@@ -42,9 +42,11 @@ void BPTraitsManager::destroyDeviceTraits(int id)
       logDEBUG("Removing DevTraits with id " << id);
       delete (*it);
       _devTraits.erase(it);
-      break;
+      return;
     }
   }
+
+  THROW("Cannot find device traits with ID " << id);
 }
 
 void BPTraitsManager::mergeDeviceTraits(int id, BPDeviceTraits<value_type>& traits, const BPTraits<value_type>& override)
@@ -54,7 +56,15 @@ void BPTraitsManager::mergeDeviceTraits(int id, BPDeviceTraits<value_type>& trai
     if ((*it)->id == id)
     {
       logDEBUG("Merging with DevTraits with id " << id);
+      
+      BPDeviceTraits<value_type>* devtraits = (*it);
+      // copy the traits:
+      traits = *devtraits;
 
+      if(override.params) {
+        // upload the new parameters on the GPU:
+        copyToDevice(traits.params,override.params,traits.np());
+      }
     }
   }
 }
@@ -75,43 +85,33 @@ BPTraitsManager& BPTraitsManager::instance()
     return singleton;  
 }
 
-#if 0
 extern "C"
 {
-  BPTraitsManager &get_strategy_manager()
-  {
-    return BPTraitsManager::instance();
-  }
-  
-  int create_strategy(const Strategy::CreationTraits& traits)
+  int create_device_traits(const BPTraits<double> &traits)
   {
     try
     {
-      return get_strategy_manager().createStrategy(traits)->getID();
+      return BPTraitsManager::instance().createDeviceTraits(traits);
     }
     catch (...)
     {
-      logERROR("Exception occured in create_strategy.")
+      logERROR("Exception occured in create_device_traits.")
       return 0;
     }
   }
 
-  int destroy_strategy(int id)
+  int destroy_device_traits(int id)
   {
     try
     {
-      BPTraitsManager &sm = get_strategy_manager();
-      Strategy *s = sm.getStrategy(id);
-      THROW_IF(!s, "Cannot find strategy with ID " << id);
-      sm.destroyStrategy(s);
-      return ST_SUCCESS;
+      BPTraitsManager::instance().destroyDeviceTraits(id);
+      return TRAITS_SUCCESS;
     }
     catch (...)
     {
-      logERROR("Exception occured in destroy_strategy.")
-      return ST_EXCEPTION_OCCURED;
+      logERROR("Exception occured in destroy_device_traits.")
+      return TRAITS_EXCEPTION_OCCURED;
     }
   }
 }
 
-#endif

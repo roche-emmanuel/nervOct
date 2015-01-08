@@ -280,3 +280,4 @@
 - Started implementation of UFLDL ex1 with nn_costfunc.
 - Added UFLDL ex1 implementation with nn_costfunc on GPU.
 - Implementing BPTraitsManager.
+- Added C method to create destroy Device traits.

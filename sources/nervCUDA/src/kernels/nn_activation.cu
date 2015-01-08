@@ -119,11 +119,11 @@ int nn_activation_device(BPDeviceTraits<T> &d_traits)
       // We transpose this matrix and multiply it by the one vector to get the sum on each row
       // When transposed we have one row per sample.
       // And we store the result in sotfmax_norms.
-      mat_vec_mult_device(d_traits.handle, CUBLAS_OP_T, nrows, ncols, d_traits.inputs + traits.input_offset, d_traits.sotfmax_ones, d_traits.sotfmax_norms);
+      mat_vec_mult_device(d_traits.handle, CUBLAS_OP_T, nrows, ncols, d_traits.inputs + traits.input_offset, d_traits.softmax_ones, d_traits.softmax_norms);
 
       // Once we have the sotfmax_norms vector
       // we can renormalize the hx matrix in an element wise fashion.
-      mat_elem_col_div_device(nrows, ncols, d_traits.inputs + traits.input_offset, d_traits.sotfmax_norms);
+      mat_elem_col_div_device(nrows, ncols, d_traits.inputs + traits.input_offset, d_traits.softmax_norms);
     }
   }
 

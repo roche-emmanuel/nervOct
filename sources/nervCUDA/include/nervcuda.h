@@ -45,6 +45,12 @@ using namespace nerv;
 namespace nerv
 {
 
+enum TraitsErrorCode
+{
+  TRAITS_SUCCESS = 0,
+  TRAITS_EXCEPTION_OCCURED
+};
+
 template<typename T>
 T minimum(T v1, T v2)
 {
@@ -167,6 +173,9 @@ extern "C" {
   NERVCUDA_EXPORT void spae_sparse_delta(double* delta, double* rho, double beta, double sp, unsigned int n);
   NERVCUDA_EXPORT void spae_sparse_delta_f(float* delta, float* rho, float beta, float sp, unsigned int n);
   NERVCUDA_EXPORT void spae_sparse_delta_cpu(double* delta, double* rho, double beta, double sp, unsigned int n);
+
+  NERVCUDA_EXPORT int create_device_traits(const BPTraits<double> &traits);
+  NERVCUDA_EXPORT int destroy_device_traits(int id);
 
 #ifndef __CUDACC__
   nerv::StrategyManager &get_strategy_manager();
