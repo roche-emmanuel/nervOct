@@ -11,7 +11,7 @@ function [h, array] = display_network(A, opt_normalize, opt_graycolor, cols, opt
 % squareroot of the number of columns in A.
 % opt_colmajor: you can switch convention to row major for A. In that
 % case, each row of A is a filter. Default value is false.
-warning off all
+% warning off all
 
 if ~exist('opt_normalize', 'var') || isempty(opt_normalize)
     opt_normalize= true;
@@ -99,4 +99,4 @@ axis image off
 
 drawnow;
 
-warning on all
+% warning on all

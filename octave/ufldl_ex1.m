@@ -57,7 +57,10 @@ desc.lambda = lambda;
 desc.useSoftmax = false;
 desc.spaeBeta = beta;
 desc.spaeSparsity = sparsityParam;
-desc.costMode = 3; % 3 => COST_RMS. % We should not need to specify this if beta > 0.
+% desc.costMode = 3; % 3 => COST_RMS. % We should not need to specify this if beta > 0.
+
+% Register the device resources:
+desc.id = nn_create_traits(desc);
 
 % [nn_cost, nn_grad] = nn_costfunc(desc);
 
@@ -79,7 +82,8 @@ options.useMex = 0;
 
 tic()
 
-[opttheta, cost] = minFunc( @(p) spae_costfunc(p,desc), theta, options);
+[opttheta, cost] = minFunc( @(p) spae_costfunc_dev(p,desc), theta, options);
+% [opttheta, cost] = minFunc( @(p) spae_costfunc(p,desc), theta, options);
 
 % [opttheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
 % [opttheta, cost] = fminunc( @(p) sparseAutoencoderCost(p, ...
@@ -89,7 +93,10 @@ tic()
                               %      beta, patches), ...
                               % theta, options);
 
+toc()
 
+% unregister the device resources:
+nn_destroy_traits(desc.id);
 
 %%======================================================================
 %% STEP 5: Visualization 
@@ -101,7 +108,6 @@ display_network(W1', 12);
 
 print -djpeg 'ufldl/ex1/weights.jpg'   % save the visualization to a file 
 
-toc()
 
 %%======================================================================
 %% STEP 5: Visualization 

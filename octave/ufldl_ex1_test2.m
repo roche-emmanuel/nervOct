@@ -57,7 +57,7 @@ desc.lambda = lambda;
 desc.useSoftmax = false;
 desc.spaeBeta = beta;
 desc.spaeSparsity = sparsityParam;
-desc.costMode = 3; % 3 => COST_RMS.
+% desc.costMode = 3; % 3 => COST_RMS.
 
 desc.id = nn_create_traits(desc);
 

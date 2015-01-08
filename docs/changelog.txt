@@ -286,3 +286,4 @@
 - Built nn_create_traits plugin.
 - Added implementation for nn_destroy_traits.
 - Added working implementation of nn_costfunc_device.
+- Done implementing ufldl_ex1 with GPU costfunc.
