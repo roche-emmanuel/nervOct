@@ -29,7 +29,7 @@ class BPTraitsInterface
 public:
   typedef int (*create_device_traits_t)(const BPTraits<double> &traits);
   typedef int (*destroy_device_traits_t)(int id);
-  typedef int (*compute_costfunc_device_t)(int id, BPTraits<double> &over);
+  typedef int (*compute_costfunc_device_t)(BPTraits<double> &over);
 public:
   BPTraitsInterface()
   {

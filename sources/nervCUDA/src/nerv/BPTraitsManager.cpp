@@ -59,11 +59,15 @@ void BPTraitsManager::destroyDeviceTraits(int id)
       
       // delete the lsizes and dropout arrays:
       BPDeviceTraits<value_type>* devtraits = (*it);
-      
+
+      // logDEBUG("Deleting lsizes...");      
       delete [] devtraits->lsizes;
+      // logDEBUG("Deleting dropouts...");      
       delete [] devtraits->dropouts;
 
+      // logDEBUG("Deleting devtraits...");      
       delete devtraits;
+      // logDEBUG("Done");      
 
       _devTraits.erase(it);
       return;
@@ -73,13 +77,15 @@ void BPTraitsManager::destroyDeviceTraits(int id)
   THROW("Cannot find device traits with ID " << id);
 }
 
-void BPTraitsManager::mergeDeviceTraits(int id, BPDeviceTraits<value_type>& traits, const BPTraits<value_type>& override)
+void BPTraitsManager::mergeDeviceTraits(const BPTraits<value_type>& override, BPDeviceTraits<value_type>& traits)
 {
+  int id = override.id;
+
   for (DeviceTraitsVector::iterator it = _devTraits.begin(); it != _devTraits.end(); ++it)
   {
     if ((*it)->id == id)
     {
-      logDEBUG("Merging with DevTraits with id " << id);
+      // logDEBUG("Merging with DevTraits with id " << id);
       
       BPDeviceTraits<value_type>* devtraits = (*it);
       // copy the traits:
@@ -138,20 +144,22 @@ extern "C"
     }
   }
 
-  int compute_costfunc_device(int id, BPTraits<double> &over)
+  int compute_costfunc_device(BPTraits<double> &over)
   {
     try
     {
-
       BPDeviceTraits<BPTraitsManager::value_type> dtraits;
 
-      BPTraitsManager::instance().mergeDeviceTraits(id,dtraits,over);
+      // logDEBUG("Merging device traits...")
+      BPTraitsManager::instance().mergeDeviceTraits(over,dtraits);
 
       // Now that we have valid device traits we should call the errfunc method:
+      // logDEBUG("Calling errfunc_device...")
       gd_errfunc_device(dtraits);
 
       // Copy the results back into the over traits:
       over.cost = dtraits.cost;
+      // logDEBUG("Donloading grads...")
       copyFromDevice(over.grads,dtraits.grads,dtraits.np());
 
       return TRAITS_SUCCESS;

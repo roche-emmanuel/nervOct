@@ -285,3 +285,4 @@
 - Adding nn_create_traits plugin.
 - Built nn_create_traits plugin.
 - Added implementation for nn_destroy_traits.
+- Added working implementation of nn_costfunc_device.

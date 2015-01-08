@@ -23,7 +23,8 @@ struct BPDeviceTraits : public BPTraits<T>
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
       handle(nullptr), softmax_ones(nullptr), softmax_norms(nullptr),
-      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr), spae_delta(nullptr), id(0)
+      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr), spae_delta(nullptr),
+      owned_handle(false), owned_randStates(false)
   {
     if (withStream)
     {
@@ -84,7 +85,7 @@ struct BPDeviceTraits : public BPTraits<T>
       checkCudaErrors(cudaStreamDestroy(stream));
     }
 
-    if (handle)
+    if (handle && owned_handle)
     {
       checkCublasErrors(cublasDestroy(handle));
     }
@@ -163,12 +164,11 @@ public:
   T *spae_kl;
   T *spae_delta;
 
-  // Id used when using the BPTraitsManager:
-  int id;
-
 protected:
   BufferList _buffers;
   bool owned_stream;
+  bool owned_handle;
+  bool owned_randStates;
 
   void release()
   {
@@ -182,7 +182,7 @@ protected:
 
     params = regw = inputs = yy = X = deltas = grads = nullptr;
 
-    if (randStates)
+    if (randStates && owned_randStates)
     {
       checkCudaErrors(cudaFree(randStates));
       randStates = nullptr;
@@ -256,6 +256,7 @@ protected:
       if (!handle)
       {
         checkCublasErrors(cublasCreate(&handle));
+        owned_handle = true;
       }
 
       // Allocate the need device buffers:
@@ -278,6 +279,7 @@ protected:
       if (!handle)
       {
         checkCublasErrors(cublasCreate(&handle));
+        owned_handle = true;
       }
 
       // Allocate the need device buffers:
@@ -301,7 +303,8 @@ protected:
     // we should allocate the curand states here:
     unsigned int size = BLOCK_SIZE * BLOCK_SIZE;
     checkCudaErrors(cudaMalloc(&randStates, size * sizeof(curandState)));
-
+    owned_randStates = true;
+    
     // Here we call the method to initialize the random states:
     init_rand_state_device(randStates, size, (unsigned long)time(NULL));
   }

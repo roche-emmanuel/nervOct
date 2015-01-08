@@ -170,7 +170,7 @@ extern "C" {
 
   NERVCUDA_EXPORT int create_device_traits(const BPTraits<double> &traits);
   NERVCUDA_EXPORT int destroy_device_traits(int id);
-  NERVCUDA_EXPORT int compute_costfunc_device(int id, BPTraits<double> &over);
+  NERVCUDA_EXPORT int compute_costfunc_device(BPTraits<double> &over);
 
 #ifndef __CUDACC__
   nerv::StrategyManager &get_strategy_manager();

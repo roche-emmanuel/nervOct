@@ -28,7 +28,7 @@ public:
   ~BPTraitsManager();
 
   int createDeviceTraits(const BPTraits<value_type> &traits);
-  void mergeDeviceTraits(int id, BPDeviceTraits<value_type>& traits, const BPTraits<value_type>& override);
+  void mergeDeviceTraits(const BPTraits<value_type>& override, BPDeviceTraits<value_type>& traits);
   void destroyDeviceTraits(int id);
 
   void destroyAllDeviceTraits();
