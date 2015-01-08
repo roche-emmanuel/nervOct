@@ -45,12 +45,6 @@ using namespace nerv;
 namespace nerv
 {
 
-enum TraitsErrorCode
-{
-  TRAITS_SUCCESS = 0,
-  TRAITS_EXCEPTION_OCCURED
-};
-
 template<typename T>
 T minimum(T v1, T v2)
 {

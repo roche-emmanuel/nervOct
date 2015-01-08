@@ -10,6 +10,12 @@ namespace nerv
 template<typename T>
 struct BPDeviceTraits;
 
+enum TraitsErrorCode
+{
+  TRAITS_SUCCESS = 0,
+  TRAITS_EXCEPTION_OCCURED
+};
+
 class NERVCUDA_EXPORT BPTraitsManager
 {
 public:
