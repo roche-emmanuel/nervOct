@@ -104,28 +104,9 @@ nn_destroy_traits(desc.id);
 W1 = reshape(opttheta(1:hiddenSize*(visibleSize+1)), hiddenSize, visibleSize+1);
 % Drop the first column:
 W1(:,1) = [];
-display_network(W1', 12); 
+display_network(W1'); 
 
 print -djpeg 'ufldl/ex1/weights.jpg'   % save the visualization to a file 
 
-
-%%======================================================================
-%% STEP 5: Visualization 
-
-% W1 = reshape(weights(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
-% display_network(W1', 12); 
-
-% print -djpeg weights.jpg   % save the visualization to a file 
-
-% Print the costs:
-% figure; hold on;
-% h = gcf();	
-% plot(iters, costs, 'LineWidth', 2, 'Color','b');
-% legend('Jcv');
-% title('Learning progress');
-% xlabel('Number of epochs');
-% ylabel('Cv Cost');
-% hold off;
-% fprintf('Final cost is: %f.\n',Jcv)
 
 more on;
