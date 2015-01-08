@@ -283,3 +283,4 @@
 - Added C method to create destroy Device traits.
 - Added implementation for compute_costfunc_device method.
 - Adding nn_create_traits plugin.
+- Built nn_create_traits plugin.
