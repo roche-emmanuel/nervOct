@@ -1,6 +1,6 @@
 
-#ifndef NERV_STRATEGYINTERFACE_H_
-#define NERV_STRATEGYINTERFACE_H_
+#ifndef NERV_BPTRAITSINTERFACE_H_
+#define NERV_BPTRAITSINTERFACE_H_
 
 #ifndef NERVCUDA_EXPORT
 #define NERVCUDA_EXPORT
@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include <nerv/StrategyManager.h>
+#include <nerv/BPTraitsManager.h>
 
 #define SLOG(msg) std::cout << msg << std::endl;
 #define STHROW(msg) { std::ostringstream os; os << msg; SLOG("[ERROR] Throwing exception: " << msg); throw std::runtime_error(os.str()); }
@@ -24,41 +24,34 @@
 namespace nerv
 {
 
-class StrategyInterface
+class BPTraitsInterface
 {
 public:
-  typedef StrategyManager &(*get_strategy_manager_t)();
-  typedef int (*create_strategy_t)(const Strategy::CreationTraits& traits);
-  typedef int (*destroy_strategy_t)(int id);
-  typedef int (*evaluate_strategy_t)(int id, const Strategy::EvalTraits& traits);
-	typedef int (*add_strategy_model_t)(int id, Model::CreationTraits& traits);
-
+  typedef int (*create_device_traits_t)(const BPTraits<double> &traits);
+  typedef int (*destroy_device_traits_t)(int id);
+  typedef int (*compute_costfunc_device_t)(int id, BPTraits<double> &over);
 public:
-  StrategyInterface()
+  BPTraitsInterface()
   {
   	// Load the library:
 	  _h = LoadLibrary("nervCUDA.dll");
 	  SCHECK(_h,"Invalid handle for nervCUDA library.")
 
 	  // retrieve the methods:
-	  GET_PROC(get_strategy_manager)
-	  GET_PROC(create_strategy)
-	  GET_PROC(destroy_strategy)
-	  GET_PROC(evaluate_strategy)
-	  GET_PROC(add_strategy_model)
+	  GET_PROC(create_device_traits)
+	  GET_PROC(destroy_device_traits)
+	  GET_PROC(compute_costfunc_device)
   };
 
-  ~StrategyInterface() {
+  ~BPTraitsInterface() {
   	// Release the library:
   	SCHECK(FreeLibrary(_h),"Cannot release nervCUDA library.");
   }
 
-	DECLARE_PROC(get_strategy_manager)
-	DECLARE_PROC(create_strategy)
-	DECLARE_PROC(destroy_strategy)
-	DECLARE_PROC(evaluate_strategy)
-	DECLARE_PROC(add_strategy_model)
-
+	DECLARE_PROC(create_device_traits)
+	DECLARE_PROC(destroy_device_traits)
+	DECLARE_PROC(compute_costfunc_device)
+	
 protected:
 	HMODULE _h;
 };

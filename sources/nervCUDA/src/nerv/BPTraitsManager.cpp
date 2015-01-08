@@ -113,5 +113,31 @@ extern "C"
       return TRAITS_EXCEPTION_OCCURED;
     }
   }
+
+  int compute_costfunc_device(int id, BPTraits<double> &over)
+  {
+    try
+    {
+
+      BPDeviceTraits<BPTraitsManager::value_type> dtraits;
+
+      BPTraitsManager::instance().mergeDeviceTraits(id,dtraits,over);
+
+      // Now that we have valid device traits we should call the errfunc method:
+      gd_errfunc_device(dtraits);
+
+      // Copy the results back into the over traits:
+      over.cost = dtraits.cost;
+      copyFromDevice(over.grads,dtraits.grads,dtraits.np());
+
+      return TRAITS_SUCCESS;
+    }
+    catch (...)
+    {
+      logERROR("Exception occured in compute_costfunc_device.")
+      return TRAITS_EXCEPTION_OCCURED;
+    }
+  }
+
 }
 
