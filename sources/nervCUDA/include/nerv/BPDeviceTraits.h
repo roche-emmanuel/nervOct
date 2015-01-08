@@ -23,7 +23,7 @@ struct BPDeviceTraits : public BPTraits<T>
     : regw(nullptr), stream(nullptr), owned_stream(false), X_train(nullptr),
       y_train(nullptr), randStates(nullptr), wbias(nullptr), wX(nullptr), rX(nullptr),
       handle(nullptr), sotfmax_ones(nullptr), sotfmax_norms(nullptr),
-      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr), spae_delta(nullptr)
+      spae_ones(nullptr), spae_rho(nullptr), spae_kl(nullptr), spae_delta(nullptr), id(0)
   {
     if (withStream)
     {
@@ -133,6 +133,9 @@ public:
   T* spae_rho;
   T* spae_kl;
   T* spae_delta;
+
+  // Id used when using the BPTraitsManager:
+  int id;
 
 protected:
   BufferList _buffers;
