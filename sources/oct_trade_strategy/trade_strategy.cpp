@@ -19,13 +19,6 @@ using namespace nerv;
 
 StrategyInterface g_intf;
 
-class NERVManager
-{
-public:
-};
-
-NERVManager g_nerv;
-
 
 template<typename T>
 T read_desc_value(octave_scalar_map &desc, std::string key, bool optional = false, T def = T())

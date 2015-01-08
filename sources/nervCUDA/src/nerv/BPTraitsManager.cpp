@@ -1,4 +1,6 @@
 #include <nervCUDA.h>
+#include <nerv/BPDeviceTraits.h>
+
 #include <nerv/BPTraitsManager.h>
 
 using namespace nerv;
@@ -23,8 +25,22 @@ int BPTraitsManager::createDeviceTraits(const BPTraits<value_type> &traits)
 
   BPDeviceTraits<value_type>* devtraits = new BPDeviceTraits<value_type>();
 
+  // Here we should create our own copy of the lsizes and dropouts if applicable:
+  unsigned int* lsizes = new unsigned int[traits.nl];
+  memcpy(lsizes,traits.lsizes,traits.nl*sizeof(unsigned int));
+
+  value_type* dropouts = nullptr;
+  if(traits.dropouts) {
+    dropouts = new value_type[traits.nl-1];
+    memcpy(dropouts,traits.dropouts,(traits.nl-1)*sizeof(value_type));
+  }
+
   // Allocate the GPU resources:
   *devtraits = traits;
+
+  // Override the lsizes and dropouts:
+  devtraits->lsizes = lsizes;
+  devtraits->dropouts = dropouts;
 
   // Assign the ID:
   devtraits->id = id;
@@ -40,7 +56,15 @@ void BPTraitsManager::destroyDeviceTraits(int id)
     if ((*it)->id == id)
     {
       logDEBUG("Removing DevTraits with id " << id);
-      delete (*it);
+      
+      // delete the lsizes and dropout arrays:
+      BPDeviceTraits<value_type>* devtraits = (*it);
+      
+      delete [] devtraits->lsizes;
+      delete [] devtraits->dropouts;
+
+      delete devtraits;
+
       _devTraits.erase(it);
       return;
     }

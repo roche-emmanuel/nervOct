@@ -2,10 +2,13 @@
 #ifndef NERV_BPTRAITSMANAGER_H_
 #define NERV_BPTRAITSMANAGER_H_
 
-#include <nerv/BPDeviceTraits.h>
+#include <nerv/BPTraits.h>
 
 namespace nerv
 {
+
+template<typename T>
+struct BPDeviceTraits;
 
 class NERVCUDA_EXPORT BPTraitsManager
 {
