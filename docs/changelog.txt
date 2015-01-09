@@ -288,3 +288,4 @@
 - Added working implementation of nn_costfunc_device.
 - Done implementing ufldl_ex1 with GPU costfunc.
 - Added implementation for UFLDL ex2 with GPU costfunc.
+- Added implementation for UFLDL ex3.
