@@ -114,7 +114,7 @@ DEFUN_DLD (nn_costfunc_device, args, nargout,
   // Matrix y_train = y_train_val.matrix_value();
 
   // // Note that her we expect the matrix y_train to be transposed compared to X_train:
-  // CHECK_RET(X_train.dim2() == y_train.dim2(), "nn_costfunc_device: mismatch in nsamples_train: " << X_train.dim1() << "!=" << y_train.dim2());
+  // CHECK_RET(X_train.dim2() == y_train.dim2(), "nn_costfunc_device: mismatch in nsamples_train: " << X_train.dim2() << "!=" << y_train.dim2());
   // CHECK_RET(y_train.dim1() == lsizes(nt), "nn_costfunc_device: y_train doesn't match lsizes: " << y_train.dim1() << "!=" << lsizes(nt));
 
   // // Assign the y_train data:

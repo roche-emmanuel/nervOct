@@ -17,8 +17,7 @@
 %  to be used more generally on any arbitrary input. 
 %  We also initialise some parameters used for tuning the model.
 
-% We also add the intercept term below:
-inputSize = 28 * 28 + 1; % Size of input vector (MNIST images are 28x28)
+inputSize = 28 * 28; % Size of input vector (MNIST images are 28x28)
 numClasses = 10;     % Number of classes (MNIST images fall into 10 classes)
 
 lambda = 1e-4; % Weight decay parameter
@@ -40,8 +39,7 @@ images = loadMNISTImages('train-images.idx3-ubyte');
 labels = loadMNISTLabels('train-labels.idx1-ubyte');
 labels(labels==0) = 10; % Remap 0 to 10
 
-% Add the intercept term:
-inputData = [ ones(1,size(images,2)); images];
+inputData = images;
 
 % For debugging purposes, you may wish to reduce the size of the input data
 % in order to speed up gradient checking. 
@@ -49,8 +47,8 @@ inputData = [ ones(1,size(images,2)); images];
 
 DEBUG = false; % Set DEBUG to true when debugging.
 if DEBUG
-    inputSize = 8+1;
-    inputData = [ones(1,100) ; randn(8, 100)];
+    inputSize = 8;
+    inputData = randn(8, 100);
     labels = randi(10, 100, 1);
 end
 
@@ -94,13 +92,9 @@ end
 %  you can start training your softmax regression code using softmaxTrain
 %  (which uses minFunc).
 
-tic()
-
 options.maxIter = 100;
 softmaxModel = softmaxTrain(inputSize, numClasses, lambda, ...
                             inputData, labels, options);
-
-toc()
                           
 % Although we only use 100 iterations here to train a classifier for the 
 % MNIST data set, in practice, training for more iterations is usually
@@ -118,8 +112,7 @@ images = loadMNISTImages('t10k-images.idx3-ubyte');
 labels = loadMNISTLabels('t10k-labels.idx1-ubyte');
 labels(labels==0) = 10; % Remap 0 to 10
 
-% inputData = images;
-inputData = [ ones(1,size(images,2)); images];
+inputData = images;
 
 % You will have to implement softmaxPredict in softmaxPredict.m
 [pred] = softmaxPredict(softmaxModel, inputData);

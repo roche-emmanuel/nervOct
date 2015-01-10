@@ -49,7 +49,7 @@ hx = bsxfun(@rdivide, hx, sum(hx));
 cost = - sum(sum(groundTruth .* log(hx)))/ns;
 
 % Add the weight decay part:
-cost += sum(sum(theta .* theta)) * lambda / 2.0;
+cost += sum(sum(theta(:,2:end) .* theta(:,2:end))) * lambda / 2.0;
 
 % now we should compute the gradients:
 
@@ -57,7 +57,7 @@ cost += sum(sum(theta .* theta)) * lambda / 2.0;
 M = (groundTruth - hx);
 
 % Then we can compute the grads for all thetas at the same time:
-thetagrad = - (M * data') / ns + lambda * theta;
+thetagrad = - (M * data') / ns + lambda * [zeros(size(theta,1),1) theta(:,2:end)];
 
 % ------------------------------------------------------------------l
 % Unroll the gradient matrices into a vector for minFunc

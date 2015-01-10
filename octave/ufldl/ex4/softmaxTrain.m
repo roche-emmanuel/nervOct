@@ -35,10 +35,29 @@ options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
 options.display = 'on';
 options.useMex = 0;
 
-[softmaxOptTheta, cost] = minFunc( @(p) softmaxCost(p, ...
-                                   numClasses, inputSize, lambda, ...
-                                   inputData, labels), ...                                   
-                              theta, options);
+% Prepare ground truth matrix:
+ns = size(labels,1);
+groundTruth = full(sparse(labels, 1:ns, 1));
+
+% Now compute the same thing on GPU:
+desc.lsizes = [(inputSize-1) numClasses];
+desc.X_train = inputData(2:end,:); % We do not provide the intercept term row.
+desc.y_train = groundTruth;
+desc.params = theta;
+desc.lambda = lambda;
+desc.useSoftmax = true;
+
+desc.id = nn_create_traits(desc);
+
+[softmaxOptTheta, cost] = minFunc( @(p) spae_costfunc_dev(p,desc), theta, options);
+
+% [softmaxOptTheta, cost] = minFunc( @(p) softmaxCost(p, ...
+%                                    numClasses, inputSize, lambda, ...
+%                                    inputData, labels), ...                                   
+%                               theta, options);
+
+nn_destroy_traits(desc.id);
+
 
 % Fold softmaxOptTheta into a nicer format
 softmaxModel.optTheta = reshape(softmaxOptTheta, numClasses, inputSize);
