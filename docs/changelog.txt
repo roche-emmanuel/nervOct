@@ -291,3 +291,4 @@
 - Added implementation for UFLDL ex3.
 - Added initial implementation for UFLDL ex4.
 - Added GPU implementation for UFLDL ex4.
+- Added implementation for UFLDL ex5 with GPU.
