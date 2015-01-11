@@ -19,6 +19,9 @@ end
 
 addpath([pname '/common']);
 addpath([pname '/neural']);
+addpath([pname '/ufldl/minFunc']);
+addpath([pname '/ufldl/ex4']);
+addpath([pname '/ufldl/ex2']);
 
 function np = compute_np(lsizes)
 	np = 0;
@@ -44,7 +47,7 @@ end
 
 % Testing week range:
 trange = 1:12;
-plsizes = [512 32 3];
+plsizes = [512 3];
 
 cfg = config();
 % fname = [cfg.datapath '/training_weeks_1_12.mat'];
@@ -53,7 +56,7 @@ cfg = config();
 % Prepare the config:
 cfg.num_input_bars=120;
 cfg.num_pred_bars=5;
-cfg.use_sparse_init = true;
+cfg.use_sparse_init = false;
 cfg.use_PCA = false;
 cfg.dataset_ratios = [0.60 0.20 0.20];
 cfg.use_rate_of_returns = true;
@@ -77,7 +80,7 @@ tr.mini_batch_size = 128;
 tr.validation_window_size = 100;
 tr.min_cost_decrease = 0.0;
 tr.learning_decay = 0.9999;
-tr.regularization_param = 0.001;
+tr.regularization_param = 0.1;
 tr.ping_frequency = 500;
 tr.with_softmax = true;
 % tr.dropouts = [0.8 0.5];
@@ -85,60 +88,37 @@ tr.with_softmax = true;
 fname = [cfg.datapath '/training_weeks_' rangeToString(trange) '.mat'];
 save('-binary',fname,'tr');
 
-lsizes = [tr.num_features plsizes]
-nn = nnInitNetwork(lsizes,cfg);
-nn = nnTrainNetworkNERV(tr,nn,cfg);
+% Now we train a simple softmax layer on top of our features:
 
-% nn = nnSelectRandomNetwork(10,plsizes,tr,cfg,true)
+options.maxIter = 400;
 
-X_train = tr.X_train;
-y_train = nnBuildLabelMatrix(tr.y_train(:,cfg.target_symbol_pair))';
+% Train the network:
+tic()
 
-[y yy] = nnPredict(nn,X_train);
-[dummy, origy] = max(y_train', [], 2);
-origy = origy-1;
+trainFeatures = tr.X_train';
+% Add a row of ones:
+trainFeatures = [ ones(1,size(trainFeatures,2)); trainFeatures];
 
-% origy(1:20,:)
-% y(1:20,:)
-% yy(1:20,:)
-pred_none_count = sum(y==0)
-pred_buy_count = sum(y==1)
-pred_sell_count = sum(y==2)
+% labels should start from 1 here:
+trainLabels = tr.y_train(:,cfg.target_symbol_pair)+1;
 
-% compute buy precision:
-accuracy = 1.0 - mean(double(origy ~= y))
 
-% prediction/ original data precision and recall:
-none_none = sum(y==0 & origy==0);
-none_buy = sum(y==0 & origy==1);
-none_sell = sum(y==0 & origy==2);
-buy_none = sum(y==1 & origy==0);
-buy_buy = sum(y==1 & origy==1);
-buy_sell = sum(y==1 & origy==2);
-sell_none = sum(y==2 & origy==0);
-sell_buy = sum(y==2 & origy==1);
-sell_sell = sum(y==2 & origy==2);
+softmaxModel = softmaxTrain(tr.num_features+1, plsizes(end), tr.regularization_param, trainFeatures, trainLabels, options);
+toc()
 
-prec_recall = [none_none none_buy none_sell;
-buy_none buy_buy buy_sell;
-sell_none sell_buy sell_sell]
+% Compute the predictions:
+testFeatures = tr.X_cv';
+% Add a row of ones:
+testFeatures = [ ones(1,size(testFeatures,2)); testFeatures];
 
-assert(sum(sum(prec_recall))==numel(y),'Invalid prec_recal count: %d!=%d',sum(sum(prec_recall)), numel(y))
+testLabels = tr.y_cv(:,cfg.target_symbol_pair)+1;
 
-	% Now we can draw the evolution of the costs:
-figure; hold on;
-h = gcf();	
-plot(nn.cost_iters, nn.costs, 'LineWidth', 2, 'Color','b');
-legend('Jcv');
-title('Trade Week Learning progress');
-xlabel('Number of epochs');
-ylabel('Cv Cost');
-hold off;
+pred = softmaxPredict(softmaxModel, testFeatures);
 
-% Now we save the generated network:
-nn.mu = tr.mu;
-nn.sigma = tr.sigma;
-fname = [cfg.datapath '/nn_' lsizesToString(plsizes) '_weeks_' rangeToString(trange) '.mat'];
-save('-binary',fname,'nn');
+acc = mean(testLabels(:) == pred(:));
+fprintf('Num training samples: %d\n', size(trainFeatures,2))
+fprintf('Num testing samples: %d\n', size(testFeatures,2))
+
+fprintf('Accuracy: %0.3f%%\n', acc * 100);
 
 more on;

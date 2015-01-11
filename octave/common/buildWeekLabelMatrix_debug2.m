@@ -1,4 +1,4 @@
-function labels =  buildWeekLabelMatrix_AtTime(data,cfg)
+function labels =  buildWeekLabelMatrix_debug2(data,cfg)
 % This method takes as input the raw week data containing the number of minutes and the 6 colunms of data for each dataset
 % and buid a label matrix from it.
 
@@ -29,20 +29,26 @@ nd = cfg.num_symbol_pairs;
 trim_data = zeros(nrows,nd);
 
 for i=1:nd,
-	trim_data(:,i) = data(:,5+6*(i-1)); 
+	trim_data(:,i) = data(:,5+6*(i-1)); %data(:,1)
 end
 
 % We need to keep a reference of the close prices here:
 prices = trim_data;
 
-% Remove the history from the close prices:
-prices(1:nbars-1,:) = [];
+% Remove first line for future prices:
+trim_data(1,:) = [];
 
-% Remove the out of range values:
-prices(end-npred+1:end,:) = [];
+% Add last line:
+trim_data = [ trim_data; ones(1,nd) ];
+
+% So now we should have the same number of prices and trim_data:
+assert(size(prices,1)==size(trim_data,1),'Mismatch in prices and trim_data num rows: %d != %d',size(prices,1),size(trim_data,1))
+
+% Now take the ratio with the trimdata:
+trim_data =  trim_data ./ prices;
 
 % We should now offset the trim_data by the number of bars we when to go in the future:
-trim_data(1:npred,:) = [];
+trim_data(end-npred+1:end,:) = [];
 
 % Now we should remove the history lines:
 trim_data(1:nbars-1,:) = [];
@@ -52,19 +58,16 @@ n = nrows - nbars - npred + 1;
 assert(n==size(trim_data,1),'Mismatch in trimdata nrows: %d != %d\n',n,size(trim_data,1));
 % trim_data = trim_data(1:n,:);
 
-% So now we should have the same number of prices and trim_data:
-assert(size(prices,1)==size(trim_data,1),'Mismatch in prices and trim_data num rows.')
-
-% compute the difference:
-trim_data = trim_data - prices;
-
 % Now check if the difference is bigger than some threshold or not:
 labels = zeros(n,nd);
 
-labels += (trim_data >= cfg.min_gain)*1; % 1 is the id for 'buy'
-labels += (trim_data <= -cfg.min_gain)*2; % 2 is the id for 'sell'
+% % labels += (trim_data >= cfg.min_gain)*1; % 1 is the id for 'buy'
+% % labels += (trim_data <= -cfg.min_gain)*2; % 2 is the id for 'sell'
+labels += (trim_data >= 1.000055)*1; % 1 is the id for 'buy'
+labels += (trim_data <= 0.999955)*2; % 2 is the id for 'sell'
 
 mml = max(max(labels));
 assert(mml==2,'Invalid max label value: %d',mml)
+% labels = trim_data;
 end
 

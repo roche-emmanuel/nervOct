@@ -1,3 +1,5 @@
+% In this test we check if we can predict a simple label properly:
+
 % Initialization
 clear; close all; clc
 more off;
@@ -55,7 +57,11 @@ cfg.use_sparse_init = true;
 cfg.use_PCA = false;
 cfg.dataset_ratios = [0.60 0.20 0.20];
 cfg.use_rate_of_returns = true;
+cfg.shuffle_training_data = false;
 cfg.discard_nmins_feature = true;
+cfg.buildFeatureMatrixFunc = @buildWeekFeatureMatrix_C;
+% cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix_debug;
+cfg.buildLabelMatrixFunc = @buildWeekLabelMatrix_debug2;
 
 tr = nnPrepareTraining(trange,cfg);	
 
@@ -75,22 +81,63 @@ tr.mini_batch_size = 128;
 tr.validation_window_size = 100;
 tr.min_cost_decrease = 0.0;
 tr.learning_decay = 0.9999;
-tr.regularization_param = 0.001;
+tr.regularization_param = 0.0; %0.001;
 tr.ping_frequency = 500;
 tr.with_softmax = true;
 % tr.dropouts = [0.8 0.5];
 
-fname = [cfg.datapath '/training_weeks_' rangeToString(trange) '.mat'];
-save('-binary',fname,'tr');
+% Do not save the training set here:
+% fname = [cfg.datapath '/training_weeks_' rangeToString(trange) '.mat'];
+% save('-binary',fname,'tr');
 
 lsizes = [tr.num_features plsizes]
 nn = nnInitNetwork(lsizes,cfg);
+
+X_train = tr.X_train;
+labels = tr.y_train(:,cfg.target_symbol_pair);
+
+% Now check that the labels really are what they should be:
+% tr.X_train_raw(1:20,1:12)
+
+% diff = tr.X_train_raw(:,cfg.target_symbol_pair); % - tr.X_train_raw(:,2*cfg.target_symbol_pair);
+
+% % diff(1:20)
+
+% plabels = zeros(size(X_train,1),1);
+
+% plabels += (diff >= 1.000055)*1; % 1 is the id for 'buy'
+% plabels += (diff <= 0.999955)*2; % 2 is the id for 'sell'
+
+% plabels(end-20:end)
+% labels(end-20:end)
+
+% miss = plabels!=labels;
+% fprintf('Number of labels: %d\n',size(plabels,1));
+
+% list = 1:size(plabels,1);
+% list(miss)
+% diff(miss)
+% plabels(miss)
+% labels(miss)
+
+% mml = max(max(plabels));
+% assert(mml==2,'Invalid max label value: %d',mml)
+
+% There can still be some errors here due to the way the label is computed for the last element of the week.
+% len = sum(abs(plabels-labels));
+% assert(len==0.0,'Mismatch in computed labels: %f != 0',len);
+% fprintf('Debug labels are OK!\n');
+
+fprintf('Found %d None labels.\n',sum(labels==0))
+fprintf('Found %d Buy labels.\n',sum(labels==1))
+fprintf('Found %d Sell labels.\n',sum(labels==2))
+
+% Perform the actual training:
 nn = nnTrainNetworkNERV(tr,nn,cfg);
 
 % nn = nnSelectRandomNetwork(10,plsizes,tr,cfg,true)
 
-X_train = tr.X_train;
-y_train = nnBuildLabelMatrix(tr.y_train(:,cfg.target_symbol_pair))';
+y_train = nnBuildLabelMatrix(labels)';
 
 [y yy] = nnPredict(nn,X_train);
 [dummy, origy] = max(y_train', [], 2);
@@ -135,9 +182,9 @@ ylabel('Cv Cost');
 hold off;
 
 % Now we save the generated network:
-nn.mu = tr.mu;
-nn.sigma = tr.sigma;
-fname = [cfg.datapath '/nn_' lsizesToString(plsizes) '_weeks_' rangeToString(trange) '.mat'];
-save('-binary',fname,'nn');
+% nn.mu = tr.mu;
+% nn.sigma = tr.sigma;
+% fname = [cfg.datapath '/nn_' lsizesToString(plsizes) '_weeks_' rangeToString(trange) '.mat'];
+% save('-binary',fname,'nn');
 
 more on;

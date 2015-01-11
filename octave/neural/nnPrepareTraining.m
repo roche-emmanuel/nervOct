@@ -160,7 +160,7 @@ lpos = mean(y_train(:,cfg.target_symbol_pair)==1)*100.0;
 spos = mean(y_train(:,cfg.target_symbol_pair)==2)*100.0;
 npos = mean(y_train(:,cfg.target_symbol_pair)==0)*100.0;
 
-assert(abs(lpos+spos+npos - 100.0)< 1e-10,'Invalid label values, sum is: %.16f',lpos+spos+npos)
+% assert(abs(lpos+spos+npos - 100.0)< 1e-10,'Invalid label values, sum is: %.16f',lpos+spos+npos)
 
 fprintf('Long position ratio: %f%%\n',lpos)
 fprintf('Short position ratio: %f%%\n',spos)

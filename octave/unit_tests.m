@@ -18,6 +18,7 @@ end
 
 addpath([pname '/common']);
 addpath([pname '/neural']);
+addpath([pname '/tests']);
 
 
 % fprintf('Testing sigmoid...\n')
@@ -133,7 +134,10 @@ addpath([pname '/neural']);
 % test tests_training_9
 % test tests_training_10
 
-fprintf('Testing traits creation...\n')
-test tests_create_traits
+% fprintf('Testing traits creation...\n')
+% test tests_create_traits
+
+fprintf('Testing train accuracy...\n')
+test_train_accuracy
 
 more on;

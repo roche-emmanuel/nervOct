@@ -24,8 +24,6 @@ desc.lsizes = network.layer_sizes;
 desc.X_train = X;
 desc.y_train = yy;
 
-size(network.weights)
-
 desc.params = network.weights;
 desc.epsilon = training.learning_rate;
 desc.verbose = training.verbose;

@@ -293,3 +293,4 @@
 - Added GPU implementation for UFLDL ex4.
 - Added implementation for UFLDL ex5 with GPU.
 - Restored proper behavior for train_network_2
+- Added network training tests.

@@ -39,6 +39,9 @@ options.useMex = 0;
 ns = size(labels,1);
 groundTruth = full(sparse(labels, 1:ns, 1));
 
+assert(inputSize==size(inputData,1),'Mismatch in input sizes: %d != %d',inputSize, size(inputData,1));
+assert(ns==size(inputData,2),'Mismatch in number of samples: %d != %d', ns, size(inputData,2));
+
 % Now compute the same thing on GPU:
 desc.lsizes = [(inputSize-1) numClasses];
 desc.X_train = inputData(2:end,:); % We do not provide the intercept term row.
