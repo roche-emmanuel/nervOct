@@ -1,3 +1,5 @@
+% In this training we try to use only a softmax layer to decide the output.
+
 % Initialization
 clear; close all; clc
 more off;
@@ -104,8 +106,7 @@ pred_buy_count = sum(y==1)
 pred_sell_count = sum(y==2)
 
 % compute buy precision:
-acc = 1.0 - mean(double(origy ~= y));
-fprintf('Accuracy: %0.3f%%\n', acc * 100);
+accuracy = 1.0 - mean(double(origy ~= y))
 
 % prediction/ original data precision and recall:
 none_none = sum(y==0 & origy==0);

@@ -88,8 +88,6 @@ struct BPTraits : public BPTraitsBase<T>
   bool debug;
   bool use_softmax;
 
-  unsigned int cost_mode;
-
   T cost;
   T *wmults;
   T* dropouts;
@@ -103,6 +101,7 @@ struct BPTraits : public BPTraitsBase<T>
   T spae_beta;
   T spae_sparsity;
 
+  unsigned int cost_mode;
   // Id used when using the BPTraitsManager:
   int id;
 

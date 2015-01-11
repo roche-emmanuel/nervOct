@@ -417,13 +417,14 @@ unsigned int GradientDescent<T>::restoreState(WindowedMean<T> &mean)
   return _bestIter;
 }
 
-
 extern "C" {
 
   int run_gradient_descent(GDTraits<double> &traits)
   {
     try
     {
+      // logDEBUG("Received nparams="<<traits.nparams);
+      
       GradientDescent<double> gd(traits);
       gd.run();
       if (traits.compute_cost && traits.validationWindowSize > 0)

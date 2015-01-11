@@ -89,6 +89,7 @@ public:
     traits.nsamples_train = nsamples_train;
 
     // Check if we have the proper number of parameters:
+    // logDEBUG("Setting nparams to: "<<params.numel());
     traits.nparams = params.numel();
     traits.params = (double *)params.data();
 
@@ -288,7 +289,9 @@ public:
     traits.compute_grads = true;
 
     // perform actual gradient descent:
+    // logDEBUG("Before call, nparams="<<traits.nparams);
     int res = _run_gd(traits);
+    // logDEBUG("After call, nparams="<<traits.nparams);
 
     // retrieve the cv cost:
     cvCost = traits.cost;
