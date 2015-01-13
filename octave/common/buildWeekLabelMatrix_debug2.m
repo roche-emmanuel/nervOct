@@ -63,8 +63,9 @@ labels = zeros(n,nd);
 
 % % labels += (trim_data >= cfg.min_gain)*1; % 1 is the id for 'buy'
 % % labels += (trim_data <= -cfg.min_gain)*2; % 2 is the id for 'sell'
-labels += (trim_data >= 1.000055)*1; % 1 is the id for 'buy'
-labels += (trim_data <= 0.999955)*2; % 2 is the id for 'sell'
+delta = 0.00005;
+labels += (trim_data >= (1.0+delta))*1; % 1 is the id for 'buy'
+labels += (trim_data <= (1.0-delta))*2; % 2 is the id for 'sell'
 
 mml = max(max(labels));
 assert(mml==2,'Invalid max label value: %d',mml)

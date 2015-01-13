@@ -1,4 +1,5 @@
 % In this test we check if we can predict a simple label properly:
+% Here we try to combine the predictions of 2 simple models.
 
 % Initialization
 clear; close all; clc
@@ -92,7 +93,6 @@ tr.with_softmax = true;
 % save('-binary',fname,'tr');
 
 lsizes = [tr.num_features plsizes]
-nn = nnInitNetwork(lsizes,cfg);
 
 X_train = tr.X_train;
 labels = tr.y_train(:,cfg.target_symbol_pair);
@@ -134,13 +134,34 @@ fprintf('Found %d Buy labels.\n',sum(labels==1))
 fprintf('Found %d Sell labels.\n',sum(labels==2))
 
 % Perform the actual training:
-nn = nnTrainNetworkNERV(tr,nn,cfg);
+nn1 = nnInitNetwork(lsizes,cfg);
+nn1 = nnTrainNetworkNERV(tr,nn1,cfg);
+
+% Now train the second network:
+nn2 = nnInitNetwork(lsizes,cfg);
+nn2 = nnTrainNetworkNERV(tr,nn2,cfg);
+
+nn3 = nnInitNetwork(lsizes,cfg);
+nn3 = nnTrainNetworkNERV(tr,nn3,cfg);
+
+nn4 = nnInitNetwork(lsizes,cfg);
+nn4 = nnTrainNetworkNERV(tr,nn4,cfg);
+
 
 % nn = nnSelectRandomNetwork(10,plsizes,tr,cfg,true)
 
 y_train = nnBuildLabelMatrix(labels)';
 
-[y yy] = nnPredict(nn,X_train);
+[y1 yy] = nnPredict(nn1,X_train);
+[y2 yy] = nnPredict(nn2,X_train);
+[y3 yy] = nnPredict(nn3,X_train);
+[y4 yy] = nnPredict(nn4,X_train);
+
+% Now build the mixed predictions:
+y = zeros(size(y1,1),1);
+y += (y1==1 & y2==1 & y3==1 & y4==1)*1;
+y += (y1==2 & y2==2 & y3==2 & y4==2)*2;
+
 [dummy, origy] = max(y_train', [], 2);
 origy = origy-1;
 
@@ -151,11 +172,12 @@ pred_none_count = sum(y==0)
 pred_buy_count = sum(y==1)
 pred_sell_count = sum(y==2)
 
+% compute buy precision:
 acc = 1.0 - mean(double(origy ~= y));
 fprintf('Accuracy: %0.2f%%\n', acc * 100);
 
-% tacc = (sum(y==1 & origy==1)+sum(y==2 & origy==2))/(sum(y==1)+sum(y==2));
-% fprintf('Trade accuracy: %0.2f%%\n', tacc * 100);
+tacc = (sum(y==1 & origy==1)+sum(y==2 & origy==2))/(sum(y==1)+sum(y==2));
+fprintf('Trade accuracy: %0.2f%%\n', tacc * 100);
 
 % prediction/ original data precision and recall:
 none_none = sum(y==0 & origy==0);
@@ -184,19 +206,29 @@ fprintf('Mean efficiency: %.2f%%\n',mean_eff*100.0);
 assert(sum(sum(prec_recall))==numel(y),'Invalid prec_recal count: %d!=%d',sum(sum(prec_recall)), numel(y))
 
 % Now we can draw the evolution of the costs:
-% figure; hold on;
-% h = gcf();	
-% plot(nn.cost_iters, nn.costs, 'LineWidth', 2, 'Color','b');
-% legend('Jcv');
-% title('Trade Week Learning progress');
-% xlabel('Number of epochs');
-% ylabel('Cv Cost');
-% hold off;
+figure; hold on;
+h = gcf();	
+plot(nn2.cost_iters, nn2.costs, 'LineWidth', 2, 'Color','b');
+legend('Jcv');
+title('Trade Week Learning progress');
+xlabel('Number of epochs');
+ylabel('Cv Cost');
+hold off;
 
 % Now we save the generated network:
-% nn.mu = tr.mu;
-% nn.sigma = tr.sigma;
+nn1.mu = tr.mu;
+nn1.sigma = tr.sigma;
 % fname = [cfg.datapath '/nn_' lsizesToString(plsizes) '_weeks_' rangeToString(trange) '.mat'];
-% save('-binary',fname,'nn');
+fname = [cfg.datapath '/nn1.mat'];
+save('-binary',fname,'nn1');
+
+nn2.mu = tr.mu;
+nn2.sigma = tr.sigma;
+% fname = [cfg.datapath '/nn_' lsizesToString(plsizes) '_weeks_' rangeToString(trange) '.mat'];
+fname = [cfg.datapath '/nn2.mat'];
+save('-binary',fname,'nn2');
 
 more on;
+
+% results:
+
