@@ -141,6 +141,8 @@ fprintf('Testing train accuracy...\n')
 % test_train_accuracy
 % test_train_accuracy_2
 % test_train_accuracy_3
-test_train_accuracy_4
+% test_train_accuracy_4
+
+test_multi_accuracy
 
 more on;

@@ -63,7 +63,7 @@ labels = zeros(n,nd);
 
 % % labels += (trim_data >= cfg.min_gain)*1; % 1 is the id for 'buy'
 % % labels += (trim_data <= -cfg.min_gain)*2; % 2 is the id for 'sell'
-delta = 0.00005;
+delta = cfg.label_buy_sell_delta;
 labels += (trim_data >= (1.0+delta))*1; % 1 is the id for 'buy'
 labels += (trim_data <= (1.0-delta))*2; % 2 is the id for 'sell'
 

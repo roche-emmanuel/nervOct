@@ -120,4 +120,7 @@ cfg.use_rate_of_returns = true;
 % Set to true if we want to discard the number of minutes as feature.
 cfg.discard_nmins_feature = true;
 
+% Delta to be used when using the simple debug methods for labels generation
+cfg.label_buy_sell_delta = 0.00005;
+
 end
