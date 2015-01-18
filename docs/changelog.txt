@@ -297,3 +297,4 @@
 - Added test_train_accuracy variations.
 - Added test train accuracy 4.
 - Added octaverc file.
+- Added some notes
