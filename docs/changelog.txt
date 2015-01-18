@@ -296,3 +296,4 @@
 - Added network training tests.
 - Added test_train_accuracy variations.
 - Added test train accuracy 4.
+- Added octaverc file.

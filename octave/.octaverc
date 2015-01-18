@@ -1,0 +1,19 @@
+% Initialization
+clear; close all; clc
+
+% Here we provide the path to load the plugins.
+pname = pwd();
+
+arch=computer();
+if strcmp(arch,'x86_64-w64-mingw32')==1
+fprintf('Octave x64 architecture.\n')
+addpath([pname '/../bin/x64']);
+else
+fprintf('Octave x86 architecture.\n')
+addpath([pname '/../bin/x86']);
+end
+
+addpath([pname '/common']);
+addpath([pname '/neural']);
+addpath([pname '/trade']);
+addpath([pname '/tests']);
