@@ -303,3 +303,4 @@
 - Using single file for notes.
 - Saved the notes again as multiple files.
 - Added multi files.
+- Added test_obj_update.
