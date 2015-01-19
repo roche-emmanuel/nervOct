@@ -298,6 +298,8 @@
 - Added test train accuracy 4.
 - Added octaverc file.
 - Added some notes
+- added some octave tests
 - Adding some notes on strategy evaluation in octave.
 - Using single file for notes.
 - Saved the notes again as multiple files.
+- Added multi files.
