@@ -299,3 +299,5 @@
 - Added octaverc file.
 - Added some notes
 - added some octave tests
+- Adding some notes on strategy evaluation in octave.
+- Using single file for notes.
