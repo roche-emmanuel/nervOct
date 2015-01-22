@@ -1,4 +1,5 @@
 
+myvar = 1;
 
 function obj = increment_object(obj,step)
 	obj.index = obj.index + step;
@@ -7,7 +8,7 @@ end
 function obj = create_object()
 	obj.id = 'my_object';
 	obj.index = 0;
-	obj.increment = @(step)(increment_object(obj,step))
+	obj.increment = @(step)(increment_object(obj,step));
 end
 
 myobj = create_object();

@@ -304,3 +304,4 @@
 - Saved the notes again as multiple files.
 - Added multi files.
 - Added test_obj_update.
+- Added test for create_obj_state.
