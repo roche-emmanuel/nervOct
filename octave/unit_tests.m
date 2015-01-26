@@ -4,23 +4,6 @@
 clear; close all; clc
 more off;
 
-% First we add the common location path:
-pname = pwd();
-% addpath(['/cygdrive/x/Station/CUDA_Toolkit-6.5/bin']); %add the binary folder.
-arch=computer();
-if strcmp(arch,'x86_64-w64-mingw32')==1
-fprintf('Testing on x64 architecture.\n')
-addpath([pname '/../bin/x64']); %add the binary folder.
-else
-fprintf('Testing on x86 architecture.\n')
-addpath([pname '/../bin/x86']); %add the binary folder.
-end
-
-addpath([pname '/common']);
-addpath([pname '/neural']);
-addpath([pname '/tests']);
-
-
 % fprintf('Testing sigmoid...\n')
 % test sigmoid
 
@@ -137,12 +120,16 @@ addpath([pname '/tests']);
 % fprintf('Testing traits creation...\n')
 % test tests_create_traits
 
-fprintf('Testing train accuracy...\n')
+% fprintf('Testing train accuracy...\n')
 % test_train_accuracy
 % test_train_accuracy_2
 % test_train_accuracy_3
 % test_train_accuracy_4
 
-test_multi_accuracy
+% test_multi_accuracy
+
+fprintf('Testing create_simple_strategy...\n')
+test create_simple_strategy
+
 
 more on;

@@ -306,3 +306,4 @@
 - Added test_obj_update.
 - Added test for create_obj_state.
 - Started creation of simple strategy class.
+- Added implementation for octave strategy test.
