@@ -14,28 +14,44 @@ function obj = create_simple_strategy(desc)
 	obj.lot_multiplier = 0.1;
 	obj.max_lost = obj.mean_spread*2.0;
 	obj.min_gain = obj.mean_spread*1.2;
+	obj.ping_freq = 0;
+	obj.warm_up_threshold = 0; % number of iteration to wait before actually starting to trade.
 
 	% variables:
 	obj.current_position = obj.POSITION_NONE;
 	obj.current_balance = 0.0;
+	obj.num_transactions = 0;
 
 	% assign functions:
 	obj.evaluate = @evaluate_func;
-	obj.digest = @digest_func;
+	obj.digest = @digest_noop_func;
 	obj.handleLongPosition = @handleLongPosition_func;
 	obj.handleShortPosition = @handleShortPosition_func;
 	obj.handleNoPosition = @handleNoPosition_func;
 	obj.reset = @reset_func;
 	obj.openPosition = @openPosition_func;
 	obj.closePosition = @closePosition_func;
-	obj.getPrediction = @getPrediction_func;
+	obj.getPrediction = @getPrediction_dummy_func;
+	obj.setPrices = @setPrices_func;
+	obj.assignModel = @assignModel_func;
+
+	% check if a desc argument was provided:
+	if exist('desc', 'var')
+		% Check the arguments one by one:
+		if isfield(desc, 'ping_freq')
+			obj.ping_freq = desc.ping_freq;
+		end
+		if isfield(desc, 'warm_up')
+			obj.warm_up_threshold = desc.warm_up;
+		end
+	end
 
 	% initialize:
 	obj = obj.reset(obj,true);
 end
 
 % Note that evaluate should not update the model.
-function vals = evaluate_func(obj,inputs,prices)
+function [obj, vals] = evaluate_func(obj,inputs,prices)
 	% Retrieve the number of samples:
 	ns = size(inputs,2);
 
@@ -46,29 +62,48 @@ function vals = evaluate_func(obj,inputs,prices)
 
 	% Iterate on the samples:
 	for i=1:ns
+		if obj.ping_freq > 0 && mod(i, obj.ping_freq)==0
+			fprintf('On evaluation iteration %d...\n',i)
+		end
+
+		% Assign the current high/low/close prices:
+		obj = obj.setPrices(obj, prices(:,i));
+
 		% digest the provided samples:
-		obj = obj.digest(obj,inputs(:,i),prices(:,i));
+		obj = obj.digest(obj,inputs(:,i));
 
-		if (obj.current_position == obj.POSITION_LONG)
-			obj = obj.handleLongPosition(obj);
-		end
+		if i > obj.warm_up_threshold
+			% The warm up phase is done, we can start actually trading.
 
-		if (obj.current_position == obj.POSITION_SHORT)
-			obj = obj.handleShortPosition(obj);
-		end
+			if (obj.current_position == obj.POSITION_LONG)
+				obj = obj.handleLongPosition(obj);
+			end
 
-		if (obj.current_position == obj.POSITION_NONE)
-			obj = obj.handleNoPosition(obj);
+			if (obj.current_position == obj.POSITION_SHORT)
+				obj = obj.handleShortPosition(obj);
+			end
+
+			if (obj.current_position == obj.POSITION_NONE)
+				obj = obj.handleNoPosition(obj);
+			end
 		end
-			
 		vals(i) = obj.current_balance;	
 	end
 end
 
-function obj = reset_func(obj,resetBalance)
-	if(resetBalance==true)
-		fprintf('Resetting balance.\n');
+function obj = setPrices_func(obj,prices)
+	% For each pair we receive the open/high/low/close prices:
+	obj.current_close_price = prices(3); %x(obj.target_symbol_pair*4);
+	obj.current_low_price = prices(2); %x(obj.target_symbol_pair*4 - 1);
+	obj.current_high_price = prices(1); %x(obj.target_symbol_pair*4 - 2);
+end
+
+function obj = reset_func(obj,resetFull)
+	if(resetFull==true)
+		% Reset the balance as well as the evaluation statitics:
+		% fprintf('Resetting balance...\n');
 		obj.current_balance = obj.initial_balance;
+		obj.num_transactions = 0;
 	end
 
 	obj.current_position = obj.POSITION_NONE;
@@ -164,25 +199,38 @@ function obj = closePosition_func(obj)
 	% fprintf('Closing position with profit of : %f euros.\n',profit);
 	obj.current_balance += profit;
 
+	% Increment the number of transactions:
+	obj.num_transactions += 1;
+
 	% Effectively close the position:
 	obj.current_position = obj.POSITION_NONE;
 end
 
-% Method used to digest a single input column:
-function obj = digest_func(obj, x, prices)
-	% This method is responsible for setting the current close/low/high prices:
-	% The input x contains the raw price inputs.
-
-	% For each pair we receive the open/high/low/close prices:
-	obj.current_close_price = prices(3); %x(obj.target_symbol_pair*4);
-	obj.current_low_price = prices(2); %x(obj.target_symbol_pair*4 - 1);
-	obj.current_high_price = prices(1); %x(obj.target_symbol_pair*4 - 2);
+% default digest method doing nothing.
+function obj = digest_noop_func(obj, x, prices)
 
 end
 
-function [obj, pred, conf] = getPrediction_func(obj)
+% digest method to handle a single model.
+function obj = digest_model_func(obj, x)
+	obj.model = obj.model.digest(obj.model, x, obj.current_close_price);
+end
+
+function obj = assignModel_func(obj, model)
+	obj.model = model;
+	obj.digest = @digest_model_func;
+	obj.getPrediction = @getPrediction_model_func;
+end
+
+% Dummy prediction method to just predict to always buy:
+function [obj, pred, conf] = getPrediction_dummy_func(obj)
 	pred = obj.POSITION_LONG; % Always predict to buy :-)
 	conf = 1.0;
+end
+
+% Retrieve prediction from single model:
+function [obj, pred, conf] = getPrediction_model_func(obj)
+	[obj.model, pred, conf] = obj.model.getPrediction(obj.model);
 end
 
 
@@ -215,7 +263,51 @@ end
 %!	inputs = rand(24,ns)*0.001 + 1.25;
 %!	prices = rand(3,ns)*0.001 + 1.25;
 %!	st = create_simple_strategy();
-%!	vals = st.evaluate(st,inputs,prices);
+%!	[st, vals] = st.evaluate(st,inputs,prices);
+%!	assert(size(vals,1)==ns,'Invalid number of balance values.')
+%!	
+%!	% Draw the balances:
+%!	figure; hold on;
+%!	h = gcf();	
+%!	plot(1:ns, vals, 'LineWidth', 2, 'Color','b');
+%!	legend('Balance');
+%!	title('Balance progress in EUROs');
+%!	xlabel('Number of minutes');
+%!	ylabel('Balance value');
+%!	hold off;
+
+% => Run a dummy evaluation test with base model:
+%!test
+%!	ns = 300;
+%!	inputs = rand(24,ns)*0.001 + 1.25;
+%!	prices = rand(3,ns)*0.001 + 1.25;
+%!	st = create_simple_strategy();
+%!	m = create_base_model();
+%!  st = st.assignModel(st,m);
+%!	[st, vals] = st.evaluate(st,inputs,prices);
+%!	assert(size(vals,1)==ns,'Invalid number of balance values.')
+%!	
+%!	assert(vals(end)==st.initial_balance,'Invalid finale balance value.')
+%!	% Draw the balances:
+%!	figure; hold on;
+%!	h = gcf();	
+%!	plot(1:ns, vals, 'LineWidth', 2, 'Color','b');
+%!	legend('Balance');
+%!	title('Balance progress in EUROs');
+%!	xlabel('Number of minutes');
+%!	ylabel('Balance value');
+%!	hold off;
+
+
+% => Run a dummy evaluation test with lreg model:
+%!test
+%!	ns = 300;
+%!	inputs = rand(24,ns)*0.001 + 1.25;
+%!	prices = rand(3,ns)*0.001 + 1.25;
+%!	st = create_simple_strategy();
+%!	m = create_lreg_model();
+%!  st = st.assignModel(st,m);
+%!	[st, vals] = st.evaluate(st,inputs,prices);
 %!	assert(size(vals,1)==ns,'Invalid number of balance values.')
 %!	
 %!	% Draw the balances:

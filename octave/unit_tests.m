@@ -131,5 +131,14 @@ more off;
 fprintf('Testing create_simple_strategy...\n')
 test create_simple_strategy
 
+fprintf('Testing create_base_model...\n')
+test create_base_model
+
+fprintf('Testing create_rand_model...\n')
+test create_rand_model
+
+fprintf('Testing create_lreg_model...\n')
+test create_lreg_model
+
 
 more on;

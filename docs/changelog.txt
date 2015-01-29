@@ -307,3 +307,4 @@
 - Added test for create_obj_state.
 - Started creation of simple strategy class.
 - Added implementation for octave strategy test.
+- Performing tests on lreg model parameters.

@@ -16,7 +16,6 @@ end
 
 % Testing week range:
 trange = 1:6;
-plsizes = [256 3];
 
 cfg = config();
 % fname = [cfg.datapath '/training_weeks_1_12.mat'];
@@ -38,14 +37,9 @@ tr = nnPrepareTraining(trange,cfg);
 % save('-binary',fname,'tr');
 
 
-%% ======================================================================
-%  STEP 2: Prepare a strategy for evaluation:
+% Prepare the input data:
+inputs = tr.X_train';
 
-st = create_simple_strategy();
-
-tic()
-
-inputs = tr.X_train_raw';
 % retrieve only the columns we are interested in:
 cpair = cfg.target_symbol_pair;
 
@@ -55,6 +49,19 @@ prices = tr.prices_train(:,[1+(cpair-1)*4+2,1+(cpair-1)*4+3,1+(cpair-1)*4+4])';
 
 ns = size(prices,2);
 
+
+%% ======================================================================
+%  STEP 2: Prepare a strategy for evaluation:
+
+st = create_simple_strategy(struct(
+	'ping_freq',2000,
+	'warm_up',10000));
+
+% This time we add a simple model to the strategy:
+% st = st.assignModel(st, create_rand_model());
+st = st.assignModel(st, create_lreg_model());
+
+tic()
 % Print part of that matrix:
 % inputs(1:20,1:20)
 % prices(:,1:20)

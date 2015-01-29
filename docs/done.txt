@@ -1,0 +1,8 @@
+* Strategy test on weeks 1:6, with warm_up of 10000:
+
+Rand profit mean: -2423.28 EURO.
+Rand profit standard deviation: 248.03
+
+LReg profit mean: -74.67 EURO. (with learning_rate = 0.0005, min_gain = 0.8)
+LReg profit standard deviation: 169.97
+
