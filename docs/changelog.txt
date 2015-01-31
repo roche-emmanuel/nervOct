@@ -309,3 +309,4 @@
 - Added implementation for octave strategy test.
 - Performing tests on lreg model parameters.
 - Added multi strategy implementation.
+- Tested multi lreg, with no concrete success so far.

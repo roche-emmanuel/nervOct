@@ -1,6 +1,10 @@
 % Test to check the mean and std value when random model for simple strategy.
 function test_strategy_3(mname, mfunc, stdesc)
 
+if ! exist('stdesc', 'var')
+	stdesc = struct();
+end
+
 % mfunc should be a valid model creation function
 % mfunc = @create_rand_model
 % mfunc = @create_lreg_model
@@ -12,14 +16,16 @@ more off;
 % tic()
 
 % Testing week range:
-trange = 1:6;
+% trange = 1:6;
+% trange = 20:26;
+trange = 30:36;
 
 cfg = config();
 % fname = [cfg.datapath '/training_weeks_1_12.mat'];
 % load(fname);
 
 % Prepare the config:
-cfg.num_input_bars=120;
+cfg.num_input_bars=180;
 cfg.num_pred_bars=1;
 cfg.use_sparse_init = false;
 cfg.use_PCA = false;
@@ -46,8 +52,8 @@ fprintf('Number of samples: %d.\n',ns)
 
 % execute a serie of test to compare the statistics
 % acheived with a random model and a lreg model:
-% ntest = 4;
-ntest = 250;
+ntest = 1;
+% ntest = 250;
 % ntest = 500;
 
 final_balances = zeros(ntest,1);
@@ -71,6 +77,18 @@ for i=1:ntest
 	transactions(:,i) = st.num_transactions;
 end
 toc()
+
+% Draw the balances:
+figure; hold on;
+h = gcf();	
+plotyy(1:ns, vals, 1:ns, prices(3,:))
+% plot(1:ns, vals, 'LineWidth', 2, 'Color','b');
+% plot(1:ns, prices(3,:), 'LineWidth', 1, 'Color','r');
+legend('Balance','Prices');
+title('Balance progress in EUROs');
+xlabel('Number of minutes');
+ylabel('Balance value');
+hold off;
 
 % Remove the input balance value:
 final_balances = final_balances - 3000;

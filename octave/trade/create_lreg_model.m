@@ -10,7 +10,7 @@ function obj = create_lreg_model(desc)
 	% parameters
 	obj.learning_rate = 0.0006;
 	obj.conf_learning_rate = 0.0005;
-	obj.gain_threshold = 1.0;
+	obj.gain_threshold = 0.3;
 	obj.lambda = 0.01; % regularization parameter.
 
 	% variables:
@@ -82,7 +82,7 @@ function obj = digest_func(obj, x, prev_value)
 end
 
 function obj = initTheta_func(obj,n)
-	fprintf('Initializing theta to size: %d.\n',n);
+	% fprintf('Initializing theta to size: %d.\n',n);
 	obj.theta = (rand(n,1)-0.5)*2.0; % In the range [-1,1]
 end
 

@@ -8,7 +8,7 @@ function obj = create_multi_strategy(desc)
 	obj.classname = 'multi_strategy';
 
 	% obj.parameters:
-	obj.num_models = 10;
+	obj.num_models = 50;
 
 	% assign functions:
 	obj = rmfield(obj,'assignModel'); % There should be no assignModel function.

@@ -45,7 +45,7 @@ fprintf('Number of samples: %d.\n',ns)
 
 % execute a serie of test to compare the statistics
 % acheived with a random model and a lreg model:
-ntest = 4;
+ntest = 1;
 % ntest = 250;
 % ntest = 500;
 
@@ -68,6 +68,18 @@ for i=1:ntest
 	transactions(:,i) = st.num_transactions;
 end
 toc()
+
+% Draw the balances:
+figure; hold on;
+h = gcf();	
+plotyy(1:ns, vals, 1:ns, prices(3,:))
+% plot(1:ns, vals, 'LineWidth', 2, 'Color','b');
+% plot(1:ns, prices(3,:), 'LineWidth', 1, 'Color','r');
+legend('Balance','Prices');
+title('Balance progress in EUROs');
+xlabel('Number of minutes');
+ylabel('Balance value');
+hold off;
 
 % Remove the input balance value:
 final_balances = final_balances - 3000;
