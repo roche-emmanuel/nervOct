@@ -1,4 +1,8 @@
 function obj = create_simple_strategy(desc)
+	if ! exist('desc', 'var')
+		desc = struct();
+	end
+
 	obj.classname = 'simple_strategy';
 
 	% enums:
@@ -12,15 +16,16 @@ function obj = create_simple_strategy(desc)
 	obj.mean_spread = 0.00008;
 	obj.target_symbol_pair = 6; % 6 = EURUSD symbol. % desc.target_symbol_pair;
 	obj.lot_multiplier = 0.1;
-	obj.max_lost = obj.mean_spread*2.0;
+	obj.max_lost = 0.00025; %obj.mean_spread*2.0;
 	obj.min_gain = obj.mean_spread*1.2;
 	obj.ping_freq = 0;
-	obj.warm_up_threshold = 0; % number of iteration to wait before actually starting to trade.
+	obj.warm_up_threshold = 10000; % number of iteration to wait before actually starting to trade.
 
 	% variables:
 	obj.current_position = obj.POSITION_NONE;
-	obj.current_balance = 0.0;
-	obj.num_transactions = 0;
+	obj.current_balance = obj.initial_balance;
+	% Contains the number of long win/long lost/short win/short lost
+	obj.num_transactions = zeros(4,1);
 
 	% assign functions:
 	obj.evaluate = @evaluate_func;
@@ -36,18 +41,19 @@ function obj = create_simple_strategy(desc)
 	obj.assignModel = @assignModel_func;
 
 	% check if a desc argument was provided:
-	if exist('desc', 'var')
-		% Check the arguments one by one:
-		if isfield(desc, 'ping_freq')
-			obj.ping_freq = desc.ping_freq;
-		end
-		if isfield(desc, 'warm_up')
-			obj.warm_up_threshold = desc.warm_up;
-		end
+	% Check the arguments one by one:
+	if isfield(desc, 'ping_freq')
+		obj.ping_freq = desc.ping_freq;
 	end
-
-	% initialize:
-	obj = obj.reset(obj,true);
+	if isfield(desc, 'warm_up')
+		obj.warm_up_threshold = desc.warm_up;
+	end
+	if isfield(desc, 'max_lost')
+		obj.max_lost = desc.max_lost;
+	end
+	if isfield(desc, 'min_gain')
+		obj.min_gain = desc.min_gain;
+	end
 end
 
 % Note that evaluate should not update the model.
@@ -103,7 +109,7 @@ function obj = reset_func(obj,resetFull)
 		% Reset the balance as well as the evaluation statitics:
 		% fprintf('Resetting balance...\n');
 		obj.current_balance = obj.initial_balance;
-		obj.num_transactions = 0;
+		obj.num_transactions = zeros(4,1);
 	end
 
 	obj.current_position = obj.POSITION_NONE;
@@ -164,6 +170,8 @@ function obj = openPosition_func(obj, pred, confidence)
 		return;
 	end
 
+	% fprintf('Using lot size of %f with confidence %f\n',nlots,confidence);
+
 	% Otherwise we really enter the requested position:
 	obj.num_lots = nlots;
 	obj.current_position = pred;
@@ -182,6 +190,7 @@ function obj = closePosition_func(obj)
 	assert(obj.current_position==obj.POSITION_LONG || obj.current_position==obj.POSITION_SHORT,'Invalid position: %d',obj.current_position);
 	gain = 0;
 	rr = 0;
+	offset = 0;
 	if(obj.current_position==obj.POSITION_LONG)
 		% We are about to sell since we initially bought the pair.
 		% The gain will be the difference between the sell price and the buy price.
@@ -193,6 +202,7 @@ function obj = closePosition_func(obj)
 		buy_price = obj.stop_lost + obj.mean_spread;
 		gain = obj.transaction_price - buy_price;
 		rr = (obj.transaction_price/buy_price - 1.0);
+		offset = 2;
 	end
 
 	profit = obj.num_lots * 100000 * rr;
@@ -200,7 +210,11 @@ function obj = closePosition_func(obj)
 	obj.current_balance += profit;
 
 	% Increment the number of transactions:
-	obj.num_transactions += 1;
+	if rr > 0
+		obj.num_transactions(offset+1) += 1;
+	else
+		obj.num_transactions(offset+2) += 1;			
+	end
 
 	% Effectively close the position:
 	obj.current_position = obj.POSITION_NONE;

@@ -1,10 +1,9 @@
-% Test to check the mean and std value when random model for simple strategy.
-function test_strategy_3(mname, mfunc, stdesc)
+% Test to check the predictions with multi strategy model
+function test_strategy_4(mname, mfunc, stdesc)
 
-% mfunc should be a valid model creation function
-% mfunc = @create_rand_model
-% mfunc = @create_lreg_model
-
+if ! exist('stdesc', 'var')
+	stdesc = struct();
+end
 
 % Initialization
 % clear; close all; clc
@@ -46,8 +45,8 @@ fprintf('Number of samples: %d.\n',ns)
 
 % execute a serie of test to compare the statistics
 % acheived with a random model and a lreg model:
-% ntest = 4;
-ntest = 250;
+ntest = 4;
+% ntest = 250;
 % ntest = 500;
 
 final_balances = zeros(ntest,1);
@@ -57,14 +56,12 @@ tic()
 for i=1:ntest
 	fprintf('Running trial %d...\n',i)
 
-	st = create_simple_strategy(stdesc);
-	% struct(
-	% 	'ping_freq',0,
-	% 	'warm_up',10000,
-	% 	'max_lost',0.00030));
+	st = create_multi_strategy(stdesc);
 
-	% Add the proper model to the strategy:
-	st = st.assignModel(st, mfunc());
+	for j=1:st.num_models
+		% Add the proper model to the strategy:
+		st = st.setModel(st, mfunc(), j);
+	end
 
 	[st, vals] = st.evaluate(st,inputs,prices);
 	final_balances(i) = vals(end);
