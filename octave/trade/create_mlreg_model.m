@@ -11,7 +11,7 @@ function obj = create_mlreg_model(desc)
 	obj.classname = 'mlreg_model';
 
 	% parameter:
-	obj.num_instances = 100;
+	obj.num_instances = 50;
 
 	obj = rmfield(obj,'computePrediction'); % method not used in this model.
 	obj = rmfield(obj,'trainConfidence'); % method not used in this model.
@@ -46,8 +46,9 @@ end
 function [obj, pred, conf] = getPrediction_func(obj)
 	pred = obj.POSITION_NONE;
 
+	delta = obj.computeDelta(obj);
 
-	delta = obj.theta' * obj.prev_x - obj.current_value;
+	% delta = obj.theta' * obj.prev_x - obj.current_value;
 	% % since delta can be a vector, we use the mean value of it here:
 	% delta = mean(delta);
 
@@ -68,19 +69,22 @@ function [obj, pred, conf] = getPrediction_func(obj)
 
 	count = [ sum(none_idx); sum(long_idx); sum(short_idx) ]
 
-	assert(sum(count)==obj.num_instances,'Invalid total count: %d.\n',sum(count))
-	
+	if (sum(count)!=obj.num_instances)
+		delta
+		assert(sum(count)==obj.num_instances,'Invalid total count: %d.\n',sum(count))
+	end
+
 	% Retrieve the index of the max value:
 	[max_count, idx] = max(count);
 
 	% The final prediction we want to make is given by "idx", but idx is from 1 to 3.
 	% So we need to remap:
 	idx_map = [obj.POSITION_NONE, obj.POSITION_LONG, obj.POSITION_SHORT];
-	pred = idx_map(idx)
+	pred = idx_map(idx);
 
 	% Now compute the confidence ratio:
 	other_idx = 1:3;
 	other_idx(idx) = []; % Remove the index of interest.
 
-	conf = min((max_count-count(other_idx))/obj.num_instances)
+	conf = min((max_count-count(other_idx))/obj.num_instances);
 end

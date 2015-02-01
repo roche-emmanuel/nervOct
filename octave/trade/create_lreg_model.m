@@ -8,11 +8,12 @@ function obj = create_lreg_model(desc)
 	obj.classname = 'lreg_model';
 
 	% parameters
-	obj.learning_rate = 0.0006;
+	obj.learning_rate = 0.00001;
 	obj.conf_learning_rate = 0.0005;
 	obj.gain_threshold = 0.3;
-	obj.lambda = 0.01; % regularization parameter.
+	obj.lambda = 100.0; % regularization parameter.
 	obj.digest_count = 0;
+	% obj.rr_scale = 1000.0;
 
 	% variables:
 	obj.theta = [];
@@ -30,6 +31,7 @@ function obj = create_lreg_model(desc)
 	obj.computeConfidence = @computeConfidence_func;
 	obj.train = @train_func;
 	obj.initTheta = @initTheta_func;
+	obj.computeDelta = @computeDelta_func;
 
 	% check if a desc argument was provided:
 	% Check the arguments one by one:
@@ -67,6 +69,7 @@ function obj = digest_func(obj, x, prev_value)
 
 		% Here we should also init the previous_x array:
 		obj.prev_x = zeros(n,2);
+		obj.labels = zeros(1,2);
 	end
 
 	if obj.initialized
@@ -77,9 +80,9 @@ function obj = digest_func(obj, x, prev_value)
 
 		% perform a conversion if rate of returns are requested.
 		if obj.use_return_rates
-			xx = (xx ./ obj.prev_x(:,1)) - 1;
+			xx = ((xx ./ obj.prev_x(:,1)) - 1);
 			xx(1) = 1;
-			yy = (yy / obj.current_value) - 1;
+			yy = ((yy / obj.labels(1,2)) - 1);
 		end
 
 		% If we use a confidence model then we need update it here
@@ -102,7 +105,8 @@ function obj = digest_func(obj, x, prev_value)
 	obj.prev_x(:,1) = obj.prev_x(:,2);
 	obj.prev_x(:,2) = x;
 
-	obj.current_value = prev_value; % This is in fact the current close price.
+	obj.labels(1,1) = obj.labels(1,2);
+	obj.labels(1,2) = prev_value; % This is in fact the current close price.
 end
 
 function obj = initTheta_func(obj,n)
@@ -117,8 +121,8 @@ end
 
 function obj = digestConfidence_func(obj, x, new_value)
 	hx = obj.theta' * x;
-	pred = obj.computePrediction(obj,hx - obj.current_value);
-	pred_best = obj.computePrediction(obj,new_value - obj.current_value);
+	pred = obj.computePrediction(obj,hx - obj.labels(1,2));
+	pred_best = obj.computePrediction(obj,new_value - obj.labels(1,2));
 
 	% If we got a proper prediction, then set the confidence value to one,
 	% otherwise we set it to zero:
@@ -165,6 +169,23 @@ function pred = computePrediction_func(obj, delta)
 	end
 end
 
+function delta = computeDelta_func(obj)
+	% Prepare the training sample:
+	% By default use only the previous value and the new label just provided.
+	xx = obj.prev_x(:,2);
+	yy = obj.labels(1,2);
+
+	% perform a conversion if rate of returns are requested.
+	if obj.use_return_rates
+		xx = ((xx ./ obj.prev_x(:,1)) - 1);
+		xx(1) = 1;
+		%yy = ((yy / obj.labels(1,1)) - 1);
+		delta = obj.theta' * xx
+	else
+		delta = obj.theta' * xx - yy;
+	end
+end
+
 % Retrieve prediction from single model:
 function [obj, pred, conf] = getPrediction_func(obj)
 	% We use the current input to build a prediction of the close price
@@ -172,26 +193,13 @@ function [obj, pred, conf] = getPrediction_func(obj)
 	% if significantly higher then we go for LONG position
 	% if significantly lower then we go for short position
 	% Otherwise we suggest No position:
-
-	% Prepare the training sample:
-	% By default use only the previous value and the new label just provided.
-	xx = obj.prev_x(:,2);
-	yy = prev_value;
-
-	% perform a conversion if rate of returns are requested.
-	if obj.use_return_rates
-		xx = (xx ./ obj.prev_x(:,1)) - 1;
-		xx(1) = 1;
-		yy = (yy / obj.current_value) - 1;
-	end
-		
-	delta = obj.theta' * obj.prev_x - obj.current_value;
+	delta = obj.computeDelta(obj);
 	pred = obj.computePrediction(obj, delta);
 
 	conf = 1.0;
 	% Update the confidence value if we use the confidence model:
 	if obj.use_conf_model
-		conf = obj.computeConfidence(obj,obj.prev_x);
+		conf = obj.computeConfidence(obj,xx);
 	end
 	% fprintf('Using confidence value: %f\n',conf);
 end

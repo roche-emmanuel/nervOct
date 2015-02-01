@@ -16,7 +16,7 @@ more off;
 % tic()
 
 % Testing week range:
-trange = 1:6;
+trange = 1:2;
 % trange = 20:26;
 % trange = 30:36;
 
@@ -25,7 +25,7 @@ cfg = config();
 % load(fname);
 
 % Prepare the config:
-cfg.num_input_bars=120;
+cfg.num_input_bars=10;
 cfg.num_pred_bars=1;
 cfg.use_sparse_init = false;
 cfg.use_PCA = false;

@@ -311,3 +311,4 @@
 - Added multi strategy implementation.
 - Tested multi lreg, with no concrete success so far.
 - Implementing rate of return usage.
+- Added initial implementation for rate of returns usage.
