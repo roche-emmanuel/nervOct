@@ -12,12 +12,14 @@ function obj = create_lreg_model(desc)
 	obj.conf_learning_rate = 0.0005;
 	obj.gain_threshold = 0.3;
 	obj.lambda = 0.01; % regularization parameter.
+	obj.digest_count = 0;
 
 	% variables:
 	obj.theta = [];
 	obj.conf_theta = [];
 	obj.initialized = false;
 	obj.use_conf_model = false;
+	obj.use_return_rates = true;
 
 	% assign functions:
 	obj.digest = @digest_func;
@@ -50,6 +52,7 @@ end
 
 function obj = reset_func(obj)
 	obj.initialized = false;
+	obj.digest_count = 0;
 end
 
 % digest method to handle a single model.
@@ -61,23 +64,44 @@ function obj = digest_func(obj, x, prev_value)
 	n = size(x,1);
 	if size(obj.theta,1) ~= n
 		obj = obj.initTheta(obj,n);
+
+		% Here we should also init the previous_x array:
+		obj.prev_x = zeros(n,2);
 	end
 
 	if obj.initialized
+		% Prepare the training sample:
+		% By default use only the previous value and the new label just provided.
+		xx = obj.prev_x(:,2);
+		yy = prev_value;
+
+		% perform a conversion if rate of returns are requested.
+		if obj.use_return_rates
+			xx = (xx ./ obj.prev_x(:,1)) - 1;
+			xx(1) = 1;
+			yy = (yy / obj.current_value) - 1;
+		end
+
 		% If we use a confidence model then we need update it here
 		% before setting the new previous features and label:
 		if obj.use_conf_model
-			obj = obj.digestConfidence(obj, obj.prev_x, prev_value);
+			obj = obj.digestConfidence(obj, xx, yy);
 		end
 
 		% We can train with the previous inputs and the previous value we just received:
-		obj = obj.train(obj, obj.prev_x, prev_value);
+		obj = obj.train(obj, xx, yy);
 	end
 
-	% Now we save the new x value as the prev_x,
-	% and we mark the model as initialized anyway:
-	obj.initialized = true;
-	obj.prev_x = x;
+	% Increment the digest count:
+	obj.digest_count += 1;
+
+	obj.initialized = (obj.digest_count>=2);
+
+	% Since we might want to use rate of returns,
+	% We need to keep the 2 previous values:
+	obj.prev_x(:,1) = obj.prev_x(:,2);
+	obj.prev_x(:,2) = x;
+
 	obj.current_value = prev_value; % This is in fact the current close price.
 end
 
@@ -149,6 +173,18 @@ function [obj, pred, conf] = getPrediction_func(obj)
 	% if significantly lower then we go for short position
 	% Otherwise we suggest No position:
 
+	% Prepare the training sample:
+	% By default use only the previous value and the new label just provided.
+	xx = obj.prev_x(:,2);
+	yy = prev_value;
+
+	% perform a conversion if rate of returns are requested.
+	if obj.use_return_rates
+		xx = (xx ./ obj.prev_x(:,1)) - 1;
+		xx(1) = 1;
+		yy = (yy / obj.current_value) - 1;
+	end
+		
 	delta = obj.theta' * obj.prev_x - obj.current_value;
 	pred = obj.computePrediction(obj, delta);
 

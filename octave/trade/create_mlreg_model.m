@@ -66,19 +66,21 @@ function [obj, pred, conf] = getPrediction_func(obj)
 	long_idx = delta(:)>gth;
 	short_idx = delta(:)<-gth;
 
-	count = [ sum(none_idx); sum(long_idx); sum(short_idx) ];
+	count = [ sum(none_idx); sum(long_idx); sum(short_idx) ]
 
+	assert(sum(count)==obj.num_instances,'Invalid total count: %d.\n',sum(count))
+	
 	% Retrieve the index of the max value:
 	[max_count, idx] = max(count);
 
 	% The final prediction we want to make is given by "idx", but idx is from 1 to 3.
 	% So we need to remap:
 	idx_map = [obj.POSITION_NONE, obj.POSITION_LONG, obj.POSITION_SHORT];
-	pred = idx_map(idx);
+	pred = idx_map(idx)
 
 	% Now compute the confidence ratio:
 	other_idx = 1:3;
 	other_idx(idx) = []; % Remove the index of interest.
 
-	conf = min((max_count-count(other_idx))/obj.num_instances);
+	conf = min((max_count-count(other_idx))/obj.num_instances)
 end
