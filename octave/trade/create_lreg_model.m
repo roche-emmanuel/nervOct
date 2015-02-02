@@ -10,17 +10,21 @@ function obj = create_lreg_model(desc)
 	% parameters
 	obj.learning_rate = 0.00001;
 	obj.conf_learning_rate = 0.0005;
-	obj.gain_threshold = 0.3;
+	obj.gain_threshold = 1.0;
 	obj.lambda = 100.0; % regularization parameter.
 	obj.digest_count = 0;
-	% obj.rr_scale = 1000.0;
+	obj.use_conf_model = false;
+	obj.use_return_rates = true;
+	obj.use_pnorm = true;
+	obj.pnorm_proj_length = 1.0; % max length of the theta vector.
+	obj.pnorm = 2.0; % pnorm to use for adaptative learning rate.
 
 	% variables:
 	obj.theta = [];
 	obj.conf_theta = [];
 	obj.initialized = false;
-	obj.use_conf_model = false;
-	obj.use_return_rates = true;
+	obj.max_x_norm = 0.0;
+	obj.cumul_loss = [];
 
 	% assign functions:
 	obj.digest = @digest_func;
@@ -50,6 +54,8 @@ function obj = create_lreg_model(desc)
 	if isfield(desc, 'lambda')
 		obj.lambda = desc.lambda;
 	end
+
+	obj.qnorm = pdual(obj.pnorm);
 end
 
 function obj = reset_func(obj)
@@ -112,11 +118,67 @@ end
 function obj = initTheta_func(obj,n)
 	% fprintf('Initializing theta to size: %d.\n',n);
 	obj.theta = (rand(n,1)-0.5)*2.0; % In the range [-1,1]
+
+	% check the norm of theta:
+	if(obj.use_pnorm)
+		tlen = pnorm(obj.theta,obj.qnorm);
+		fprintf('Initial theta qnorm: %f.\n',tlen);
+		% renormalize if needed:
+		if(tlen>obj.pnorm_proj_length)
+			obj.theta = obj.theta*obj.pnorm_proj_length/tlen;
+		end
+	end
 end
 
+% function obj = train_func(obj, x, value)
+% 	hx = obj.theta' * x;	
+% 	obj.theta = obj.theta - obj.learning_rate * ((hx - value) * x + obj.lambda * [0.0; obj.theta(2:end)]);
+% end
+
 function obj = train_func(obj, x, value)
-	hx = obj.theta' * x;	
-	obj.theta = obj.theta - obj.learning_rate * ((hx - value) * x + obj.lambda * [0.0; obj.theta(2:end)]);
+	% hx will be a column vector of the regression outputs.
+	% We actually want to use a row vector here, so we take the transpose:
+	hx = x' * obj.theta;	
+
+	deriv = ( bsxfun(@times,(hx - value),x) + obj.lambda * [zeros(1,size(obj.theta,2)); obj.theta(2:end,:)]);
+
+	if obj.use_pnorm
+		% compute the adaptative pnorm algorithm:
+		% first we get the max pnorm length:
+		p = obj.pnorm;
+		U = obj.pnorm_proj_length;
+
+		max_x = max(obj.max_x_norm,pnorm(x,p));
+		obj.max_x_norm = max_x;
+
+		if size(obj.cumul_loss,2) ~= size(obj.theta,2)
+			fprintf('Initializing cumul_loss with size %d.\n',size(obj.theta,2));
+			obj.cumul_loss = zeros(1,size(obj.theta,2));
+		end
+
+		% add the new loss:
+		obj.cumul_loss += 0.5*(hx-value).^2;
+
+		Lt = obj.cumul_loss; % note that this is a row vector.
+
+		kt = (obj.pnorm - 1)*max_x*max_x*U*U;
+
+		ct = sqrt(kt) ./ (sqrt(kt+Lt) - sqrt(kt));
+
+		nt = (ct ./ (1+ct))*(1.0/((p-1)*max_x*max_x));
+
+		obj.theta = obj.theta - bsxfun(@times,nt,deriv);
+		% size(obj.theta,2)
+
+		tlen = pnorm(obj.theta,obj.qnorm);
+		idx = tlen > U;
+		obj.theta(:,idx) = bsxfun(@rdivide,obj.theta(:,idx)*U, tlen(idx));
+		% if tlen > U
+		% 	obj.theta = obj.theta*U ./ tlen;
+		% end
+	else
+		obj.theta = obj.theta - obj.learning_rate * deriv;
+	end
 end
 
 function obj = digestConfidence_func(obj, x, new_value)
@@ -180,7 +242,7 @@ function delta = computeDelta_func(obj)
 		xx = ((xx ./ obj.prev_x(:,1)) - 1);
 		xx(1) = 1;
 		%yy = ((yy / obj.labels(1,1)) - 1);
-		delta = obj.theta' * xx
+		delta = obj.theta' * xx;
 	else
 		delta = obj.theta' * xx - yy;
 	end

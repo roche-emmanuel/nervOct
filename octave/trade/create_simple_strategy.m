@@ -16,7 +16,7 @@ function obj = create_simple_strategy(desc)
 	obj.mean_spread = 0.00008;
 	obj.target_symbol_pair = 6; % 6 = EURUSD symbol. % desc.target_symbol_pair;
 	obj.lot_multiplier = 0.1;
-	obj.max_lost = 0.00005; %0.00025; %obj.mean_spread*2.0;
+	obj.max_lost = 0.00025; %obj.mean_spread*2.0;
 	obj.min_gain = obj.mean_spread*1.2;
 	obj.ping_freq = 0;
 	obj.warm_up_threshold = 10000; % number of iteration to wait before actually starting to trade.

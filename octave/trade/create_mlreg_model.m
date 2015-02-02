@@ -12,13 +12,13 @@ function obj = create_mlreg_model(desc)
 
 	% parameter:
 	obj.num_instances = 50;
+	obj.conf_threshold = 0.15;
 
 	obj = rmfield(obj,'computePrediction'); % method not used in this model.
 	obj = rmfield(obj,'trainConfidence'); % method not used in this model.
 	obj = rmfield(obj,'computeConfidence'); % method not used in this model.
 
 	% assign functions:	
-	obj.train = @train_func;
 	obj.initTheta = @initTheta_func;
 	obj.getPrediction = @getPrediction_func;
 
@@ -32,14 +32,17 @@ end
 function obj = initTheta_func(obj,n)
 	fprintf('Initializing multi theta to size: %dx%d.\n',n,obj.num_instances);
 	obj.theta = (rand(n,obj.num_instances)-0.5)*2.0; % In the range [-1,1]
-end
 
-function obj = train_func(obj, x, value)
-	% hx will be a column vector of the regression outputs.
-	% We actually want to use a row vector here:
-	hx = x' * obj.theta;	
+	% check the norm of theta:
+	if(obj.use_pnorm)
+		tlen = pnorm(obj.theta,obj.qnorm);
+		% fprintf('Initial theta qnorm: %f.\n',tlen);
+		% renormalize if needed:
+		if(tlen>obj.pnorm_proj_length)
+			obj.theta = bsxfun(@rdivide,obj.theta*obj.pnorm_proj_length,tlen);
+		end
+	end
 
-	obj.theta = obj.theta - obj.learning_rate * ( bsxfun(@times,(hx - value),x) + obj.lambda * [zeros(1,size(obj.theta,2)); obj.theta(2:end,:)]);
 end
 
 % Retrieve prediction from single model:
@@ -67,7 +70,7 @@ function [obj, pred, conf] = getPrediction_func(obj)
 	long_idx = delta(:)>gth;
 	short_idx = delta(:)<-gth;
 
-	count = [ sum(none_idx); sum(long_idx); sum(short_idx) ]
+	count = [ sum(none_idx); sum(long_idx); sum(short_idx) ];
 
 	if (sum(count)!=obj.num_instances)
 		delta
@@ -87,4 +90,7 @@ function [obj, pred, conf] = getPrediction_func(obj)
 	other_idx(idx) = []; % Remove the index of interest.
 
 	conf = min((max_count-count(other_idx))/obj.num_instances);
+
+	% apply confidence threshold:
+	conf = max(conf-obj.conf_threshold,0.0);
 end
