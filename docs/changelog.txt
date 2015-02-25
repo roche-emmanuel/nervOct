@@ -314,3 +314,4 @@
 - Added initial implementation for rate of returns usage.
 - Added implementation for self confident pnorn linear regression.
 - Added RRL template.
+- added some rrl test files.

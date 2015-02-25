@@ -30,8 +30,8 @@ mu = mean(X);
 sigma = std(X);
 X_norm = (X - repmat(mu,m,1)) ./ repmat(sigma,m,1);
 
-fprintf('Value of mu: %.16f\n',mu);
-fprintf('Value of sigma: %.16f\n',sigma);
+% fprintf('Value of mu: %.16f\n',mu);
+% fprintf('Value of sigma: %.16f\n',sigma);
 
 % ============================================================
 

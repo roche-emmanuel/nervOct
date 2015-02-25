@@ -5,7 +5,7 @@ function [ J, grad ] = costFunction( Xn, X, theta)
     delta = 0.001;
         
     M = length(theta) - 2;
-    T = length(X) - M;
+    T = length(X) - M + 1;
 
     Ft = updateFt(Xn, theta, T);     
     
@@ -13,7 +13,7 @@ function [ J, grad ] = costFunction( Xn, X, theta)
 
     [Ret, sharp] = rewardFunction(X, miu, delta, Ft, M);
     J = sharp * -1;
-    Ret(1:10)
+    % Ret(1:10)
 
     dFt = zeros(M+2,T+1);
     for i = 2:T+1,
@@ -23,7 +23,7 @@ function [ J, grad ] = costFunction( Xn, X, theta)
     
     
     dRtFt = -1 * miu * delta * sign(Ft(2:end)-Ft(1:T));
-    %dRtFtt = miu * X(M+1:T+M) + miu * delta * sign(Ft(2:end)-Ft(1:T));
+    % dRtFtt = miu * X(M+1:T+M) + miu * delta * sign(Ft(2:end)-Ft(1:T));
     dRtFtt = miu * X(M:M+T-1) + miu * delta * sign(Ft(2:end)-Ft(1:T));
     A = sum(Ret) / T;
     B = sum(Ret.*Ret) / T;

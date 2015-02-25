@@ -11,6 +11,18 @@ N = 100;
 
  
 initial_theta = ones(M+2,1); % initialize theta
+initial_theta(1) =-5.329892976411613;
+initial_theta(2) = 8.681591678338178;
+initial_theta(3) = 9.241137303738697;
+initial_theta(4) = -4.908927453253914;
+initial_theta(5) = 3.534501663498566;
+initial_theta(6) = -0.2650138639340147;
+initial_theta(7) = -4.724119676478461;
+initial_theta(8) = -3.226806642814311;
+initial_theta(9) = 4.842927808335573;
+initial_theta(10) = -11.11499534293776;
+initial_theta(11) = 13.05746887061044;
+initial_theta(12) = 15.53525063150582
 
 X = retDAX(:); % truncate input data
 
@@ -28,15 +40,20 @@ Xn = featureNormalize(X);
  %plot(U_history)
 
  %  Set options for fminunc
-options = optimset('GradObj', 'on', 'MaxIter', 1000); %, 'PlotFcns', @optimplotfval);
+%options = optimset('GradObj', 'on', 'MaxIter', 1000); %, 'PlotFcns', @optimplotfval);
+
+%options = struct('GradObj','on','Display','iter','MaxIter',1000,'GradConstr',true);
+options = struct('GradObj','on','Display','iter','MaxIter',1000,'HessUpdate','bfgs','GradConstr',true);
 
 % Evalute the cost and gradients on the initial theta position:
 [cost, grad] = costFunction(Xn(1:M+T), X(1:M+T), initial_theta)
 
 %  Run fminunc to obtain the optimal theta
 %  This function will return theta and the cost 
-[theta, cost, EXITFLAG,OUTPUT] = fminunc(@(t)(costFunction(Xn(1:M+T), X(1:M+T), t)), initial_theta, options)
-
+% [theta, cost, EXITFLAG,OUTPUT] = fminunc(@(t)(costFunction(Xn(1:M+T), X(1:M+T), t)), initial_theta, options)
+format long;
+%[theta, cost, EXITFLAG,OUTPUT] = fminlbfgs(@(t)(costFunction(Xn(1:M+T), X(1:M+T), t)), initial_theta, options)
+theta = initial_theta;
 
 Ft = updateFt(Xn(1:M+T), theta, T);
 
