@@ -315,3 +315,4 @@
 - Added implementation for self confident pnorn linear regression.
 - Added RRL template.
 - added some rrl test files.
+- Adding soem data files for rrl tests.
